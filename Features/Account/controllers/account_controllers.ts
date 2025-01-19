@@ -6,6 +6,7 @@ import { initializeApp, getApp } from 'firebase/app';
 const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
 import { firebaseConfig } from "../../../config/firebase/firebase_storage";
 import prisma from '../../../prisma/schema/prisma.clint';
+import { printD } from '../../../utils/utils';
 const storage = getStorage();
 
 // Initialize Firebase
@@ -244,7 +245,7 @@ export const viewOthersAccount = async (req: any, res: Response) => {
     const filteredUser = Object.fromEntries(
       Object.entries(user).filter(([_, value]) => value !== null)
     );
-    return res.status(200).json({ user: filteredUser });
+    return res.status(200).json(filteredUser);
   } catch (error: any) {
     console.error("Error fetching account data:", error);
     return res.status(500).json({ message: "Error getting routines" });
