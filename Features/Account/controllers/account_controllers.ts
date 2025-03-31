@@ -174,6 +174,7 @@ export const searchAccounts = async (req: any, res: Response) => {
 
 //........ View my account ...//
 export const view_my_account = async (req: any, res: Response) => {
+  console.log('view_my_account')
   try {
     // Fetch user account data
     const user = await prisma.account.findUnique({
@@ -202,6 +203,7 @@ export const view_my_account = async (req: any, res: Response) => {
       Object.entries(user).filter(([_, value]) => value !== null)
     );
 
+    console.log(filteredUser);
     return res.status(200).json(filteredUser);
   } catch (error: any) {
     console.error(error);

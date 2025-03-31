@@ -21,7 +21,6 @@ import { handleLoginError } from '../helper/handel.err';
 
 export const loginAccount = async (req: Request, res: Response) => {
   const { username, password, email, oneSignalUserId } = req.body;
-
   try {
     let account: any = null;
     let accountData: any = null;
@@ -145,6 +144,15 @@ export const loginAccount = async (req: Request, res: Response) => {
     });
 
     // Step 9: Send success response with email
+    console.log({
+      message: "Login successful",
+      authToken,
+      refreshToken,
+      account: {
+        ...account,
+        accountData: { email: accountData.email },
+      },
+    });
     res.status(200).json({
       message: "Login successful",
       authToken,

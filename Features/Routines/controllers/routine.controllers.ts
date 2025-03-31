@@ -81,7 +81,7 @@ export const createRoutine = async (req: any, res: Response) => {
     });
 
     // If transaction completes successfully
-    res.status(200).json({
+    res.status(201).json({
       message: "Routine created successfully",
       routine: result.createdRoutine,
       user: result.updatedUser,

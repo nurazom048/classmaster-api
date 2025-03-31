@@ -57,27 +57,41 @@ export const addMember = async (req: any, res: Response) => {
 export const removeMember = async (req: any, res: Response) => {
   const { routineID, username } = req.params;
 
-  // TODO
 
   try {
-    // // Check if the member's account exists
-    // const member_ac = await Account.findOne({ username });
-    // if (!member_ac) return res.json({ message: "Account not found" });
+    // Step 1: Find the account by username
+    const memberAccount = await prisma.account.findUnique({
+      where: { username },
+    });
+    if (!memberAccount) {
+      return res.status(404).json({ message: "Account not found" });
+    }
 
-    // // Find the routine to remove the member from
-    // const routine = await Routine.findOne({ _id: routineID });
-    // if (!routine) return res.json({ message: "Routine not found" });
+    // Step 2: Check if the routine exists
+    const routine = await prisma.routine.findUnique({
+      where: { id: routineID },
+    });
+    if (!routine) {
+      return res.status(404).json({ message: "Routine not found" });
+    }
 
-    // // Check if the member is already added
-    // const ifMemberFound = await RoutineMember.findOne({ memberID: member_ac._id, RutineID: routine });
-    // if (!ifMemberFound) return res.json({ message: "Member Already removed" });
+    // Step 3: Check if the user is a member of the routine
+    const memberEntry = await prisma.routineMember.findFirst({
+      where: {
+        routineId: routineID,
+        accountId: memberAccount.id,
+      },
+    });
+    if (!memberEntry) {
+      return res.status(400).json({ message: "Member is not part of this routine" });
+    }
 
-    // const removeMember = await RoutineMember.findByIdAndDelete(ifMemberFound._id);
+    // Step 4: Remove the member from the routine
+    await prisma.routineMember.delete({
+      where: { id: memberEntry.id },
+    });
+    res.json({ message: "Member removed successfully" });
 
-    // // // Remove the member from the routine
-    // // routine.members = routine.members.filter((member) => member.toString() !== member_ac._id.toString());
-    // // const updated_routine = await routine.save();
-    // res.json({ message: "Member removed successfully", removeMember });
 
   } catch (error: any) {
     console.error(error);
@@ -415,39 +429,40 @@ export const acceptRequest = async (req: any, res: Response) => {
 export const rejectMember = async (req: any, res: Response) => {
   const { routineID } = req.params;
   const { username } = req.body;
-  // TODO  :
 
   try {
-    // const routine = await Routine.findById(routineID);
-    // if (!routine) {
-    //   return res.status(404).json({ message: "Routine not found" });
-    // }
+    // Find the account by username
+    const member = await prisma.account.findUnique({
+      where: { username: username },
+    });
 
-    // const member_ac = await Account.findOne({ username });
-    // if (!member_ac) {
-    //   return res.status(404).json({ message: "Account not found" });
-    // }
+    if (!member) {
+      return res.status(404).json({ message: "Account not found" });
+    }
 
-    // // Check if user_id is present in the send_request array
-    // const isSendRequest = routine.send_request.includes(member_ac._id);
-    // if (!isSendRequest) {
-    //   return res.status(404).json({ message: "User id is not present in the send request array" });
-    // }
+    // Check if a join request exists for this user and routine
+    const joinRequest = await prisma.routinesJoinRequest.findFirst({
+      where: {
+        accountIdBy: member.id,
+        routineId: routineID,
+      },
+    });
 
-    // const updatedRoutine = await Routine.findOneAndUpdate(
-    //   { _id: routineID },
-    //   { $pull: { send_request: member_ac._id } },
-    //   { new: true }
-    // );
+    if (!joinRequest) {
+      return res.status(404).json({ message: "Join request not found" });
+    }
 
+    // Delete the join request
+    await prisma.routinesJoinRequest.delete({
+      where: { id: joinRequest.id },
+    });
 
-    // res.status(200).json({ message: "Member request is rejected ", routine: updatedRoutine });
+    res.status(200).json({ message: "Member request rejected successfully" });
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ message: error.toString() });
   }
 };
-
 
 
 

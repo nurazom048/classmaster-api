@@ -6,7 +6,7 @@ dotenv.config();
 
 // Middleware to verify and refresh tokens
 export const verifyToken = async (req: any, res: Response, next: NextFunction) => {
-  // console.log('verifyToken', req.headers);
+  //console.log('verifyToken', req.headers);
   try {
     // Extract the token from the Authorization header
     const tokenArray = req.headers.authorization.split(' ');

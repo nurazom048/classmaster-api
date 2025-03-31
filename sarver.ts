@@ -4,6 +4,7 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import http from 'http';
 import jwt, { Secret } from 'jsonwebtoken';
+import axios from 'axios'; // Added for proxying
 
 // Import routes
 import auth_route from './Features/Account/routes/auth_route';
@@ -20,24 +21,72 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
 
-//****************************************************************************/
-//...............................Routes......................................./
-//****************************************************************************/
-// Account and auth 
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:5000', // Your Flutter web app in development
+  // Add your production domain here, e.g., 'https://yourapp.com'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl) or if origin is in allowed list
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allow methods
+  allowedHeaders: ['Authorization', 'x-refresh-token', 'Content-Type'],
+  exposedHeaders: ['Authorization', 'x-refresh-token'],
+  credentials: true, // If you need to send cookies or auth headers
+}));
+
+// Handle pre-flight OPTIONS requests
+app.options('*', cors());
+
+// Proxy endpoint for images
+app.get('/proxy-image', async (req: Request, res: Response) => {
+  const imageUrl = req.query.url as string;
+  if (!imageUrl) {
+    return res.status(400).json({ message: 'Image URL is required' });
+  }
+
+  try {
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    res.set('Content-Type', response.headers['content-type']);
+    res.send(response.data);
+  } catch (error) {
+    console.error('Proxy image error:', error);
+    res.status(500).json({ message: 'Failed to fetch image' });
+  }
+});
+
+// Proxy endpoint for PDFs
+app.get('/proxy-pdf', async (req: Request, res: Response) => {
+  const pdfUrl = req.query.url as string;
+  if (!pdfUrl) {
+    return res.status(400).json({ message: 'PDF URL is required' });
+  }
+
+  try {
+    const response = await axios.get(pdfUrl, { responseType: 'arraybuffer' });
+    res.set('Content-Type', 'application/pdf');
+    res.send(response.data);
+  } catch (error) {
+    console.error('Proxy PDF error:', error);
+    res.status(500).json({ message: 'Failed to fetch PDF' });
+  }
+});
+
+// Routes
 app.use("/auth", auth_route);
 app.use("/account", account);
-
-// Routine 
 app.use("/routine", routine_route);
 app.use("/class", class_route);
 app.use("/summary", summary);
-
-// NoticeBoard
 app.use("/notice", notice);
-
-// Notification
 app.use("/notification", notification);
 
 // Basic Routes
@@ -62,83 +111,63 @@ const server = http.createServer(app);
 // Initialize socket.io
 const io = new Server(server);
 
-
-
 // Middleware to authenticate socket connection
 io.use((socket, next) => {
   try {
-    // Log the headers to inspect the structure
     console.log('Socket handshake headers:', socket.handshake.headers);
-
-    // Access the Authorization header directly from the headers object
-    const authHeader = socket.handshake.headers['authorization']; // This should be 'Bearer token'
+    const authHeader = socket.handshake.headers['authorization'];
 
     if (!authHeader) {
       console.log('Authorization token missing.');
       return next(new Error('Authentication error: Token missing.'));
     }
 
-    // Split the 'Bearer token' string to extract the token
     const tokenArray = authHeader.split(' ') ?? [];
-    const token = tokenArray[tokenArray.length - 1]; // Get the token part
+    const token = tokenArray[tokenArray.length - 1];
 
     if (!token) {
       console.log('Authorization token missing.');
       return next(new Error('Authentication error: Token missing.'));
     }
 
-    // Verify if the token is expired
     const isAuthTokenExpired = isTokenExpired(token, process.env.JWT_SECRET_KEY as Secret);
-
     if (isAuthTokenExpired) {
       console.log('Authorization token has expired.');
       return next(new Error('Authentication error: Token expired.'));
     }
 
-    // Decode the token to get user info
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY as Secret); // Verify and decode the JWT token
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY as Secret);
     console.log('Authenticated user:', decoded);
-
-    // Attach the decoded user to the socket for future use in events
     (socket as any).user = decoded;
 
-    return next(); // Proceed to the connection handler if the token is valid
+    return next();
   } catch (error) {
     console.log('Error during token validation:', error);
     return next(new Error('Authentication error: Token verification failed.'));
   }
 });
+
 // Handle socket.io connections
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  // Join a room
   socket.on('join room', (room) => {
     socket.join(room);
     console.log(`User joined room: ${room}`);
   });
 
-  // Leave a room
   socket.on('leave room', (room) => {
     socket.leave(room);
     console.log(`User left room: ${room}`);
   });
 
-
-  // Handle disconnection
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
-  // chats 
-
 
   socket.on('chat message', (data) => {
     const { message, room } = data;
-
     console.log(`Message received in room ${room}: ${message}`);
-
-    // Broadcast the message to the specific room
     io.to(room).emit('chat message', {
       socketMessage: 'Message save to db',
       message: "Message received",
@@ -147,7 +176,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Use Promise.all to wait for database connections to be established
+// Start server after DB connections
 Promise.all([maineDB, NoticeDB, RoutineDB, NotificationDB])
   .then(() => {
     server.listen(port, () => {

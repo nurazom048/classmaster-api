@@ -48,7 +48,7 @@ app.delete('/member/kickout/:routineID/:memberID', verifyToken, routineModificat
 //
 app.post('/member/send_request/:routineID', verifyToken, sendMemberRequest);
 app.post('/member/see_all_request/:routineID', verifyToken, allRequest);
-app.post('/member/acsept_request/:routineID', verifyToken, acceptRequest);
+app.post('/member/accept_request/:routineID', verifyToken, acceptRequest);
 app.post('/member/reject_request/:routineID', verifyToken, rejectMember);
 
 //notification on off
