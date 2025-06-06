@@ -1,9 +1,7 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { Server } from 'socket.io';
 import http from 'http';
-import jwt, { Secret } from 'jsonwebtoken';
 import axios from 'axios'; // Added for proxying
 
 // Import routes
@@ -104,77 +102,13 @@ const port = 4000;
 
 // MongoDB connection
 import { NoticeDB, maineDB, RoutineDB, NotificationDB } from './prisma/mongodb.connection';
-import { isTokenExpired } from './services/Authentication/helper/Jwt.helper';
 
 // Create HTTP server
 const server = http.createServer(app);
-// Initialize socket.io
-const io = new Server(server);
 
-// Middleware to authenticate socket connection
-io.use((socket, next) => {
-  try {
-    console.log('Socket handshake headers:', socket.handshake.headers);
-    const authHeader = socket.handshake.headers['authorization'];
-
-    if (!authHeader) {
-      console.log('Authorization token missing.');
-      return next(new Error('Authentication error: Token missing.'));
-    }
-
-    const tokenArray = authHeader.split(' ') ?? [];
-    const token = tokenArray[tokenArray.length - 1];
-
-    if (!token) {
-      console.log('Authorization token missing.');
-      return next(new Error('Authentication error: Token missing.'));
-    }
-
-    const isAuthTokenExpired = isTokenExpired(token, process.env.JWT_SECRET_KEY as Secret);
-    if (isAuthTokenExpired) {
-      console.log('Authorization token has expired.');
-      return next(new Error('Authentication error: Token expired.'));
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY as Secret);
-    console.log('Authenticated user:', decoded);
-    (socket as any).user = decoded;
-
-    return next();
-  } catch (error) {
-    console.log('Error during token validation:', error);
-    return next(new Error('Authentication error: Token verification failed.'));
-  }
-});
-
-// Handle socket.io connections
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-
-  socket.on('join room', (room) => {
-    socket.join(room);
-    console.log(`User joined room: ${room}`);
-  });
-
-  socket.on('leave room', (room) => {
-    socket.leave(room);
-    console.log(`User left room: ${room}`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-
-  socket.on('chat message', (data) => {
-    const { message, room } = data;
-    console.log(`Message received in room ${room}: ${message}`);
-    io.to(room).emit('chat message', {
-      socketMessage: 'Message save to db',
-      message: "Message received",
-      room: 'chat',
-    });
-  });
-});
+// Initialize Socket.IO server
+import { initSocketServer } from './socket.server';
+initSocketServer(server);
 
 // Start server after DB connections
 Promise.all([maineDB, NoticeDB, RoutineDB, NotificationDB])

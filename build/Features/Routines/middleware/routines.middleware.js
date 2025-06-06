@@ -12,94 +12,53 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Peremption_To_delete_Routine = exports.validateWeekdayMiddleware = void 0;
+exports.validateSummaryAddRequest = exports.createRoutineValidation = void 0;
 // imports models
-const class_model_1 = __importDefault(require("../models/class.model"));
-const routine_models_1 = __importDefault(require("../models/routine.models"));
-const weakday_Model_1 = __importDefault(require("../models/weakday.Model"));
+const prisma_clint_1 = __importDefault(require("../../../prisma/schema/prisma.clint"));
 // WEEKDAY validation
-const validateWeekdayMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+// Middleware to validate the request body for creating a routine
+const createRoutineValidation = (req, res, next) => {
+    const { name } = req.body;
+    if (!name || typeof name !== "string" || name.trim() === "") {
+        return res.status(400).json({ message: "The 'name' field is required and must be a non-empty string." });
+    }
+    next(); // Proceed to the next middleware or route handler
+};
+exports.createRoutineValidation = createRoutineValidation;
+//@ Middleware to validate request and class existence
+const validateSummaryAddRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { message, checkedType } = req.body;
     const { classID } = req.params;
-    const { num, start, end } = req.body;
     try {
-        // Check required fields
-        if (!num) {
-            return res.status(400).send({ message: 'Weekday number is required' });
+        // Step 1: Validate input
+        if (!(message === null || message === void 0 ? void 0 : message.trim()) && req.files.length === 0 && !checkedType) {
+            return res.status(400).send({
+                message: 'Message is required, or at least one image must be uploaded.',
+            });
         }
-        if (!start) {
-            return res.status(400).send({ message: 'Start period is required' });
-        }
-        if (!end) {
-            return res.status(400).send({ message: 'End period is required' });
-        }
-        // Check from database
-        const classFind = yield class_model_1.default.findById(classID);
-        if (!classFind) {
+        // Step 2: Check if class exists
+        const findClass = yield prisma_clint_1.default.class.findUnique({
+            where: { id: classID },
+        });
+        if (!findClass) {
             return res.status(404).send({ message: 'Class not found' });
         }
-        const routine = yield routine_models_1.default.findOne({ _id: classFind.routine_id });
-        if (!routine) {
-            return res.status(404).send({ message: 'Routine not found' });
+        req.routineID = findClass.routineId;
+        // Step 3: Validate file MIME types if files are uploaded
+        const allowedMimeTypes = ['image/jpeg', 'image/png'];
+        const invalidFiles = req.files.filter((file) => !allowedMimeTypes.includes(file.mimetype));
+        if (invalidFiles.length > 0 && !checkedType) {
+            const invalidFileNames = invalidFiles.map((file) => file.originalname);
+            return res.status(400).send({
+                message: `Invalid file types: ${invalidFileNames.join(', ')}`,
+            });
         }
-        // Period not created validations
-        // const findEnd = await PriodeModel.findOne({ rutin_id: classFind.rutin_id, priode_number: start });
-        // const findStartPriod = await PriodeModel.findOne({ rutin_id: classFind.rutin_id, priode_number: end });
-        // if (!findEnd) {
-        //   return res.status(404).send({ message: `${end} period is not created` });
-        // }
-        // if (!findStartPriod) {
-        //   return res.status(404).send({ message: `${start} period is not created` });
-        // }
-        // Validation to check booking
-        const startPriodeAlreadyBooked = yield weakday_Model_1.default.findOne({ routine_id: classFind.routine_id, num, start });
-        if (startPriodeAlreadyBooked) {
-            return res.status(404).send({ message: 'Start period is already booked' });
-        }
-        const endPriodeAlreadyBooked = yield weakday_Model_1.default.findOne({ routine_id: classFind.routine_id, num, end });
-        if (endPriodeAlreadyBooked) {
-            return res.status(404).send({ message: 'End period is already booked' });
-        }
-        // // Check if any period is already booked within the range
-        // const mid: number[] = [];
-        // const allStart = await Weekday.find({ num });
-        // const allEnd = await Weekday.find({ num }, { end: 1 });
-        // for (let i = 0; i < allStart.length; i++) {
-        //   for (let j = allStart[i].start + 1; j < allEnd[i].end; j++) {
-        //     mid.push(j);
-        //   }
-        // }
-        // if (mid.includes(start)) {
-        //   return res.status(400).send({ message: `${start} This period is already booked. All bookings up to ${mid}` });
-        // }
-        // if (mid.includes(end)) {
-        //   return res.status(400).send({ message: `This ${end} period is already booked. All bookings up to ${mid}` });
-        // }
-        req.classFind = classFind;
-        req.routine = routine;
+        // If all checks pass, continue to the next middleware or route handler
         next();
     }
     catch (error) {
-        return res.status(500).send({ message: error.message });
+        console.error('Error in validateSummaryRequest:', error);
+        return res.status(500).send({ message: 'Server error occurred during validation.' });
     }
 });
-exports.validateWeekdayMiddleware = validateWeekdayMiddleware;
-//
-// Peremption To delete Routine
-const Peremption_To_delete_Routine = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    const requestUserID = req.user.id;
-    try {
-        const routine = yield routine_models_1.default.findById(id);
-        if (!routine)
-            return res.status(404).json({ message: "Routine not found" });
-        if (routine.ownerid.toString() !== requestUserID) {
-            return res.status(401).json({ message: "Unauthorized to delete routine" });
-        }
-        next();
-    }
-    catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Server error" });
-    }
-});
-exports.Peremption_To_delete_Routine = Peremption_To_delete_Routine;
+exports.validateSummaryAddRequest = validateSummaryAddRequest;

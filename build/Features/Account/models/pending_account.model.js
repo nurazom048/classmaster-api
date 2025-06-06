@@ -1,12 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
-const mongodb_connection_1 = require("../../../connection/mongodb.connection");
+const mongodb_connection_1 = require("../../../prisma/mongodb.connection");
+const client_1 = require("@prisma/client");
 const pendingAccountSchema = new mongoose_1.Schema({
-    // accountId: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: 'Account',
-    // },
     isAccept: {
         type: Boolean,
         default: false,
@@ -14,41 +11,40 @@ const pendingAccountSchema = new mongoose_1.Schema({
     email: {
         type: String,
         required: true,
+        unique: true, // Ensure email is unique
     },
     username: {
         type: String,
         required: true,
-        unique: true,
+        unique: true, // Ensure username is unique
     },
-    EIIN: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    address: String,
-    name: String,
-    about: String,
-    contractInfo: String,
-    phone: String,
-    image: String,
-    coverImage: String,
+    address: { type: String, required: false },
+    name: { type: String, required: false },
+    about: { type: String, required: false },
+    contractInfo: { type: String, required: false },
+    phone: { type: String, required: false },
+    image: { type: String, required: false },
+    coverImage: { type: String, required: false },
     sendTime: {
         type: Date,
         required: true,
         default: Date.now,
     },
-    password: String,
+    password: { type: String, required: false },
     account_type: {
         type: String,
-        enum: ["user" /* AccountType.User */, "student" /* AccountType.Student */, "academy" /* AccountType.Academy */],
+        enum: [client_1.AccountType.user, client_1.AccountType.student, client_1.AccountType.academy],
         required: true,
-        default: "user" /* AccountType.User */,
+        default: client_1.AccountType.user,
     },
     googleSignIn: {
         type: Boolean,
-        require: true,
+        required: true,
         default: false,
     },
+}, {
+    // Ensure no extra fields (like EIIN) are accidentally added
+    strict: true,
 });
 const PendingAccount = mongodb_connection_1.maineDB.model('PendingAccount', pendingAccountSchema);
 exports.default = PendingAccount;

@@ -9,6 +9,7 @@ const storage = getStorage();
 // prisma
 import prisma from '../../../prisma/schema/prisma.clint';
 import { imageStorageProvider } from '@prisma/client';
+import { io } from '../../../socket.server'; // Import Socket.IO instance
 import { summaryImageUploader } from '../firebase/routines.firebase';
 //
 //
@@ -60,10 +61,23 @@ export const addSummary = async (req: any, res: Response) => {
       return summary;
     });
 
-    // Step 3: Send success response
+    // Step 3: Fetch summary with owner details for socket emission
+    const summaryDataWithOwner = await prisma.summary.findUnique({
+      where: { id: createdSummary.id },
+      include: {
+        owner: { select: { id: true, name: true, image: true, username: true } },
+        // class: { select: { id: true, name: true, instructorName: true } } // Already have classID, not strictly needed for this event
+      }
+    });
+
+    if (summaryDataWithOwner) {
+      io.to(`routine-${routineID}`).emit('summary:created', summaryDataWithOwner);
+    }
+
+    // Step 4: Send success response
     return res.status(201).json({
       message: 'Summary created successfully',
-      summary: createdSummary,
+      summary: summaryDataWithOwner, // Send enriched summary back in REST response too
     });
   } catch (error: any) {
     console.error('Error creating summary:', error);
@@ -305,6 +319,14 @@ export const removeSummary = async (req: any, res: Response) => {
     for (const imageLink of findSummary.imageLinks ?? []) {
       const fileRef = ref(storage, imageLink);
       await deleteObject(fileRef);
+    }
+
+    // Emit socket event
+    if (req.findSummary && req.findSummary.routineId) {
+      io.to(`routine-${req.findSummary.routineId}`).emit('summary:deleted', {
+        summaryID: summaryID,
+        routineID: req.findSummary.routineId // For consistency with socket.controller payload
+      });
     }
 
     return res.status(200).json({ message: "Summary deleted successfully." });
