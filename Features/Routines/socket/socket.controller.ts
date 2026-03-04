@@ -1,18 +1,18 @@
 import { io } from '../../../socket.server';
-import prisma from '../../../prisma/schema/prisma.clint'; // Adjusted path
-import { Prisma } from '@prisma/client'; // Import Prisma for error types
-import { AuthenticatedSocket } from './socket.gateway'; // Import the interface
+import prisma from '../../../prisma/schema/prisma.clint';
+import { Prisma } from '@prisma/client';
+import { AuthenticatedSocket } from './socket.gateway';
 
 interface SummaryCreateData {
-    text: string; // Corrected from message
+    text: string;
     classID: string;
-    imageLinks?: string[]; // Corrected to match schema
+    imageLinks?: string[];
 }
 
 interface SummaryUpdateData {
     summaryID: string;
-    text?: string; // Corrected from message
-    imageLinks?: string[]; // Corrected to match schema
+    text?: string;
+    imageLinks?: string[];
 }
 
 interface SummaryDeleteData {
@@ -20,10 +20,10 @@ interface SummaryDeleteData {
 }
 
 export const registerSummaryHandlers = (socket: AuthenticatedSocket) => {
-    const { userID, routineID } = socket;
+    const { userID } = socket;
 
-    if (!userID || !routineID) {
-        console.error(`Socket Controller: userID (${userID}) or routineID (${routineID}) missing on socket object ${socket.id}.`);
+    if (!userID) {
+        console.error(`Socket Controller: userID missing on socket ${socket.id}`);
         socket.emit('general:error', {
             success: false,
             message: 'Authentication details missing. Please reconnect.',
@@ -33,94 +33,140 @@ export const registerSummaryHandlers = (socket: AuthenticatedSocket) => {
         return;
     }
 
-    const routineRoom = `routine-${routineID}`;
+    console.log(`Registered summary handlers for user ${userID} on socket ${socket.id}`);
 
     // === SUMMARY:CREATE ===
-    socket.on('summary:create', async (data: SummaryCreateData) => {
-        console.log(`Socket ${socket.id} (${userID}) creating summary in ${routineRoom} with data:`, data);
+    socket.on('summary:create', async (data: any) => {
+        console.log('Received summary:create with full payload:', JSON.stringify(data, null, 2));
+
+        // Extract the actual payload from the nested structure
+        const payload = data.payload;
+        if (!payload) {
+            console.error('Missing payload in data:', data);
+            socket.emit('summary:create:error', {
+                success: false,
+                message: 'Invalid payload structure',
+                error_code: 'INVALID_PAYLOAD_STRUCTURE'
+            });
+            return;
+        }
+
+        console.log(`Socket ${socket.id} (${userID}) creating summary for class ${payload?.classID}`);
+
         try {
-            if (!data.classID || !data.text || data.text.trim() === "") {
+            // Validation
+            if (!payload?.classID) {
+                console.error('Missing classID in payload:', payload);
                 socket.emit('summary:create:error', {
                     success: false,
-                    message: 'Missing classID or text for summary.',
-                    error_code: 'VALIDATION_ERROR',
-                    details: { classID: !!data.classID, text: !!data.text && data.text.trim() !== "" }
+                    message: 'Missing classID for summary.',
+                    error_code: 'MISSING_CLASS_ID'
                 });
                 return;
             }
 
-            // Create the summary
+            if (!payload?.text || payload.text.trim() === "") {
+                socket.emit('summary:create:error', {
+                    success: false,
+                    message: 'Missing or empty text for summary.',
+                    error_code: 'MISSING_TEXT'
+                });
+                return;
+            }
+
+            // Verify class exists
+            const classObj = await prisma.class.findUnique({
+                where: { id: payload.classID },
+                select: { routineId: true }
+            });
+
+            if (!classObj) {
+                console.error(`Class not found: ${payload.classID}`);
+                socket.emit('summary:create:error', {
+                    success: false,
+                    message: 'Class not found.',
+                    error_code: 'CLASS_NOT_FOUND'
+                });
+                return;
+            }
+
+            const classRoom = `class-${payload.classID}`;
+            console.log(`Creating summary for class room: ${classRoom}`);
+
+            // Create summary
             const newSummary = await prisma.summary.create({
                 data: {
-                    text: data.text, // Corrected from data.message
-                    classId: data.classID,
-                    ownerId: userID, // Corrected from authorId
-                    imageLinks: data.imageLinks, // Corrected to use imageLinks
-                    routineId: routineID,
+                    text: payload.text,
+                    classId: payload.classID,
+                    ownerId: userID,
+                    imageLinks: payload.imageLinks || [],
+                    routineId: classObj.routineId,
                 },
                 include: {
-                    // images: true, // Removed: Image model is not separate for summary
-                    owner: { select: { id: true, name: true, image: true } } // Corrected to owner and image (from photo)
+                    owner: { select: { id: true, name: true, image: true } }
                 }
             });
 
-            // Update the routine's updatedAt timestamp
+            // Update routine
             await prisma.routine.update({
-                where: { id: routineID },
+                where: { id: classObj.routineId },
                 data: { updatedAt: new Date() },
             });
 
-            console.log(`Summary created by ${userID} in ${routineRoom}:`, newSummary.id);
-            io.to(routineRoom).emit('summary:created', newSummary);
-            socket.emit('summary:create:success', { success: true, data: newSummary });
+            // Join class room if not already joined
+            if (!socket.rooms.has(classRoom)) {
+                socket.join(classRoom);
+                console.log(`User ${userID} joined class room ${classRoom}`);
+            }
+
+            // Broadcast events
+            io.to(classRoom).emit('summary:created', newSummary);
+            socket.emit('summary:create:success', {
+                success: true,
+                data: newSummary
+            });
+
+            console.log(`Summary created successfully for class ${payload.classID}`);
 
         } catch (error: any) {
-            console.error(`Error creating summary for ${userID} in ${routineRoom}:`, error);
-            let errorMessage = 'Failed to create summary. Please try again.';
+            console.error(`Error creating summary:`, error);
+
+            let errorMessage = 'Failed to create summary';
             let errorCode = 'SERVER_ERROR';
+
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                // Handle known Prisma errors
-                if (error.code === 'P2002') { // Unique constraint violation
-                    errorMessage = 'A summary with similar details already exists.';
-                    errorCode = 'UNIQUE_CONSTRAINT_FAILED';
+                console.error('Prisma error:', error.code, error.meta);
+                if (error.code === 'P2002') {
+                    errorMessage = 'Summary already exists';
+                    errorCode = 'DUPLICATE_SUMMARY';
                 }
-                // Add more Prisma error codes as needed
             }
+
             socket.emit('summary:create:error', {
                 success: false,
                 message: errorMessage,
                 error_code: errorCode,
-                details: error.message // Or specific fields from error.meta if available
+                details: error.message
             });
         }
     });
 
     // === SUMMARY:UPDATE ===
     socket.on('summary:update', async (data: SummaryUpdateData) => {
-        console.log(`Socket ${socket.id} (${userID}) updating summary ${data.summaryID} in ${routineRoom} with data:`, data);
         try {
-            const { summaryID, text, imageLinks } = data;
-            if (!summaryID) {
+            if (!data.summaryID) {
                 socket.emit('summary:update:error', {
                     success: false,
-                    message: 'Summary ID is required for update.',
-                    error_code: 'VALIDATION_ERROR',
-                    details: { summaryID: !!summaryID }
-                });
-                return;
-            }
-             if (text !== undefined && text.trim() === "") {
-                socket.emit('summary:update:error', {
-                    success: false,
-                    message: 'Summary text cannot be empty.',
-                    error_code: 'VALIDATION_ERROR',
+                    message: 'Summary ID is required.',
+                    error_code: 'VALIDATION_ERROR'
                 });
                 return;
             }
 
-
+            // Get existing summary with class info
             const existingSummary = await prisma.summary.findUnique({
-                where: { id: summaryID },
+                where: { id: data.summaryID },
+                include: { class: { select: { id: true } } }
             });
 
             if (!existingSummary) {
@@ -135,77 +181,72 @@ export const registerSummaryHandlers = (socket: AuthenticatedSocket) => {
             if (existingSummary.ownerId !== userID) {
                 socket.emit('summary:update:error', {
                     success: false,
-                    message: 'You are not authorized to update this summary.',
+                    message: 'Unauthorized to update this summary.',
                     error_code: 'FORBIDDEN'
                 });
                 return;
             }
 
-            // Prepare update data
+            const classRoom = `class-${existingSummary.class.id}`;
+
+            // Prepare update
             const updateData: any = {};
-            if (text) updateData.text = text; // Corrected from message
-            if (imageLinks) updateData.imageLinks = imageLinks; // Corrected to use imageLinks
+            if (data.text) updateData.text = data.text;
+            if (data.imageLinks) updateData.imageLinks = data.imageLinks;
 
-            // No need to delete/create images separately if imageLinks is just a string array
-
+            // Perform update
             const updatedSummary = await prisma.summary.update({
-                where: { id: summaryID },
+                where: { id: data.summaryID },
                 data: updateData,
                 include: {
-                    // images: true, // Removed
-                    owner: { select: { id: true, name: true, image: true } } // Corrected to owner and image
+                    owner: { select: { id: true, name: true, image: true } },
+                    class: { select: { routineId: true } }
                 }
             });
 
-            // Update the routine's updatedAt timestamp
+            // Update routine timestamp
             await prisma.routine.update({
-                where: { id: routineID },
+                where: { id: updatedSummary.class.routineId },
                 data: { updatedAt: new Date() },
             });
 
-            console.log(`Summary ${summaryID} updated by ${userID} in ${routineRoom}`);
-            io.to(routineRoom).emit('summary:updated', updatedSummary);
-            socket.emit('summary:update:success', { success: true, data: updatedSummary });
+            // Broadcast updates
+            io.to(classRoom).emit('summary:updated', updatedSummary);
+            socket.emit('summary:update:success', {
+                success: true,
+                data: updatedSummary
+            });
 
         } catch (error: any) {
-            console.error(`Error updating summary ${data.summaryID} for ${userID} in ${routineRoom}:`, error);
-            let errorMessage = 'Failed to update summary. Please try again.';
-            let errorCode = 'SERVER_ERROR';
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                if (error.code === 'P2025') { // Record to update not found
-                    errorMessage = 'Summary not found for update.';
-                    errorCode = 'NOT_FOUND';
-                }
-            }
+            console.error(`Error updating summary:`, error);
+
             socket.emit('summary:update:error', {
                 success: false,
-                message: errorMessage,
-                error_code: errorCode,
-                details: error.message
+                message: 'Failed to update summary. Please try again.',
+                error_code: 'SERVER_ERROR'
             });
         }
     });
 
     // === SUMMARY:DELETE ===
     socket.on('summary:delete', async (data: SummaryDeleteData) => {
-        console.log(`Socket ${socket.id} (${userID}) deleting summary ${data.summaryID} in ${routineRoom}`);
         try {
-            const { summaryID } = data;
-            if (!summaryID) {
+            if (!data.summaryID) {
                 socket.emit('summary:delete:error', {
                     success: false,
-                    message: 'Summary ID is required for deletion.',
-                    error_code: 'VALIDATION_ERROR',
-                    details: { summaryID: !!summaryID }
+                    message: 'Summary ID is required.',
+                    error_code: 'VALIDATION_ERROR'
                 });
                 return;
             }
 
-            const summaryToDelete = await prisma.summary.findUnique({
-                where: { id: summaryID },
+            // Get summary with class info
+            const summary = await prisma.summary.findUnique({
+                where: { id: data.summaryID },
+                include: { class: { select: { id: true, routineId: true } } }
             });
 
-            if (!summaryToDelete) {
+            if (!summary) {
                 socket.emit('summary:delete:error', {
                     success: false,
                     message: 'Summary not found.',
@@ -214,48 +255,49 @@ export const registerSummaryHandlers = (socket: AuthenticatedSocket) => {
                 return;
             }
 
-            if (summaryToDelete.ownerId !== userID) {
+            if (summary.ownerId !== userID) {
                 socket.emit('summary:delete:error', {
                     success: false,
-                    message: 'You are not authorized to delete this summary.',
+                    message: 'Unauthorized to delete this summary.',
                     error_code: 'FORBIDDEN'
                 });
                 return;
             }
 
-            // Note: Image deletion from Firebase/storage would need to be handled here
-            // For now, we only delete from DB. Since imageLinks are part of Summary, they get deleted with it.
-            // No need for prisma.image.deleteMany
-            await prisma.summary.delete({ where: { id: summaryID } });
+            const classRoom = `class-${summary.class.id}`;
 
-            // Update the routine's updatedAt timestamp
+            // Delete summary
+            await prisma.summary.delete({
+                where: { id: data.summaryID }
+            });
+
+            // Update routine timestamp
             await prisma.routine.update({
-                where: { id: routineID },
+                where: { id: summary.class.routineId },
                 data: { updatedAt: new Date() },
             });
 
-            console.log(`Summary ${summaryID} deleted by ${userID} from ${routineRoom}`);
-            io.to(routineRoom).emit('summary:deleted', { summaryID, routineID });
-            socket.emit('summary:delete:success', { success: true, summaryID });
+            // Broadcast deletion
+            io.to(classRoom).emit('summary:deleted', {
+                summaryID: data.summaryID,
+                classID: summary.class.id
+            });
+
+            socket.emit('summary:delete:success', {
+                success: true,
+                summaryID: data.summaryID
+            });
 
         } catch (error: any) {
-            console.error(`Error deleting summary ${data.summaryID} for ${userID} in ${routineRoom}:`, error);
-            let errorMessage = 'Failed to delete summary. Please try again.';
-            let errorCode = 'SERVER_ERROR';
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                if (error.code === 'P2025') { // Record to delete not found
-                    errorMessage = 'Summary not found for deletion.';
-                    errorCode = 'NOT_FOUND';
-                }
-            }
+            console.error(`Error deleting summary:`, error);
+
             socket.emit('summary:delete:error', {
                 success: false,
-                message: errorMessage,
-                error_code: errorCode,
-                details: error.message
+                message: 'Failed to delete summary. Please try again.',
+                error_code: 'SERVER_ERROR'
             });
         }
     });
 
-    console.log(`Registered summary handlers for user ${userID} in routine ${routineID} on socket ${socket.id}`);
+    console.log(`Registered summary handlers for user ${userID} on socket ${socket.id}`);
 };
