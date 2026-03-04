@@ -1,17 +1,11 @@
-
-import mongoose, { Document, Schema, Model, mongo } from 'mongoose';
-import { AccountType } from './Account.Model';
-import { maineDB } from '../../../connection/mongodb.connection';
-
-
-
+import mongoose, { Document, Schema, Model } from 'mongoose';
+import { maineDB } from '../../../prisma/mongodb.connection';
+import { AccountType } from '@prisma/client';
 
 interface IPendingAccount extends Document {
-  // accountId: mongoose.Types.ObjectId,
   isAccept: boolean;
   email: string;
   username: string;
-  EIIN: string;
   address?: string;
   name?: string;
   about?: string;
@@ -26,11 +20,6 @@ interface IPendingAccount extends Document {
 }
 
 const pendingAccountSchema: Schema<IPendingAccount> = new Schema<IPendingAccount>({
-  // accountId: {
-  //   type: Schema.Types.ObjectId,
-  //   ref: 'Account',
-
-  // },
   isAccept: {
     type: Boolean,
     default: false,
@@ -38,46 +27,42 @@ const pendingAccountSchema: Schema<IPendingAccount> = new Schema<IPendingAccount
   email: {
     type: String,
     required: true,
+    unique: true, // Ensure email is unique
   },
   username: {
     type: String,
     required: true,
-    unique: true,
+    unique: true, // Ensure username is unique
   },
-  EIIN: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  address: String,
-  name: String,
-  about: String,
-  contractInfo: String,
-  phone: String,
-  image: String,
-  coverImage: String,
+  address: { type: String, required: false },
+  name: { type: String, required: false },
+  about: { type: String, required: false },
+  contractInfo: { type: String, required: false },
+  phone: { type: String, required: false },
+  image: { type: String, required: false },
+  coverImage: { type: String, required: false },
   sendTime: {
     type: Date,
     required: true,
     default: Date.now,
   },
-  password: String,
+  password: { type: String, required: false },
   account_type: {
     type: String,
-    enum: [AccountType.User, AccountType.Student, AccountType.Academy],
+    enum: [AccountType.user, AccountType.student, AccountType.academy],
     required: true,
-    default: AccountType.User,
+    default: AccountType.user,
   },
   googleSignIn: {
     type: Boolean,
-    require: true,
+    required: true,
     default: false,
   },
+}, {
+  // Ensure no extra fields (like EIIN) are accidentally added
+  strict: true,
 });
 
 const PendingAccount: Model<IPendingAccount> = maineDB.model<IPendingAccount>('PendingAccount', pendingAccountSchema);
 
 export default PendingAccount;
-
-
-

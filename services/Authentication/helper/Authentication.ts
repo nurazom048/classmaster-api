@@ -6,7 +6,7 @@ dotenv.config();
 
 // Middleware to verify and refresh tokens
 export const verifyToken = async (req: any, res: Response, next: NextFunction) => {
-  // console.log('verifyToken', req.headers);
+  //console.log('verifyToken', req.headers);
   try {
     // Extract the token from the Authorization header
     const tokenArray = req.headers.authorization.split(' ');
@@ -54,4 +54,15 @@ export const verifyToken = async (req: any, res: Response, next: NextFunction) =
     console.log(error);
     return res.status(401).json({ message: 'Authentication failed. Please log in again.' });
   }
+};
+
+// Helper function to generate tokens and set response headers
+export const generateAndSetTokens = (res: Response, accountId: string, username: string) => {
+  const authToken = generateAuthToken(accountId, username);
+  const refreshToken = generateRefreshToken(accountId, username);
+
+  res.setHeader('Authorization', `Bearer ${authToken}`);
+  res.setHeader('x-refresh-token', refreshToken);
+
+  return { authToken, refreshToken };
 };

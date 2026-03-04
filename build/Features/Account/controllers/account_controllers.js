@@ -12,14 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.forgetPassword = exports.changePassword = exports.view_others_Account = exports.view_my_account = exports.searchAccounts = exports.edit_account = void 0;
-const Account_Model_1 = __importDefault(require("../models/Account.Model"));
+exports.forgetPassword = exports.changePassword = exports.viewOthersAccount = exports.view_my_account = exports.searchAccounts = exports.edit_account = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 //? firebase
 const app_1 = require("firebase/app");
 const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
 const firebase_storage_1 = require("../../../config/firebase/firebase_storage");
-const routine_models_1 = __importDefault(require("../../Routines/models/routine.models"));
+const prisma_clint_1 = __importDefault(require("../../../prisma/schema/prisma.clint"));
 const storage = getStorage();
 // Initialize Firebase
 (0, app_1.initializeApp)(firebase_storage_1.firebaseConfig);
@@ -30,162 +29,207 @@ const { auth } = require("firebase-admin");
 //**********************************************************************************************/
 // ---------------------------------Edit Account --------------------------------------------/
 //**********************************************************************************************/
-// Account controller to update the account with images
 const edit_account = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(req.body);
-    // console.log(req.files);
-    // console.log("req.body");
+    var _a, _b;
     const { name, username, about, email } = req.body;
     try {
-        const account = yield Account_Model_1.default.findOne({ _id: req.user.id });
-        if (!account) {
+        // Step 1: Fetch the current account details
+        const account = yield prisma_clint_1.default.account.findUnique({ where: { id: req.user.id } });
+        if (!account)
             return res.status(404).json({ message: 'Account not found' });
-        }
-        // Handle the cover image
-        const coverImage = req.files['cover'] ? req.files['cover'][0] : null;
-        let coverImageURL = account.coverImage; // Existing cover image URL
-        // 01619904210
+        // Step 2: Handle the cover image update
+        const coverImage = ((_a = req.files) === null || _a === void 0 ? void 0 : _a['cover']) ? req.files['cover'][0] : null;
+        let coverImageURL = account.coverImage;
+        let coverImageProvider = account.coverImageStorageProvider || null;
         if (coverImage) {
-            // Upload the cover image
+            // Upload the cover image to Firebase Storage
             const timestamp = Date.now();
             const filename = `${account.username}-${account.name}-${timestamp}-${coverImage.originalname}`;
             const metadata = { contentType: coverImage.mimetype };
             const coverImageRef = ref(storage, `images/profile/ID-${account.id}/cover/-${filename}`);
             yield uploadBytes(coverImageRef, coverImage.buffer, metadata);
             coverImageURL = yield getDownloadURL(coverImageRef);
+            coverImageProvider = 'firebase';
             // Delete the old cover image if it exists
-            if (account.coverImage) {
+            if (account.coverImage && account.coverImageStorageProvider === 'firebase') {
                 const oldCoverImageRef = ref(storage, account.coverImage);
-                yield deleteObject(oldCoverImageRef);
+                yield deleteObject(oldCoverImageRef).catch(() => console.log('Old cover image not found'));
             }
         }
-        // Handle the profile image
-        const profileImage = req.files['image'] ? req.files['image'][0] : null;
-        let profileImageURL = account.image; // Existing profile image URL
+        else if (!coverImageURL) {
+            // Set cover image provider to null if no image exists
+            coverImageProvider = null;
+        }
+        // Step 3: Handle the profile image update
+        const profileImage = ((_b = req.files) === null || _b === void 0 ? void 0 : _b['image']) ? req.files['image'][0] : null;
+        let profileImageURL = account.image;
+        let profileImageProvider = account.imageStorageProvider || null;
         if (profileImage) {
-            // Upload the profile image
+            // Upload the profile image to Firebase Storage
             const timestamp = Date.now();
             const filename = `${account.username}-${account.name}-${timestamp}-${profileImage.originalname}`;
             const metadata = { contentType: profileImage.mimetype };
             const profileImageRef = ref(storage, `images/profile/ID-${account.id}/profile/-${filename}`);
             yield uploadBytes(profileImageRef, profileImage.buffer, metadata);
             profileImageURL = yield getDownloadURL(profileImageRef);
+            profileImageProvider = 'firebase';
             // Delete the old profile image if it exists
-            if (account.image && !account.googleSignIn) {
+            if (account.image && account.imageStorageProvider === 'firebase') {
                 const oldProfileImageRef = ref(storage, account.image);
-                yield deleteObject(oldProfileImageRef);
+                yield deleteObject(oldProfileImageRef).catch(() => console.log('Old profile image not found'));
             }
         }
-        // Update the account with the new image URLs and other fields
-        const update = yield Account_Model_1.default.updateOne({ _id: req.user.id }, {
-            name,
-            username,
-            about,
-            email,
-            coverImage: coverImageURL,
-            image: profileImageURL,
+        else if (!profileImageURL) {
+            // Set profile image provider to null if no image exists
+            profileImageProvider = null;
+        }
+        // Step 4: Update account details in the database
+        const updatedAccount = yield prisma_clint_1.default.account.update({
+            where: { id: req.user.id },
+            data: {
+                name,
+                username,
+                about,
+                coverImage: coverImageURL,
+                coverImageStorageProvider: coverImageProvider,
+                image: profileImageURL,
+                imageStorageProvider: profileImageProvider,
+            },
         });
-        return res.status(200).json({ message: 'Account updated successfully', update });
+        return res.status(200).json({
+            message: 'Account updated successfully',
+            updatedAccount,
+        });
     }
     catch (err) {
         console.error(err);
-        // Delete the uploaded images if an error occurs
-        // if (req.files) {
-        //   const bucket = storage.bucket('your-bucket-name');
-        //   if (req.files['cover']) {
-        //     const coverImage = bucket.file(`images/cover/${getFilenameFromURL(req.files['cover'][0].originalname)}`);
-        //     await coverImage.delete();
-        //   }
-        //   if (req.files['image']) {
-        //     const profileImage = bucket.file(`images/profile/${getFilenameFromURL(req.files['image'][0].originalname)}`);
-        //     await profileImage.delete();
-        //   }
-        // }
         return res.status(500).json({ message: 'Failed to update account', error: err });
     }
 });
 exports.edit_account = edit_account;
-//.......... Search Account ....//
+//**********************************************************************************************/
+// ---------------------------------Search Account--------------------------------------------/
+//**********************************************************************************************/
 const searchAccounts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { q: searchQuery = '', page = 1, limit = 10 } = req.query;
-    // console.log("search ac");
-    // console.log(req.query);
     try {
-        const regex = new RegExp(searchQuery, 'i');
-        const count = yield Account_Model_1.default.countDocuments({
-            $or: [
-                { username: { $regex: regex } },
-                { name: { $regex: regex } },
-                // Add more fields to search here
-            ]
+        // Ensure pagination values are numbers
+        const currentPage = parseInt(page, 10) || 1;
+        const pageSize = parseInt(limit, 10) || 10;
+        // Prepare search conditions for username and name
+        const searchConditions = searchQuery
+            ? {
+                OR: [
+                    { username: { contains: searchQuery, mode: 'insensitive' } },
+                    { name: { contains: searchQuery, mode: 'insensitive' } },
+                ],
+            }
+            : {};
+        // Count total matching accounts
+        const totalCount = yield prisma_clint_1.default.account.count({
+            where: searchConditions,
         });
-        const accounts = yield Account_Model_1.default.find({
-            $or: [
-                { username: { $regex: regex } },
-                { name: { $regex: regex } },
-                // Add more fields to search here
-            ]
-        })
-            .select('_id username name image')
-            .limit(limit)
-            .skip((page - 1) * limit);
-        if (!accounts) {
-            return res.status(404).send({ message: 'Not found' });
+        // Fetch paginated results
+        const accounts = yield prisma_clint_1.default.account.findMany({
+            where: searchConditions,
+            select: {
+                id: true,
+                username: true,
+                name: true,
+                image: true,
+            },
+            skip: (currentPage - 1) * pageSize,
+            take: pageSize,
+        });
+        if (accounts.length === 0) {
+            return res.status(404).json({ message: 'No accounts found' });
         }
+        // Respond with paginated results
         res.status(200).json({
             accounts,
-            currentPage: parseInt(page),
-            totalPages: Math.ceil(count / limit),
-            totalCount: count
+            currentPage,
+            totalPages: Math.ceil(totalCount / pageSize),
+            totalCount,
         });
     }
     catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error);
+        res.status(500).json({ message: 'Failed to search accounts', error: error.message });
     }
 });
 exports.searchAccounts = searchAccounts;
 //........ View my account ...//
 const view_my_account = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('view_my_account');
     try {
-        const user = yield Account_Model_1.default.findOne({ _id: req.user.id }).select('-Saved_routines -routines -__v');
-        console.error(user);
+        // Fetch user account data
+        const user = yield prisma_clint_1.default.account.findUnique({
+            where: { id: req.user.id },
+            select: {
+                id: true,
+                username: true,
+                name: true,
+                about: true,
+                isVerified: true,
+                image: true,
+                imageStorageProvider: true,
+                coverImage: true,
+                coverImageStorageProvider: true,
+                accountType: true,
+                lastLoginTime: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
         if (!user)
             return res.status(404).json({ message: "Account not found" });
-        return res.status(200).json(user);
+        // Remove null fields from the response
+        const filteredUser = Object.fromEntries(Object.entries(user).filter(([_, value]) => value !== null));
+        console.log(filteredUser);
+        return res.status(200).json(filteredUser);
     }
     catch (error) {
-        return res.status(404).json({ message: error.message });
+        console.error(error);
+        return res.status(500).json({ message: error.message });
     }
 });
 exports.view_my_account = view_my_account;
 //....view others Account...//
-const view_others_Account = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const viewOthersAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username } = req.params;
-    console.log(username);
     try {
-        const user = yield Account_Model_1.default.findOne({ username }, { password: 0 })
-            .populate({
-            path: 'routines Saved_routines',
-            model: routine_models_1.default,
-            options: {
-                sort: { createdAt: -1 },
-            },
-            populate: {
-                path: 'ownerid',
-                model: Account_Model_1.default,
-                select: 'name username image coverImage',
+        // Fetch user account and routines
+        const user = yield prisma_clint_1.default.account.findUnique({
+            where: { username },
+            select: {
+                id: true,
+                username: true,
+                name: true,
+                about: true,
+                isVerified: true,
+                image: true,
+                imageStorageProvider: true,
+                coverImage: true,
+                coverImageStorageProvider: true,
+                accountType: true,
+                lastLoginTime: true,
+                createdAt: true,
+                updatedAt: true,
             },
         });
-        if (!user)
-            return res.status(404).json({ message: "User id not found " });
-        return res.status(200).json(user.toObject({ getters: true }));
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        // Remove null fields from the response
+        const filteredUser = Object.fromEntries(Object.entries(user).filter(([_, value]) => value !== null));
+        return res.status(200).json(filteredUser);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error getting routines" });
+        console.error("Error fetching account data:", error);
+        return res.status(500).json({ message: "Error getting routines" });
     }
 });
-exports.view_others_Account = view_others_Account;
+exports.viewOthersAccount = viewOthersAccount;
 //************************************************************************** */
 // ---------------------    changePassword   --------------------------------/
 //************************************************************************** */
@@ -193,10 +237,13 @@ const changePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
     const { id } = req.user;
     const { oldPassword, newPassword } = req.body;
     try {
-        // Step 1: Find the account by ID
-        const account = yield Account_Model_1.default.findById(id);
+        // Step 1: Retrieve the account and account data
+        const account = yield prisma_clint_1.default.accountData.findUnique({
+            where: { ownerAccountId: id },
+            select: { password: true },
+        });
         if (!account) {
-            return res.status(400).json({ message: "Account not found" });
+            return res.status(404).json({ message: "Account not found" });
         }
         // Ensure the password is defined
         if (!account.password) {
@@ -209,13 +256,13 @@ const changePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         // Step 3: Hash the new password
         const hashedPassword = yield bcrypt_1.default.hash(newPassword, 10);
-        // Update the password on Firebase
-        yield auth().updateUser(account.id, {
-            password: newPassword
+        // Step 4: Update password in Firebase
+        yield admin.auth().updateUser(id, { password: newPassword });
+        // Step 5: Update password in the database
+        yield prisma_clint_1.default.accountData.update({
+            where: { ownerAccountId: id },
+            data: { password: hashedPassword },
         });
-        // Update the password in MongoDB
-        account.password = hashedPassword;
-        yield account.save();
         // Step 4: Send response
         res.status(200).json({ message: "Password changed successfully" });
     }
@@ -231,18 +278,17 @@ const forgetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         if (!email && !username)
             return res.status(400).json({ message: "Please fill the form" });
-        // Find the account by ID
-        const account = yield Account_Model_1.default.findOne({ $or: [{ email: email }, { phone: phone }, { username: username }] });
-        if (!account)
-            return res.status(400).json({ message: "username or email is not valid" });
+        // TODO forget password by firebase forget password link email send
+        // // Find the account by ID
+        // const account = await Account.findOne({ $or: [{ email: email }, { phone: phone }, { username: username }] });
+        // if (!account) return res.status(400).json({ message: "username or email is not valid" });
         // Update the password
         // // Update the password on Firebase
         // const User =   await auth().
         // User.
         // await account.save();
         // Send response
-        res.status(200).json({ message: "Password changed successfully", email: account.email });
-        //console.error({ message: "Password changed successfully" });
+        res.status(200).json({ message: "Password changed successfully", email: email });
     }
     catch (error) {
         console.error(error);

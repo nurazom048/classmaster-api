@@ -19,11 +19,11 @@ const upload = (0, multer_1.default)({
 // --------------------------------- Account Routes --------------------------------------------/
 //**********************************************************************************************/
 //... Edit account....///
-router.post("/eddit", Authentication_1.verifyToken, upload.fields([{ name: 'cover', maxCount: 1 }, { name: 'image', maxCount: 1 }]), account_controllers_1.edit_account);
+router.post("/edit", Authentication_1.verifyToken, upload.fields([{ name: 'cover', maxCount: 1 }, { name: 'image', maxCount: 1 }]), account_controllers_1.edit_account);
 router.post("/edit/change_password/", Authentication_1.verifyToken, account_controllers_1.changePassword);
-// later add security
-router.post("/eddit/forgotPassword/", account_controllers_1.forgetPassword);
+// // later add security
+router.post("/edit/forgotPassword/", account_controllers_1.forgetPassword);
 router.route("/").post(Authentication_1.verifyToken, upload.single('image'), account_controllers_1.view_my_account);
-router.route("/:username").post(account_controllers_1.view_others_Account);
+router.route("/:username").post(account_controllers_1.viewOthersAccount);
 router.route("/find").get(account_controllers_1.searchAccounts); // search account
 exports.default = router;

@@ -3,19 +3,17 @@ import { createAccount, loginAccount } from '../../../services/Authentication/co
 import { allPendingAccount, acceptPending } from "../../../services/Authentication/controllers/pending_account.controller";
 import { continueWithGoogle } from '../../../services/Authentication/controllers/google_auth.controller';
 import { validateAccountCreation } from '../middleware/account.middleware';
+import { verifyGoogleAuthToken } from '../middleware/auth.middleware';
 
 const app = express();
 
 // 1
-app.post("/create",
-    validateAccountCreation,
-    createAccount,
-);
+app.post("/create", validateAccountCreation, createAccount);
 app.post("/login", loginAccount);
 //app.delete("/delete/:id", verifyToken, deleteAccount);
 
 // continued with goglet
-app.post("/google", continueWithGoogle);
+app.post("/google", verifyGoogleAuthToken, continueWithGoogle);
 
 // pending 
 app.get("/pending", allPendingAccount);

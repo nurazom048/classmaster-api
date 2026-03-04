@@ -1,15 +1,8 @@
 import express, { Request, Response } from 'express';
 
 // Models
-import Account from '../../Account/models/Account.Model';
-import Routine from '../models/routine.models';
-import RoutineMember from '../models/routineMembers.Model';
-import Summary from '../models/save_summary.model';
-import SaveSummaries from '../models/save_summary.model';
-import Classes from '../models/class.model';
-import Weekday from '../models/weakday.Model';
-import SaveRoutine from '../models/save_routine.model';
-import Class from '../models/class.model';
+import prisma from '../../../prisma/schema/prisma.clint';
+
 
 //! firebase
 import { initializeApp } from 'firebase/app';
@@ -21,11 +14,7 @@ const storage = getStorage();
 
 
 // routine firebase
-import { deleteSummariesFromFirebaseBaseOnRoutineID } from '../firebase/summary.firebase';
-import { getClasses } from '../helper/class.helper';
-import mongoose from 'mongoose';
-import { maineDB, RoutineDB } from '../../../connection/mongodb.connection';
-import prisma from '../../../prisma/schema/prisma.clint';
+import { deleteRoutineMediaFolder } from '../firebase/routines.firebase';
 
 //*******************************************************************************/
 //--------------------------------- createRoutine  ------------------------------/
@@ -92,7 +81,7 @@ export const createRoutine = async (req: any, res: Response) => {
     });
 
     // If transaction completes successfully
-    res.status(200).json({
+    res.status(201).json({
       message: "Routine created successfully",
       routine: result.createdRoutine,
       user: result.updatedUser,
@@ -110,11 +99,11 @@ export const createRoutine = async (req: any, res: Response) => {
 //--------------------------------- deleteRoutine  ------------------------------/
 //*******************************************************************************/
 
-export const deleteRoutine = async (req: any, res: Response) => {
-  const { id } = req.params;  // Routine ID from request parameters
+export const deleteRoutineById = async (req: any, res: Response) => {
+  const { routineID } = req.params;  // Routine ID from request parameters
   const ownerId = req.user?.id; // Ensure `req.user` is populated with authenticated user details
 
-  if (!id || !ownerId) {
+  if (!routineID || !ownerId) {
     return res.status(400).json({ message: "Routine ID and ownerId are required" });
   }
 
@@ -124,7 +113,7 @@ export const deleteRoutine = async (req: any, res: Response) => {
       // Step 1: Check if the routine exists and belongs to the user
       const existingRoutine = await prisma.routine.findFirst({
         where: {
-          id,
+          id: routineID,
           routineOwner: { id: ownerId },
         },
       });
@@ -140,15 +129,8 @@ export const deleteRoutine = async (req: any, res: Response) => {
         },
       });
 
-      // Step 3: Remove the routine from the user's list of created routines
-      await prisma.account.update({
-        where: { id: ownerId },
-        data: {
-          createdRoutines: { disconnect: { id: existingRoutine.id } },
-        },
-      });
 
-      // Step 4: Delete the routine
+      // Step 3: Delete the routine
       const deletedRoutine = await prisma.routine.delete({
         where: { id: existingRoutine.id },
       });
@@ -156,6 +138,8 @@ export const deleteRoutine = async (req: any, res: Response) => {
       // Return the deleted routine details
       return deletedRoutine;
     });
+    // delete all the media file from firebase
+    await deleteRoutineMediaFolder(routineID);
 
     // If transaction completes successfully
     res.status(200).json({
@@ -179,9 +163,6 @@ export const searchRoutine = async (req: any, res: Response) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
 
-  if (!src) {
-    return res.status(400).json({ message: "Search term is required" });
-  }
 
   try {
     const regex = new RegExp(src, "i"); // Case-insensitive regex search pattern
@@ -305,36 +286,36 @@ export const save_routines = async (req: any, res: Response) => {
   const limit = parseInt(req.query.limit) || 2;
 
   try {
-    // Find the account by primary username
-    const account = await Account.findById(id);
-    if (!account) return res.status(404).json({ message: "Account not found" });
+    // // Find the account by primary username
+    // const account = await Account.findById(id);
+    // if (!account) return res.status(404).json({ message: "Account not found" });
 
-    // Find the saved routines for the account and populate owner details
-    const savedRoutines = await SaveRoutine.find({ savedByAccountID: id })
-      .populate({
-        path: 'routineID',
-        select: 'name ownerid',
-        populate: {
-          path: 'ownerid',
-          model: Account,
+    // // Find the saved routines for the account and populate owner details
+    // const savedRoutines = await SaveRoutine.find({ savedByAccountID: id })
+    //   .populate({
+    //     path: 'routineID',
+    //     select: 'name ownerid',
+    //     populate: {
+    //       path: 'ownerid',
 
-          select: 'name username image'
-        }
-      })
-      .limit(limit)
-      .skip((page - 1) * limit);
 
-    // Count the total number of saved routines
-    const count = await SaveRoutine.countDocuments({ savedByAccountID: id });
+    //       select: 'name username image'
+    //     }
+    //   })
+    //   .limit(limit)
+    //   .skip((page - 1) * limit);
 
-    // Prepare response data
-    const response = {
-      savedRoutines: savedRoutines.map((routine: any) => routine.routineID),
-      currentPage: page,
-      totalPages: Math.ceil(count / limit)
-    };
+    // // Count the total number of saved routines
+    // const count = await SaveRoutine.countDocuments({ savedByAccountID: id });
 
-    res.status(200).json(response);
+    // // Prepare response data
+    // const response = {
+    //   savedRoutines: savedRoutines.map((routine: any) => routine.routineID),
+    //   currentPage: page,
+    //   totalPages: Math.ceil(count / limit)
+    // };
+
+    // res.status(200).json(response);
     // console.log(response);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -443,172 +424,65 @@ export const current_user_status = async (req: any, res: Response) => {
 };
 
 
-///.... joined Routine ......///
-export const joined_routine = async (req: any, res: Response) => {
-  const { id } = req.user;
-
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 1;
-
-  try {
-    const count = await Routine.countDocuments({ members: id });
-
-    const routines = await Routine.find({ members: id })
-      .select(" name ownerid")
-      .populate({
-        path: 'ownerid',
-        model: Account,
-        select: 'name image username'
-      })
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    if (!routines) return res.status(404).json({ message: "No joined routines found" });
-
-    res.status(200).json({
-      routines,
-      currentPage: page,
-      totalPages: Math.ceil(count / limit)
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ message: "Error retrieving joined routines" });
-  }
-};
 
 
 // //************** user can see all routines where owner or joined ***********
 
 
-
-
 export const homeFeed = async (req: any, res: Response) => {
-  const { id } = req.user; // Logged-in user's ID
-  const { userID } = req.params; // Specific user ID to filter by (if provided)
+  const { id: loggedInUserId } = req.user;  // Logged-in user's ID
+  const { userID } = req.params;  // Optional user ID filter
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 3;
+  const skip = (page - 1) * limit;  // Calculate pagination offset
 
   try {
-    // Build the query for routines based on whether a userID is provided
-    const query = userID
-      ? { accountId: userID, owner: true } // Use accountId instead of memberID
-      : { OR: [{ accountId: id }, { owner: true }] }; // Correct field names
-
-    // Calculate the skip value for pagination
-    const skip = (page - 1) * limit;
-
-    // Find routines and include related routine details (Populate RutineID)
-    const routines = await prisma.routineMember.findMany({
-      where: query,
-      skip,
-      take: limit,
-      include: {
-        routine: { // Include the associated routine and select the desired fields
-          select: {
-            id: true, // Get the id of the routine
-            routineName: true // Get the name of the routine
-          }
-        }
-      }
+    // Step 1: Get IDs of routines joined by the logged-in user
+    const joinedRoutineIds = await prisma.routineMember.findMany({
+      where: { accountId: loggedInUserId },
+      select: { routineId: true },
     });
 
-    // Get the total count of routines matching the query for pagination
-    const totalCount = await prisma.routineMember.count({ where: query });
+    const routineIdList = joinedRoutineIds.map(({ routineId }) => routineId);
 
-    // Respond with the filtered and formatted routine data
+    // Step 2: Fetch routines based on userID presence
+    const routines = await prisma.routine.findMany({
+      where: userID
+        ? { ownerAccountId: userID }  // Show routines created by userID
+        : { id: { in: routineIdList } },  // Show routines joined by logged-in user
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        routineName: true,
+        routineOwner: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    // Step 3: Count total routines for pagination
+    const totalCount = await prisma.routine.count({
+      where: userID
+        ? { ownerAccountId: userID }
+        : { id: { in: routineIdList } },
+    });
+
+    // Step 4: Return the response with relevant data
     res.status(200).json({
-      message: 'success',
-      homeRoutines: routines.map(routine => ({
-        memberID: routine.accountId,
-        RutineID: routine.routine, // Now RutineID is populated with routine object (id, name)
-        notificationOn: routine.notificationOn,
-        captain: routine.captain,
-        owner: routine.owner,
-        isSaved: false, // Modify based on your logic for "saved"
-        blocklist: false, // Modify based on your blocklist logic
-      })),
+      message: 'Success',
+      homeRoutines: routines,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
       totalItems: totalCount,
     });
   } catch (error: any) {
+    // Step 5: Handle errors gracefully
     res.status(500).json({ message: error.message });
   }
 };
-
-
-// export const homeFeed = async (req: any, res: Response) => {
-//   const { id } = req.user;
-//   const { userID } = req.params;
-//   const { osUserID } = req.body;
-//   const page = parseInt(req.query.page) || 1;
-//   const limit = parseInt(req.query.limit) || 3;
-
-//   try {
-//     // Find routines where the user is the owner or a member and Routine ID exists and is not null
-//     let query;
-
-//     if (userID) {
-//       // This query is for to find all the uploaded routine on a specific user
-//       query = { memberID: userID, owner: true };
-//     }
-//     // This query is for to find all the home routine of logged in user
-//     query = { memberID: userID || id };
-//     // Calculate the number of documents to skip
-//     const skip = (page - 1) * limit;
-//     // console.log(query);
-//     // console.log(userID);
-
-//     // Find all matching routines
-//     const routines = await RoutineMember.find(query, '-_id -__v')
-//       .populate({
-//         path: 'RutineID',
-//         select: 'name'
-//       })
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(limit);
-
-//     //  console.log(routines);
-
-//     // Get the IDs of routines with null RutineID
-//     // const nullRutineIDIds = routines
-//     //   .filter(routine => routine.RutineID === null || routine.RutineID === undefined || routine.RutineID === '')
-//     //   .map(routine => routine._id);
-//     const nullRutineIDIds: string[] = routines
-//       .filter((routine: any) => routine.RutineID === null || routine.RutineID === undefined || routine.RutineID === '')
-//       .map((routine: any) => routine._id);
-//     //  console.log(nullRutineIDIds);
-
-//     // Remove the objects with null RutineID from MongoDB
-//     await RoutineMember.deleteMany({ _id: { $in: nullRutineIDIds } });
-
-//     // Filter out the objects with null RutineID from the response
-//     //const filteredRoutines = routines.filter(routine => routine.RutineID !== null);
-//     const filteredRoutines: any[] = routines.filter((routine: any) => routine.RutineID);
-
-//     // Get the total count of matching routines
-//     const totalCount = await RoutineMember.countDocuments(query);
-
-//     if (page == 1 && !userID) {
-//       const updated = await Account.findByIdAndUpdate(req.user.id, { osUserID: osUserID }, { new: true });
-//       // console.log(updated)
-//     }
-//     // console.log({
-//     //   message: 'success',
-//     //   homeRoutines: filteredRoutines,
-//     //   currentPage: page,
-//     //   totalPages: Math.ceil(totalCount / limit),
-//     //   totalItems: totalCount,
-//     // })
-//     res.status(200).json({
-//       message: 'success',
-//       homeRoutines: filteredRoutines,
-//       currentPage: page,
-//       totalPages: Math.ceil(totalCount / limit),
-//       totalItems: totalCount,
-//     });
-//   } catch (error: any) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
