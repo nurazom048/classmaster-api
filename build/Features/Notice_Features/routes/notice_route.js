@@ -20,10 +20,9 @@ const upload = (0, multer_1.default)({
     //     cb(null, true);
     // },
 });
-//.. create update delete
-router.route("/add/").post(Authentication_1.verifyToken, notice_middleware_1.checkAccountType, upload.single('pdf_file'), notice_controller_1.addNotice); // add notice 
-router.route("/:noticeId")
-    .delete(Authentication_1.verifyToken, notice_controller_1.deleteNotice); //... delete notice
+// add notice 
+router.route("/add/").post(Authentication_1.verifyToken, notice_middleware_1.checkAccountType, upload.single('pdf_file'), notice_controller_1.addNotice);
+router.route("/:noticeId").delete(Authentication_1.verifyToken, notice_controller_1.deleteNotice); //... Delete notice
 // get notice
 //******     check status   ********/ 
 router.route("/status/:academyID").post(Authentication_1.verifyToken, notice_controller_1.current_user_status);

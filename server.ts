@@ -100,10 +100,12 @@ app.use((req: Request, res: Response) => {
 });
 
 // Port
-const port = 4000;
+
+const PORT = process.env.PORT || 4000;
+
 
 // MongoDB connection
-import { NoticeDB, maineDB, RoutineDB, NotificationDB } from './prisma/mongodb.connection';
+import { NotificationDB } from './prisma/mongodb.connection';
 import { isTokenExpired } from './services/Authentication/helper/Jwt.helper';
 
 // Create HTTP server
@@ -177,10 +179,12 @@ io.on('connection', (socket) => {
 });
 
 // Start server after DB connections
-Promise.all([maineDB, NoticeDB, RoutineDB, NotificationDB])
+Promise.all([NotificationDB])
   .then(() => {
-    server.listen(port, () => {
-      console.log("****Server started**** on port " + port);
+    server.listen(PORT, () => {
+      const baseURL = `http://localhost:${PORT}`;
+      console.log("*** Server running on port ****" + PORT);
+      console.log(`🌐 Server URL: ${baseURL}`);
     });
   })
   .catch((error) => {

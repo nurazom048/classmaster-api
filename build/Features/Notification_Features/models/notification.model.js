@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
-const mongodb_connection_1 = require("../../../connection/mongodb.connection");
+const mongodb_connection_1 = require("../../../prisma/mongodb.connection");
 var NotificationType;
 (function (NotificationType) {
     NotificationType["Public"] = "public";

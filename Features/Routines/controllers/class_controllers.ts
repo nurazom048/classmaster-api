@@ -69,15 +69,15 @@ export const create_class = async (req: any, res: Response) => {
 //*******************************************************************************/
 
 export const addWeekday = async (req: Request, res: Response) => {
-  const { classID } = req.params;
-  const { day, room, startTime, endTime } = req.body;
+  const classID = req.params.classID as string;
 
+  const { day, room, startTime, endTime } = req.body;
   try {
     // Start the transaction
     const transaction = await prisma.$transaction(async (tx) => {
       // Find the class and related routine
       const classFind = await tx.class.findUnique({
-        where: { id: classID },
+        where: { id: classID as string },
         include: {
           routine: true, // Ensure that the related routine is fetched
         },
@@ -128,7 +128,9 @@ export const addWeekday = async (req: Request, res: Response) => {
 //*******************************************************************************/
 
 export const deleteWeekdayById = async (req: Request, res: Response) => {
-  const { weekdayID } = req.params;
+
+  const weekdayID = req.params.weekdayID as string;
+
 
   try {
     // Start a transaction to ensure data consistency

@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import admin from 'firebase-admin';
 // models
 // methods
-import { ObjectId } from 'mongodb'
 import PendingAccount from '../../../Features/Account/models/pending_account.model';
 import { joinHisOwnNoticeboard } from './auth.methods';
 import { Prisma } from '@prisma/client';

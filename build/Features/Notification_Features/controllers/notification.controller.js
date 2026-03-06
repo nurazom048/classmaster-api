@@ -38,7 +38,9 @@ const createNotification = (req, res) => __awaiter(void 0, void 0, void 0, funct
             const filename = `${accountID}-${timestamp}-${image.originalname}`;
             const metadata = { contentType: image.mimetype };
             const imageRef = (0, storage_1.ref)(storage, `images/notification/${type}/${filename}`);
-            yield (0, storage_1.uploadBytes)(imageRef, image.buffer, metadata);
+            // Convert Buffer → Uint8Array
+            const fileBuffer = new Uint8Array(image.buffer);
+            yield (0, storage_1.uploadBytes)(imageRef, fileBuffer, metadata);
             imageUrl = yield (0, storage_1.getDownloadURL)(imageRef);
         }
         // Create a new notification

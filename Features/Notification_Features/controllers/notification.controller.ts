@@ -31,8 +31,11 @@ export const createNotification = async (req: Request, res: Response) => {
             const filename = `${accountID}-${timestamp}-${image.originalname}`;
             const metadata = { contentType: image.mimetype };
             const imageRef = ref(storage, `images/notification/${type}/${filename}`);
+            // Convert Buffer → Uint8Array
+            const fileBuffer = new Uint8Array(image.buffer);
 
-            await uploadBytes(imageRef, image.buffer, metadata);
+            await uploadBytes(imageRef, fileBuffer, metadata);
+
             imageUrl = await getDownloadURL(imageRef);
         }
 
