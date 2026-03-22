@@ -12,7 +12,7 @@ initializeApp(firebase_stroage.firebaseConfig);// Initialize Firebase
 // Get a reference to the Firebase storage bucket
 const storage = getStorage();
 
-
+import axios from 'axios';
 import { uploadFileToFirebaseAndGetDownloadUrl } from "../firebase/norice_board.firebase";
 import { v4 as uuidv4 } from 'uuid';
 import { model } from 'mongoose';

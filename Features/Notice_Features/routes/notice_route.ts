@@ -11,7 +11,8 @@ import {
     notification_Off,
     notification_On,
     recentNotice,
-    recentNoticeByAcademeID
+    recentNoticeByAcademeID,
+
 } from "../controllers/notice_controller";
 import { checkAccountType } from '../middleware/notice.middleware'
 
@@ -49,5 +50,7 @@ router.post('/notification/on/:academyID', verifyToken, notification_On);
 //******     recent notice   ********/ 
 router.route("/recent/").post(verifyToken, recentNotice);
 router.route("/recent/:academyID").post(verifyToken, recentNoticeByAcademeID);
+
+
 
 export default router;

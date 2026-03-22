@@ -132,6 +132,7 @@ export const continueWithGoogle = async (req: Request, res: Response) => {
 
 const createPendingRequest = async (req: Request, res: Response, decodedToken: any) => {
     const { accountType, contractInfo } = req.body;
+    console.log(req.body)
     const { user_id: userId, name, picture: image, email: userEmail } = req.body.decodedToken;
 
     //

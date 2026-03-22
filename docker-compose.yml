@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # ১. Node.js API (TypeScript Direct Run)
+  api:
+    build: .
+    container_name: classmaster-api
+    ports:
+      - "4000:4000"
+    environment:
+      # হোস্ট অবশ্যই 'db' হতে হবে, 'localhost' নয়
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster
+      - MINIO_ENDPOINT=http://local-minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+      - MINIO_BUCKET_NAME=classmaster
+    depends_on:
+      - db
+      - minio
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/build
+    command: npm run dev
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app
+          ignore:
+            - node_modules/
+            - build/
+        - action: rebuild
+          path: package.json
+
+  # ২. PostgreSQL ডাটাবেজ
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: classmaster
+    volumes:
+      - D:/classmaster_api_data/postgres_database:/var/lib/postgresql/data
+
+  # ৩. MinIO স্টোরেজ
+  minio:
+    image: quay.io/minio/minio
+    container_name: local-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - D:/classmaster_api_data/s3_storage:/data
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    command: server /data --console-address ":9001"
+
+  # ৪. pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin-ui
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
