@@ -105,8 +105,9 @@ const PORT = process.env.PORT || 4000;
 
 
 // MongoDB connection
-import { NotificationDB } from './prisma/mongodb.connection';
+import { maineDB, NotificationDB } from './prisma/mongodb.connection';
 import { isTokenExpired } from './services/Authentication/helper/Jwt.helper';
+import { connectPostgres } from "./prisma/schema/prisma.clint";
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -178,15 +179,35 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start server after DB connections
-Promise.all([NotificationDB])
-  .then(() => {
+
+// ===============================
+// Start Server After All DB Connections
+// ===============================
+
+
+Promise.all([
+  maineDB.asPromise(),        // Main MongoDB database connection
+  NotificationDB.asPromise()  // Notification MongoDB database connection
+])
+  .then(async () => {
+
+    // Check PostgreSQL connection using Prisma
+    await connectPostgres(); // If PostgreSQL is not running, this function will throw an error
+
+    // Start Express server only after all databases are connected
     server.listen(PORT, () => {
+
+      // Base URL for accessing the API locally
       const baseURL = `http://localhost:${PORT}`;
+
+      // Log server status
       console.log("*** Server running on port ****" + PORT);
       console.log(`🌐 Server URL: ${baseURL}`);
     });
+
   })
   .catch((error) => {
-    console.error('Error connecting to databases:', error);
+    console.error("❌ Database connection failed:", error);
+    // Stop the application to prevent running without database
+    process.exit(1);
   });

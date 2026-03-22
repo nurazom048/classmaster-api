@@ -8,5 +8,6 @@
         "subjectcode",
         "unsave",
         "uuidv"
-    ]
+    ],
+    "postman.settings.dotenv-detection-notification-visibility": false
 }
