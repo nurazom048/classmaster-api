@@ -12,22 +12,21 @@ initializeApp(firebase_stroage.firebaseConfig);// Initialize Firebase
 // Get a reference to the Firebase storage bucket
 const storage = getStorage();
 
-import axios from 'axios';
-import { uploadFileToFirebaseAndGetDownloadUrl } from "../firebase/norice_board.firebase";
 import { v4 as uuidv4 } from 'uuid';
-import { model } from 'mongoose';
-import { printD } from '../../../utils/utils';
 import prisma from '../../../prisma/schema/prisma.clint';
 
+// s3 client import
+import { s3Client, } from '../../../config/firebase/s3.config';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 /// make a add to 
 //?_______________________________________________________________________________________!//
 
 ///......... write code to add notice to notice bode // Function to add a new notice and notify relevant members
 export const addNotice = async (req: any, res: Response) => {
-    // Destructure necessary fields from the request body and user info
     const { title, description, mimetypeChecked } = req.body;
-    const { id, error } = req.user;  // User ID and error info
-    const uuid = uuidv4();  // Generate a unique identifier for the notice
+    const { id, error } = req.user;
+    const uuid = uuidv4();
 
     try {
         // Step 1: Validate inputs
@@ -36,36 +35,43 @@ export const addNotice = async (req: any, res: Response) => {
         if (!title) return res.status(400).json({ message: 'title is required' });
 
         // Step 2: Check file size (Limit: 10 MB)
-        const fileSize = req.file.size;
-        if (fileSize > 11 * 1024 * 1024) {
+        if (req.file.size > 10 * 1024 * 1024) {
             return res.status(400).json({ message: 'File size exceeds the allowed limit (10 MB)' });
         }
 
-        // Step 3: Check file type (Ensure it's a PDF)
-        if (!mimetypeChecked) {
-            const fileType = req.file.mimetype;
-            if (fileType !== 'application/pdf') {
-                return res.status(400).json({ message: 'Only PDF files are allowed' });
-            }
+        // Step 3: Check file type
+        if (!mimetypeChecked && req.file.mimetype !== 'application/pdf') {
+            return res.status(400).json({ message: 'Only PDF files are allowed' });
         }
 
         // Step 4: Find Account and check if the account exists
         const findAccount = await prisma.account.findUnique({ where: { id: id } });
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
-        const accountID = findAccount.id;
-        console.log(accountID); // Log account ID for debugging
 
-        // Step 5: Upload PDF to Firebase Storage and get the download URL
-        const pdfUrl = await uploadFileToFirebaseAndGetDownloadUrl(uuid, accountID, req.file);
+        // Step 5: Upload PDF to MinIO S3
+        const fileName = `notices/academyId-${findAccount.id}/uid-${uuid}-${req.file.originalname}`;
+
+        // TODO: I will add a bucket name in the .env 
+        // const bucketName = process.env.MINIO_BUCKET_NAME || 'storageforclassmaster';
+        // console.log("Attempting upload to bucket:", bucketName);
+        const uploadParams = {
+            Bucket: "storageforclassmaster",
+            Key: fileName,
+            Body: req.file.buffer, // multer 
+            ContentType: req.file.mimetype,
+        };
+        //send to  MinIO 
+        await s3Client.send(new PutObjectCommand(uploadParams));
 
         // Step 6: Create Notice in the Prisma database
+        // it will no save Base URL it only saves'fileName' (পাথ) 
         const createdNotice = await prisma.notice.create({
             data: {
                 title,
                 description, // Add description if provided
                 publisherId: id, // Account ID of the user publishing the notice
-                pdf: pdfUrl, // URL of the uploaded PDF
+                pdf: fileName, // here save file path (ex: notices/academyId-123/uid-...)
             },
         });
 
@@ -110,56 +116,55 @@ export const addNotice = async (req: any, res: Response) => {
 
 
 
-// //************  Delete Notice ***************************/
+
+//***********************************************************/
+//******************Delete Notice ***************************/
+//***********************************************************/
+
 export const deleteNotice = async (req: any, res: Response) => {
     const { noticeId } = req.params;
     const { id } = req.user;
 
-
     try {
-        // Step 1: Find Account and check permission
+        // Step 1: Account khuje ber kora ebong check kora account exist kore kina
         const findAccount = await prisma.account.findUnique({ where: { id: id } });
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
-        // Step 2: Find the notice
+        // Step 2: Delete korar jonno notice-ti khuje ber kora
         const notice = await prisma.notice.findUnique({ where: { id: noticeId } });
         if (!notice) return res.status(404).json({ message: 'Notice not found' });
 
-        // Step 3: Check if the notice belongs to the user
+        // Step 3: Check kora je ei notice-ti ei user-er kina (Permission Check)
         if (notice.publisherId !== id) {
             return res.status(403).json({ message: 'You do not have permission to delete this notice' });
         }
 
-
-        // Step 4: Delete notice from the database
-        await prisma.notice.delete({ where: { id: noticeId } });
-
-        // Step 5: Delete notice file from Firebase Storage (if file URL exists)
+        // Step 4: MinIO theke file-ti delete kora (AWS S3 SDK use kore)
         if (notice.pdf) {
-            const storage = getStorage();
-            const pdfRef = ref(storage, notice.pdf);
-
             try {
-                await deleteObject(pdfRef);
+                const deleteParams = {
+                    Bucket: "storageforclassmaster", // Tomar bucket er name
+                    Key: notice.pdf, // Database-e thaka raw file name
+                };
+                await s3Client.send(new DeleteObjectCommand(deleteParams));
+                console.log("File deleted from MinIO successfully");
             } catch (storageError) {
-                console.error('Error deleting notice file from Firebase Storage:', storageError);
-                // Handle storage error if needed
+                // Jodi file-ta bucket-e na paowa jay, tokhon jeno database delete bondho na hoy
+                console.error('Error deleting notice file from MinIO:', storageError);
             }
         }
 
+        // Step 5: Database theke notice-ti delete kora
+        await prisma.notice.delete({ where: { id: noticeId } });
 
         // Return success response
         res.status(200).json({ message: 'Notice deleted successfully' });
 
     } catch (error: any) {
         console.error('Error deleting notice:', error);
-
         res.status(500).json({ message: 'Error deleting notice', error: error.message });
     }
 };
-
-
-
 //************  join noticeboard ***************************/
 
 export const joinNoticeboard = async (req: any, res: Response) => {
@@ -237,36 +242,37 @@ export const leaveMember = async (req: any, res: Response) => {
 };
 
 
-
-
+//***********************************************************/
+//****************** recentNotice ***************************/
+//***********************************************************/
 // recentNotice
 export const recentNotice = async (req: any, res: Response) => {
     const { id } = req.user;
     const { page = 1, limit = 10 } = req.query;
 
     try {
-        // Step 1: Get all joined NoticeBoardMember records for the user
+        // Step 1: User joto notice board er member, shegular list newa
         const allJoinedNoticeBoard = await prisma.noticeBoardMember.findMany({
             where: { memberId: id },
-            select: { accountId: true }, // Only select the academyId from the NoticeBoardMember
+            select: { accountId: true },
         });
 
-        // Extract academy IDs
+        // Step 2: Academy ID-gula array-te convert kora
         const academyIDs = allJoinedNoticeBoard.map((item) => item.accountId);
 
-        // Step 2: Count notices that belong to the academy IDs
+        // Step 3: Total notice count kora pagination calculation er jonno
         const count = await prisma.notice.count({
             where: { publisherId: { in: academyIDs } },
         });
         const totalPages = Math.ceil(count / parseInt(limit.toString()));
 
-        // Step 3: Fetch notices for the academies the user is part of, with pagination
+        // Step 4: Notices fetch kora account details shoho
         const notices = await prisma.notice.findMany({
             where: { publisherId: { in: academyIDs } },
             select: {
                 id: true,
                 title: true,
-                pdf: true,
+                pdf: true, // DB path (Flutter-e base URL add hobe)
                 description: true,
                 publisherId: true,
                 createdAt: true,
@@ -276,34 +282,31 @@ export const recentNotice = async (req: any, res: Response) => {
                         id: true,
                         name: true,
                         username: true,
-                        image: true,
+                        image: true, // DB path
                     },
                 },
             },
-            skip: (page - 1) * parseInt(limit.toString()),
+            skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
             take: parseInt(limit.toString()),
             orderBy: { createdAt: 'desc' },
         });
 
-        // Step 4: Map the notices to remove any null properties, especially image
+        // Step 5: Map kora jeno null properties gulo response theke remove hoy
         const finalNotices = notices.map((notice) => {
-            // Use optional chaining and conditional replacement instead of delete
-            const cleanedNotice = {
+            return {
                 ...notice,
                 Account: {
                     ...notice.Account,
-                    image: notice.Account.image ?? undefined, // Replace null image with undefined
+                    image: notice.Account.image ?? undefined,
                     name: notice.Account.name ?? undefined,
                     username: notice.Account.username ?? undefined,
                 },
                 description: notice.description ?? undefined,
-                pdf: notice.pdf ?? undefined,
+                pdf: notice.pdf ?? undefined, // Raw path returned
             };
-
-            return cleanedNotice;
         }).filter((notice) => notice.publisherId !== null);
 
-        // Step 5: Respond with the notices and pagination info
+        // Step 6: Response pathano pagination info shoho
         res.status(200).json({
             message: 'Success - All recent notices',
             notices: finalNotices,
@@ -316,49 +319,43 @@ export const recentNotice = async (req: any, res: Response) => {
         res.status(500).json({ message: error });
     }
 };
-
 // view all notices by notice id
 export const recentNoticeByAcademeID = async (req: any, res: Response) => {
     const { academyID } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
     try {
-        // Step 1: Find the academy account
+        // Step 1: Academy account check kora
         const findAccount = await prisma.account.findUnique({ where: { id: academyID } });
         if (!findAccount) return res.status(404).json({ message: "Account not found" });
 
-
-        // Step 2: Count the total number of notices for pagination
+        // Step 2: Total count calculation
         const count = await prisma.notice.count({ where: { publisherId: academyID } });
-        const totalPages = Math.ceil(count / limit);
+        const totalPages = Math.ceil(count / parseInt(limit.toString()));
 
-
-        // Step 3: Get the notices with pagination and sorting
+        // Step 3: Database theke data pagination shoho fetch kora
         const notices = await prisma.notice.findMany({
             where: { publisherId: academyID },
             select: {
                 id: true,
                 title: true,
                 description: true,
-                pdf: true,
+                pdf: true, // Returning original DB path
                 createdAt: true,
                 updatedAt: true,
                 publisherId: true,
                 Account: { select: { name: true, username: true, image: true } },
             },
-            skip: (parseInt(page) - 1) * parseInt(limit),  // Pagination calculation
-            take: parseInt(limit),
-            orderBy: { createdAt: 'desc' },  // Sorting by createdAt descending
+            skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
+            take: parseInt(limit.toString()),
+            orderBy: { createdAt: 'desc' },
         });
 
-
-        // Step 4: Filter out any notices that have null publisherId
-        const finalNotices = notices.filter((notice: any) => notice.Account !== null);
-
+        // Step 4: Cleaning data and returning success
         res.status(200).json({
             message: "Success",
-            notices: finalNotices,
-            currentPage: parseInt(page),
+            notices: notices, // Flutter e base URL add korar jonno ready
+            currentPage: parseInt(page.toString()),
             totalPages,
             totalCount: count,
         });
