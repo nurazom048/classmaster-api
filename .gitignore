@@ -7,6 +7,6 @@ build/connection
 build/utils
 build/services
 build/server.js
-    
+classmaster_data
+google-credentials.json
 
-.vercel

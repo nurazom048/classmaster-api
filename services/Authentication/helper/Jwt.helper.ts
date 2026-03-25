@@ -21,7 +21,10 @@ export const isTokenExpired = (token: any, envSecret: Secret) => {
     jwt.verify(token as string, envSecret);
     return false; // Token is not expired
   } catch (err: any) {
+
     printD("error on isTokenExpired " + err);
+    printD("env secret" + process.env.REFRESH_TOKEN_SECRET);
+    printD("env secret" + envSecret);
     if (err.name === 'TokenExpiredError') {
       return true; // Token has expired
     } else {

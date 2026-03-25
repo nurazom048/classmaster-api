@@ -14,6 +14,7 @@ import PendingAccount from '../../../Features/Account/models/pending_account.mod
 import prisma from '../../../prisma/schema/prisma.clint';
 import { AccountType } from '@prisma/client';
 import { handleLoginError } from '../helper/handel.err';
+import { printD } from '../../../utils/utils';
 
 //**********************************************************************************************/
 // --------------------------------- login Account --------------------------------------------/
@@ -153,6 +154,7 @@ export const loginAccount = async (req: Request, res: Response) => {
         accountData: { email: accountData.email },
       },
     });
+
     res.status(200).json({
       message: "Login successful",
       authToken,

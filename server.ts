@@ -67,6 +67,7 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Authorization", "x-refresh-token", "Content-Type"],
+    exposedHeaders: ['Authorization', 'x-refresh-token'],
     credentials: true,
   })
 );
