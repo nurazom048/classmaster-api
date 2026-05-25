@@ -59,7 +59,7 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster
+      - DATABASE_URL=postgresql://postgres:1234@postgres-db:5432/classmaster?schema=public
       - MINIO_ENDPOINT=http://local-minio:9000
       - MINIO_ACCESS_KEY=admin
       - MINIO_SECRET_KEY=password123
@@ -81,3 +81,13 @@ services:
             - node_modules
         - action: rebuild
           path: package.json
+  # ৫. Cloudflare Tunnel
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_tunnel
+    restart: always
+    volumes:
+      - ./.cloudflared:/etc/cloudflared
+    command: tunnel --config /etc/cloudflared/config.yml run
+    depends_on:
+      - api

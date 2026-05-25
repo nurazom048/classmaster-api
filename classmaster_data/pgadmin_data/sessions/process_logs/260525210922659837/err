@@ -1,0 +1,136 @@
+260525210923576957,pg_restore: connecting to database for restore
+
+260525210923645303,pg_restore: executing SELECT pg_catalog.set_config('search_path', '', false);
+
+260525210923650252,pg_restore: creating TYPE "public.AccountType"
+
+260525210923680977,pg_restore: creating TYPE "public.Day"
+
+260525210923683612,pg_restore: creating TYPE "public.imageStorageProvider"
+
+260525210923685572,pg_restore: creating TABLE "public.Account"
+
+260525210923773388,pg_restore: creating TABLE "public.AccountData"
+
+260525210923785897,pg_restore: creating TABLE "public.Class"
+
+260525210923800865,pg_restore: creating TABLE "public.Notice"
+
+260525210923814202,pg_restore: creating TABLE "public.NoticeBoardMember"
+
+260525210923828047,pg_restore: creating TABLE "public.Routine"
+
+260525210923844152,pg_restore: creating TABLE "public.RoutineMember"
+
+260525210923860706,pg_restore: creating TABLE "public.RoutinesJoinRequest"
+
+260525210923873313,pg_restore: creating TABLE "public.Summary"
+
+260525210923886108,pg_restore: creating TABLE "public.Weekday"
+
+260525210923901124,pg_restore: creating TABLE "public._AccountSavedRoutines"
+
+260525210923917907,pg_restore: creating TABLE "public._prisma_migrations"
+
+260525210923946730,pg_restore: creating TABLE "public.rePublish"
+
+260525210923978255,pg_restore: processing data for table "public.Account"
+
+260525210924007599,pg_restore: processing data for table "public.AccountData"
+
+260525210924013389,pg_restore: processing data for table "public.Class"
+
+260525210924017238,pg_restore: processing data for table "public.Notice"
+
+260525210924021287,pg_restore: processing data for table "public.NoticeBoardMember"
+
+260525210924025226,pg_restore: processing data for table "public.Routine"
+
+260525210924030949,pg_restore: processing data for table "public.RoutineMember"
+
+260525210924036109,pg_restore: processing data for table "public.RoutinesJoinRequest"
+
+260525210924041388,pg_restore: processing data for table "public.Summary"
+
+260525210924047465,pg_restore: processing data for table "public.Weekday"
+
+260525210924052007,pg_restore: processing data for table "public._AccountSavedRoutines"
+
+260525210924055482,pg_restore: processing data for table "public._prisma_migrations"
+
+260525210924059158,pg_restore: processing data for table "public.rePublish"
+
+260525210924060408,pg_restore: creating CONSTRAINT "public.AccountData AccountData_pkey"
+
+260525210924069854,pg_restore: creating CONSTRAINT "public.Account Account_pkey"
+
+260525210924079385,pg_restore: creating CONSTRAINT "public.Class Class_pkey"
+
+260525210924088991,pg_restore: creating CONSTRAINT "public.NoticeBoardMember NoticeBoardMember_pkey"
+
+260525210924100903,pg_restore: creating CONSTRAINT "public.Notice Notice_pkey"
+
+260525210924109205,pg_restore: creating CONSTRAINT "public.RoutineMember RoutineMember_pkey"
+
+260525210924118655,pg_restore: creating CONSTRAINT "public.Routine Routine_pkey"
+
+260525210924127018,pg_restore: creating CONSTRAINT "public.RoutinesJoinRequest RoutinesJoinRequest_pkey"
+
+260525210924137422,pg_restore: creating CONSTRAINT "public.Summary Summary_pkey"
+
+260525210924147729,pg_restore: creating CONSTRAINT "public.Weekday Weekday_pkey"
+
+260525210924155778,pg_restore: creating CONSTRAINT "public._AccountSavedRoutines _AccountSavedRoutines_AB_pkey"
+
+260525210924163359,pg_restore: creating CONSTRAINT "public._prisma_migrations _prisma_migrations_pkey"
+
+260525210924171791,pg_restore: creating CONSTRAINT "public.rePublish rePublish_pkey"
+
+260525210924178386,pg_restore: creating INDEX "public.AccountData_email_key"
+
+260525210924186090,pg_restore: creating INDEX "public.AccountData_ownerAccountId_key"
+
+260525210924195120,pg_restore: creating INDEX "public.AccountData_phone_key"
+
+260525210924202315,pg_restore: creating INDEX "public.Account_username_key"
+
+260525210924211559,pg_restore: creating INDEX "public._AccountSavedRoutines_B_index"
+
+260525210924220217,pg_restore: creating FK CONSTRAINT "public.AccountData AccountData_ownerAccountId_fkey"
+
+260525210924244804,pg_restore: creating FK CONSTRAINT "public.Class Class_routineId_fkey"
+
+260525210924251188,pg_restore: creating FK CONSTRAINT "public.NoticeBoardMember NoticeBoardMember_memberId_fkey"
+
+260525210924256586,pg_restore: creating FK CONSTRAINT "public.Notice Notice_publisherId_fkey"
+
+260525210924262003,pg_restore: creating FK CONSTRAINT "public.RoutineMember RoutineMember_accountId_fkey"
+
+260525210924267580,pg_restore: creating FK CONSTRAINT "public.RoutineMember RoutineMember_routineId_fkey"
+
+260525210924273085,pg_restore: creating FK CONSTRAINT "public.Routine Routine_ownerAccountId_fkey"
+
+260525210924278453,pg_restore: creating FK CONSTRAINT "public.RoutinesJoinRequest RoutinesJoinRequest_accountIdBy_fkey"
+
+260525210924288952,pg_restore: creating FK CONSTRAINT "public.RoutinesJoinRequest RoutinesJoinRequest_routineId_fkey"
+
+260525210924293779,pg_restore: creating FK CONSTRAINT "public.Summary Summary_classId_fkey"
+
+260525210924298846,pg_restore: creating FK CONSTRAINT "public.Summary Summary_ownerId_fkey"
+
+260525210924303310,pg_restore: creating FK CONSTRAINT "public.Summary Summary_routineId_fkey"
+
+260525210924307912,pg_restore: creating FK CONSTRAINT "public.Summary Summary_savedAccountId_fkey"
+
+260525210924313344,pg_restore: creating FK CONSTRAINT "public.Weekday Weekday_classId_fkey"
+
+260525210924318642,pg_restore: creating FK CONSTRAINT "public.Weekday Weekday_routineId_fkey"
+
+260525210924323893,pg_restore: creating FK CONSTRAINT "public._AccountSavedRoutines _AccountSavedRoutines_A_fkey"
+
+260525210924333497,pg_restore: creating FK CONSTRAINT "public._AccountSavedRoutines _AccountSavedRoutines_B_fkey"
+
+260525210924342175,pg_restore: creating FK CONSTRAINT "public.rePublish rePublish_noticeId_fkey"
+
+260525210924350238,pg_restore: creating FK CONSTRAINT "public.rePublish rePublish_rePublisherId_fkey"
+

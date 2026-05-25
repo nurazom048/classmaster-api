@@ -7,6 +7,6 @@ build/connection
 build/utils
 build/services
 build/server.js
-classmaster_data
+classmaster_data/s3_storage/storageforclassmaster
 google-credentials.json
 
