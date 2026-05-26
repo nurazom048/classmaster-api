@@ -52,35 +52,6 @@ services:
       MINIO_ROOT_PASSWORD: password123
     command: server /data --console-address ":9001"
 
-  # ৪. Node.js API (Your Main App)
-  api:
-    build: .
-    container_name: api
-    ports:
-      - "4000:4000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:1234@postgres-db:5432/classmaster?schema=public
-      - MINIO_ENDPOINT=http://local-minio:9000
-      - MINIO_ACCESS_KEY=admin
-      - MINIO_SECRET_KEY=password123
-      - MINIO_BUCKET_NAME=classmaster
-    restart: on-failure
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - ./classmaster_data/backups:/app/backups # এখানে pg_dump ফাইল জমা হবে
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /app
-          ignore:
-            - node_modules
-        - action: rebuild
-          path: package.json
   # ৫. Cloudflare Tunnel
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -91,3 +62,39 @@ services:
     command: tunnel --config /etc/cloudflared/config.yml run
     depends_on:
       - api
+
+  # ৪. Node.js API (Your Main App)
+  api:
+    build: .
+    container_name: api
+    env_file:
+      - .env # MongoDB কানেকশনের জন্য এটি জরুরি
+    ports:
+      - "4000:4000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m" # একটি লগ ফাইলের সাইজ সর্বোচ্চ ১০ মেগাবাইট হবে
+        max-file: "3" # সর্বোচ্চ ৩টি ফাইল থাকবে, এরপর পুরোনোটা ডিলিট হয়ে নতুনটা আসবে
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@postgres-db:5432/classmaster?schema=public
+      - MINIO_ENDPOINT=http://local-minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+      - MINIO_BUCKET_NAME=classmaster
+    restart: always # ডাটাবেজ ১ সেকেন্ড লেট করলে যেন নিজে নিজেই আবার ট্রাই করে
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./classmaster_data/backups:/app/backups
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - node_modules
+        - action: rebuild
+          path: package.json
