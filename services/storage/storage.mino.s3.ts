@@ -21,17 +21,26 @@ export const s3Client = new S3Client({
 export const connectMinIO = async () => {
     try {
         await s3Client.send(new ListBucketsCommand({}));
-        console.log("✅ MinIO (S3) Storage connected successfully! ");
 
-        // Internal (Docker use)
-        console.log(`📦 Internal Endpoint: ${MINIO_ENDPOINT}`);
+        const HOST_IP = "127.0.0.1";
 
-        // External (Browser use)
-        console.log(`🌍 Public Endpoint: http://localhost:9000`);
-        console.log(`🖥️ Console UI: http://localhost:9001`);
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log("📦 MinIO Storage Connected");
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-        console.log(`🔑 Access Key: ${MINIO_ACCESS_KEY}`);
-        console.log(`🔐 Secret Key: ${MINIO_ACCESS_PASSWORD}`);
+        console.log(`📦 Internal Endpoint : ${MINIO_ENDPOINT}`);
+
+        console.log(`🌐 MinIO API         : http://localhost:9000`);
+        console.log(`🌐 MinIO API IP      : http://${HOST_IP}:9000`);
+
+        console.log(`🖥️ MinIO Console     : http://localhost:9001`);
+        console.log(`🖥️ Console IP        : http://${HOST_IP}:9001`);
+
+        console.log(`🔑 Access Key        : ${MINIO_ACCESS_KEY}`);
+        console.log(`🔐 Secret Key        : ${MINIO_ACCESS_PASSWORD}`);
+
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
     } catch (error: any) {
         console.error("❌ MinIO connection failed:", error.message);
         throw error;

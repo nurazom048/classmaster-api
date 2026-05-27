@@ -1,100 +1,120 @@
-version: '3.8'
-
 services:
-  # ১. PostgreSQL ১৮ (Alpine - Latest & Fast)
+  # PostgreSQL
   db:
-    image: postgres:18-alpine
+    image: postgres:17-alpine
     container_name: postgres-db
     restart: always
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: classmaster
+
     ports:
       - "5432:5432"
+
     volumes:
-      - ./classmaster_data/postgres:/var/lib/postgresql
+      - pgdata:/var/lib/postgresql/data
+
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s # this will take 30s to start, 
+      start_period: 30s
 
-  # ২. pgAdmin (Database Management UI)
+  # pgAdmin
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin-ui
-    user: root
     restart: always
+
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
+
     ports:
       - "5050:80"
+
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    user: "0:0"
+
     volumes:
       - ./classmaster_data/pgadmin_data:/var/lib/pgadmin
       - ./classmaster_data:/var/lib/pgadmin/storage/admin_admin.com/backups
 
-  # ৩. MinIO (S3 Object Storage)
+  # MinIO
   minio:
     image: quay.io/minio/minio:latest
     container_name: local-minio
+
+    restart: always
+
     ports:
       - "9000:9000"
       - "9001:9001"
-    volumes:
-      - ./classmaster_data/s3_storage:/data
+
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: password123
+
     command: server /data --console-address ":9001"
 
-  # ৫. Cloudflare Tunnel
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflare_tunnel
-    restart: always
     volumes:
-      - ./.cloudflared:/etc/cloudflared
-    command: tunnel --config /etc/cloudflared/config.yml run
-    depends_on:
-      - api
+      - ./classmaster_data/s3_storage:/data
 
-  # ৪. Node.js API (Your Main App)
+  # API
   api:
     build: .
     container_name: api
+
+    restart: always
+
     env_file:
-      - .env # MongoDB কানেকশনের জন্য এটি জরুরি
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db:5432/classmaster?schema=public
+      MINIO_ENDPOINT: http://local-minio:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: password123
+      MINIO_BUCKET_NAME: classmaster
+
     ports:
       - "4000:4000"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m" # একটি লগ ফাইলের সাইজ সর্বোচ্চ ১০ মেগাবাইট হবে
-        max-file: "3" # সর্বোচ্চ ৩টি ফাইল থাকবে, এরপর পুরোনোটা ডিলিট হয়ে নতুনটা আসবে
-    environment:
-      - DATABASE_URL=postgresql://postgres:1234@postgres-db:5432/classmaster?schema=public
-      - MINIO_ENDPOINT=http://local-minio:9000
-      - MINIO_ACCESS_KEY=admin
-      - MINIO_SECRET_KEY=password123
-      - MINIO_BUCKET_NAME=classmaster
-    restart: always # ডাটাবেজ ১ সেকেন্ড লেট করলে যেন নিজে নিজেই আবার ট্রাই করে
+
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
     volumes:
       - .:/app
       - /app/node_modules
       - ./classmaster_data/backups:/app/backups
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /app
-          ignore:
-            - node_modules
-        - action: rebuild
-          path: package.json
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Cloudflare Tunnel
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_tunnel
+
+    restart: always
+
+    depends_on:
+      - api
+
+    volumes:
+      - ./.cloudflared:/etc/cloudflared
+
+    command: tunnel --config /etc/cloudflared/config.yml run
+
+volumes:
+  pgdata:
+  pgadmin_data:

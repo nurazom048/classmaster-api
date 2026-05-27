@@ -3,3 +3,12 @@ node_modules
 classmaster_data
 dist
 *.log
+node_modules
+npm-debug.log
+classmaster_data
+.git
+.env
+dist
+docker-compose.yml
+Dockerfile
+.\classmaster_data\pgadmin_data

@@ -212,8 +212,14 @@ const startServer = async () => {
     // Start Server
     server.listen(PORT, () => {
       const baseURL = `http://localhost:${PORT}`;
-      console.log(`🚀 Server running on port ${PORT}`);
+
+
+
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log(`🚀 nodejs api Server running on port ${PORT}`);
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log(`🌐 URL: ${baseURL}`);
+      console.log(`🌐 URL: 'http://api.classmaster.top}`);
     });
 
   } catch (error) {
