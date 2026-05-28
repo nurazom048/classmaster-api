@@ -1,0 +1,52 @@
+node_modules
+node_modules/
+.env
+env
+build/Fetures
+build/connection
+build/utils
+build/services
+build/server.js
+classmaster_data/s3_storage/storageforclassmaster
+google-credentials.json
+
+node_modules
+.env
+dist
+build
+coverage
+
+# Docker
+
+classmaster_data
+pgdata
+backups
+
+# Prisma
+
+prisma/migrations
+
+# Logs
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+
+.DS_Store
+Thumbs.db
+
+# IDE
+
+.vscode
+.idea
+
+# Docker volumes
+
+*.dump
+*.tar
+
+# Linux
+
+*.swp

@@ -1,0 +1,5 @@
+node_modules
+.git
+classmaster_data
+dist
+*.log

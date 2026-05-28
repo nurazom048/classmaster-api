@@ -1,0 +1,9 @@
+tunnel: 1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf
+credentials-file: /etc/cloudflared/1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf.json
+
+ingress:
+  - hostname: api.classmaster.top
+    service: http://api:4000
+  - service: http_status:404
+
+  # cloudflared tunnel --config config.yml run my-pc-tunnel
