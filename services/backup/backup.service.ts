@@ -69,10 +69,10 @@ export const startBackupScheduler = async () => {
     console.log(`[LOG] 🕒 Backup Scheduler Initialized: Running every 8 MINUTES (Testing Mode).`);
 
     // 🔴 8 Hour Logic (take backup every 8 Hours : for Production)
-    cron.schedule('0 */8 * * *', async () => {
-
-        // 🟢 8 Minute Logic ((take backup every 8 minutes : for testing)
-        // cron.schedule('*/8 * * * *', async () => {
+    // cron.schedule('0 */8 * * *', async () => {
+    //TODO: edit it later
+    // 🟢 8 Minute Logic ((take backup every 8 minutes : for testing)
+    cron.schedule('*/8 * * * *', async () => {
 
         // Step 1: Purono file cleanup kora
         await cleanupOldBackups();
@@ -84,8 +84,9 @@ export const startBackupScheduler = async () => {
         console.log(`[LOG] 🚀 Starting backup process: ${fileName}`);
 
         try {
-            const dbUrl = process.env.DATABASE_URL;
-            const cmd = `pg_dump "${dbUrl}" -F c > "${filePath}"`;
+            const rawDbUrl = process.env.DATABASE_URL || "";
+            const dbUrl = rawDbUrl.split("?")[0];
+            const cmd = `pg_dump "${dbUrl}" -F c -f "${filePath}"`;
 
             await new Promise((resolve, reject) => {
                 exec(cmd, (error, stdout, stderr) => {

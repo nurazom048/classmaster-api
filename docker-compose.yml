@@ -64,7 +64,6 @@ services:
 
     volumes:
       - ./classmaster_data/s3_storage:/data
-
   # API
   api:
     build: .
@@ -99,21 +98,20 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  # # Cloudflare Tunnel
+  # tunnel:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: cloudflare_tunnel
 
-  # Cloudflare Tunnel
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflare_tunnel
+  #   restart: always
 
-    restart: always
+  #   depends_on:
+  #     - api
 
-    depends_on:
-      - api
+  #   volumes:
+  #     - ./.cloudflared:/etc/cloudflared
 
-    volumes:
-      - ./.cloudflared:/etc/cloudflared
-
-    command: tunnel --config /etc/cloudflared/config.yml run
+  #   command: tunnel --config /etc/cloudflared/config.yml run
 
 volumes:
   pgdata:
