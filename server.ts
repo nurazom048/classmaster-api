@@ -52,7 +52,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // CORS Config
 const allowedOrigins = [
-  "http://localhost:5000",
+  "http://localhost:5005",
   "http://localhost:4000",
   "https://classmaster.top",
   "https://www.classmaster.top",

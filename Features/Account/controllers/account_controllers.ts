@@ -48,7 +48,7 @@ export const edit_account = async (req: any, res: Response) => {
     const bucketName = "storageforclassmaster"; // MinIO Bucket
 
     // Step 2: Handle the cover image update
-    const coverImage = req.files?.['cover'] ? req.files['cover'][0] : null;
+    const coverImage = req.files?.['coverImage'] ? req.files['coverImage'][0] : null;
     let coverImageURL = account.coverImage;
     let coverImageProvider = account.coverImageStorageProvider || null;
 

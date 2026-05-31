@@ -317,6 +317,7 @@ export const allClass = async (req: any, res: Response) => {
             name: true,
             username: true,
             image: true, // Include image if required
+            imageStorageProvider: true,
           },
         },
       },
@@ -365,13 +366,13 @@ export const allClass = async (req: any, res: Response) => {
         }
       });
     });
-    const { id, name, username, image } = routine.routineOwner;
+    const { id, name, username, image, imageStorageProvider } = routine.routineOwner;
 
     // Prepare the final response
     const response = {
       allClass: classes,
       weekdayClasses,
-      owner: { id, name, username, image },
+      owner: { id, name, username, image, imageStorageProvider },
     };
 
     return res.status(200).json(response);
