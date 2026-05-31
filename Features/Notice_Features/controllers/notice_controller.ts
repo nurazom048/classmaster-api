@@ -283,6 +283,7 @@ export const recentNotice = async (req: any, res: Response) => {
                         name: true,
                         username: true,
                         image: true, // DB path
+                        imageStorageProvider: true,
                     },
                 },
             },
@@ -300,6 +301,7 @@ export const recentNotice = async (req: any, res: Response) => {
                     image: notice.Account.image ?? undefined,
                     name: notice.Account.name ?? undefined,
                     username: notice.Account.username ?? undefined,
+                    imageStorageProvider: notice.Account.imageStorageProvider ?? undefined,
                 },
                 description: notice.description ?? undefined,
                 pdf: notice.pdf ?? undefined, // Raw path returned
@@ -344,7 +346,7 @@ export const recentNoticeByAcademeID = async (req: any, res: Response) => {
                 createdAt: true,
                 updatedAt: true,
                 publisherId: true,
-                Account: { select: { name: true, username: true, image: true } },
+                Account: { select: { name: true, username: true, image: true, imageStorageProvider: true } },
             },
             skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
             take: parseInt(limit.toString()),
