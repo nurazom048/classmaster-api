@@ -386,7 +386,7 @@ export const allClass = async (req: any, res: Response) => {
 //************   findClass       *************** */
 export const findClass = async (req: any, res: Response) => {
   const { classID } = req.params;
-  console.log(classID + 'find class');
+
 
   try {
     // step:1 find classes
@@ -394,8 +394,8 @@ export const findClass = async (req: any, res: Response) => {
     if (!classes) return res.status(404).send({ message: 'Class not found' });
 
     // step:2 find weekday
-    const weekdays = await prisma.class.findFirst({ where: { id: classID } });
-    console.log({ message: "All weekday in the class", classes, weekdays })
+    const weekdays = await prisma.weekday.findMany({ where: { classId: classID } });
+
 
     // step:3 send response
     res.status(200).send({ message: "All weekday in the class", classes, weekdays });

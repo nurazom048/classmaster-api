@@ -19,6 +19,7 @@ import prisma from '../../../prisma/schema/prisma.clint';
 import { s3Client, } from '../../../config/firebase/s3.config';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { removeNameSpace } from '../../Account/helper/ac_helper';
 /// make a add to 
 //?_______________________________________________________________________________________!//
 
@@ -50,14 +51,14 @@ export const addNotice = async (req: any, res: Response) => {
 
 
         // Step 5: Upload PDF to MinIO S3
-        const fileName = `/academyId-${findAccount.id}/notices/uid-${uuid}-${req.file.originalname}`;
-
+        const fileName = `uid-${uuid}-${removeNameSpace(req.file.originalname)}`;
+        const key = `ID-${findAccount.id}/notices/${fileName}`;
         // TODO: I will add a bucket name in the .env 
         // const bucketName = process.env.MINIO_BUCKET_NAME || 'storageforclassmaster';
         // console.log("Attempting upload to bucket:", bucketName);
         const uploadParams = {
             Bucket: "storageforclassmaster",
-            Key: fileName,
+            Key: key,
             Body: req.file.buffer, // multer 
             ContentType: req.file.mimetype,
         };

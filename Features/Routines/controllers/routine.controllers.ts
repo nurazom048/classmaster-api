@@ -210,11 +210,11 @@ export const searchRoutine = async (req: any, res: Response) => {
     });
 
     if (routines.length === 0) {
-      return res.status(404).json({ message: "No routines found" });
+      return res.status(404).json({ message: "No routines found", routines: [], });
     }
 
     res.status(200).json({
-      routines,
+      routines: routines,
       currentPage: page,
       totalPages: Math.ceil(count / limit),
       totalCount: count
@@ -279,49 +279,60 @@ export const save_and_unsave_routine = async (req: any, res: Response) => {
 };
 
 
-//.......save routines.../
+//***************************************************************************************/
+//----------------------------save routines --------------------------------------/
+//**************************************************************************************/
+
 export const save_routines = async (req: any, res: Response) => {
-  const { id } = req.user;
+  const { id } = req.user; // Account ID
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 2;
+  const skip = (page - 1) * limit;
 
   try {
-    // // Find the account by primary username
-    // const account = await Account.findById(id);
-    // if (!account) return res.status(404).json({ message: "Account not found" });
+    // 1. Fetch routines saved by the current account
+    // We query the Routine model where the 'savedBy' list includes the user's ID
+    const savedRoutines = await prisma.routine.findMany({
+      where: {
+        savedBy: {
+          some: { id: id }
+        }
+      },
+      include: {
+        // Populate owner details for the routine
+        routineOwner: {
+          select: { name: true, username: true, image: true }
+        }
+      },
+      skip: skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' }
+    });
 
-    // // Find the saved routines for the account and populate owner details
-    // const savedRoutines = await SaveRoutine.find({ savedByAccountID: id })
-    //   .populate({
-    //     path: 'routineID',
-    //     select: 'name ownerid',
-    //     populate: {
-    //       path: 'ownerid',
+    // 2. Count the total number of routines saved by this account
+    const count = await prisma.routine.count({
+      where: {
+        savedBy: {
+          some: { id: id }
+        }
+      }
+    });
 
+    // 3. Prepare the response data
+    const response = {
+      routines: savedRoutines,
+      currentPage: page,
+      totalPages: Math.ceil(count / limit)
+    };
 
-    //       select: 'name username image'
-    //     }
-    //   })
-    //   .limit(limit)
-    //   .skip((page - 1) * limit);
+    console.log(response);
+    res.status(200).json(response);
 
-    // // Count the total number of saved routines
-    // const count = await SaveRoutine.countDocuments({ savedByAccountID: id });
-
-    // // Prepare response data
-    // const response = {
-    //   savedRoutines: savedRoutines.map((routine: any) => routine.routineID),
-    //   currentPage: page,
-    //   totalPages: Math.ceil(count / limit)
-    // };
-
-    // res.status(200).json(response);
-    // console.log(response);
   } catch (error: any) {
+    console.error("Error fetching saved routines:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
 
 
 //***************************************************************************************/

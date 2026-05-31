@@ -16,12 +16,12 @@ initializeApp(firebaseConfig);
 
 //file compressino 
 import sharp from 'sharp';
+import { removeNameSpace } from '../helper/ac_helper';
 
 // Firebase auth
 const admin = require('firebase-admin');
 const { auth } = require("firebase-admin");
 // const { use } = require('../../routes/account_route');
-
 
 
 //**********************************************************************************************/
@@ -35,7 +35,7 @@ export const edit_account = async (req: any, res: Response) => {
     const account = await prisma.account.findUnique({ where: { id: req.user.id } });
     if (!account) return res.status(404).json({ message: 'Account not found' });
 
-    // 🟢 নতুন ইউজারনেম চেক: যদি ইউজার তার ইউজারনেম চেঞ্জ করে, তবে চেক করবে সেটা অন্য কেউ নিয়েছে কিনা
+    // 🟢 Username validation check
     if (username && username !== account.username) {
       const usernameAlreadyTaken = await prisma.account.findUnique({
         where: { username },
@@ -46,6 +46,7 @@ export const edit_account = async (req: any, res: Response) => {
     }
 
     const bucketName = "storageforclassmaster"; // MinIO Bucket
+
 
     // Step 2: Handle the cover image update
     const coverImage = req.files?.['coverImage'] ? req.files['coverImage'][0] : null;
@@ -60,8 +61,11 @@ export const edit_account = async (req: any, res: Response) => {
         .toBuffer();
 
       const timestamp = Date.now();
-      const filename = `${username || account.username}-${name || account.name}-${timestamp}-cover.webp`;
-      const s3Key = `ID-${account.id}/mages/cover/${filename}`
+      // 🟢 Applied sanitized names to file name
+      const filename = `${removeNameSpace(username || account.username)}-${removeNameSpace(name || account.name)}-${timestamp}-cover.webp`;
+
+
+      const s3Key = `ID-${account.id}/images/cover/${filename}`;
 
       const uploadParams = {
         Bucket: bucketName,
@@ -95,8 +99,9 @@ export const edit_account = async (req: any, res: Response) => {
         .toBuffer();
 
       const timestamp = Date.now();
-      const filename = `${username || account.username}-${name || account.name}-${timestamp}-profile.webp`;
-      const s3Key = `ID-${account.id}/mages/profile/${filename}`;
+      // 🟢 Applied sanitized names to file name
+      const filename = `${removeNameSpace(username || account.username)}-${removeNameSpace(name || account.name)}-${timestamp}-profile.webp`;
+      const s3Key = `ID-${account.id}/images/profile/${filename}`;
 
       const uploadParams = {
         Bucket: bucketName,
@@ -140,7 +145,7 @@ export const edit_account = async (req: any, res: Response) => {
     console.error(err);
     return res.status(500).json({ message: 'Failed to update account', error: err });
   }
-}
+};
 //**********************************************************************************************/
 // ---------------------------------Search Account--------------------------------------------/
 //**********************************************************************************************/
