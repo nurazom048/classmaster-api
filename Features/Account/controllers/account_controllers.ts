@@ -7,12 +7,15 @@ const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('
 import { firebaseConfig } from "../../../config/firebase/firebase_storage";
 import prisma from '../../../prisma/schema/prisma.clint';
 import { printD } from '../../../utils/utils';
+import { s3Client } from '../../../services/storage/storage.mino.s3';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 const storage = getStorage();
 
 // Initialize Firebase
 initializeApp(firebaseConfig);
 
-
+//file compressino 
+import sharp from 'sharp';
 
 // Firebase auth
 const admin = require('firebase-admin');
@@ -24,8 +27,6 @@ const { auth } = require("firebase-admin");
 //**********************************************************************************************/
 // ---------------------------------Edit Account --------------------------------------------/
 //**********************************************************************************************/
-
-
 export const edit_account = async (req: any, res: Response) => {
   const { name, username, about, email } = req.body;
 
@@ -34,6 +35,17 @@ export const edit_account = async (req: any, res: Response) => {
     const account = await prisma.account.findUnique({ where: { id: req.user.id } });
     if (!account) return res.status(404).json({ message: 'Account not found' });
 
+    // 🟢 নতুন ইউজারনেম চেক: যদি ইউজার তার ইউজারনেম চেঞ্জ করে, তবে চেক করবে সেটা অন্য কেউ নিয়েছে কিনা
+    if (username && username !== account.username) {
+      const usernameAlreadyTaken = await prisma.account.findUnique({
+        where: { username },
+      });
+      if (usernameAlreadyTaken) {
+        return res.status(400).json({ message: 'Username is already taken' });
+      }
+    }
+
+    const bucketName = "storageforclassmaster"; // MinIO Bucket
 
     // Step 2: Handle the cover image update
     const coverImage = req.files?.['cover'] ? req.files['cover'][0] : null;
@@ -41,23 +53,32 @@ export const edit_account = async (req: any, res: Response) => {
     let coverImageProvider = account.coverImageStorageProvider || null;
 
     if (coverImage) {
-      // Upload the cover image to Firebase Storage
+      // Compress Cover Image using Sharp
+      const compressedCoverBuffer = await sharp(coverImage.buffer)
+        .resize({ width: 1200, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+
       const timestamp = Date.now();
-      const filename = `${account.username}-${account.name}-${timestamp}-${coverImage.originalname}`;
-      const metadata = { contentType: coverImage.mimetype };
-      const coverImageRef = ref(storage, `images/profile/ID-${account.id}/cover/-${filename}`);
+      const filename = `${username || account.username}-${name || account.name}-${timestamp}-cover.webp`;
+      const s3Key = `ID-${account.id}/mages/cover/${filename}`
 
-      await uploadBytes(coverImageRef, coverImage.buffer, metadata);
-      coverImageURL = await getDownloadURL(coverImageRef);
-      coverImageProvider = 'firebase';
+      const uploadParams = {
+        Bucket: bucketName,
+        Key: s3Key,
+        Body: compressedCoverBuffer,
+        ContentType: 'image/webp',
+      };
 
-      // Delete the old cover image if it exists
-      if (account.coverImage && account.coverImageStorageProvider === 'firebase') {
-        const oldCoverImageRef = ref(storage, account.coverImage);
-        await deleteObject(oldCoverImageRef).catch(() => console.log('Old cover image not found'));
+      await s3Client.send(new PutObjectCommand(uploadParams));
+      coverImageURL = s3Key;
+      coverImageProvider = 'aws';
+
+      if (account.coverImage && account.coverImageStorageProvider === 'aws') {
+        const deleteParams = { Bucket: bucketName, Key: account.coverImage };
+        await s3Client.send(new DeleteObjectCommand(deleteParams)).catch(() => console.log('Old cover image not found'));
       }
     } else if (!coverImageURL) {
-      // Set cover image provider to null if no image exists
       coverImageProvider = null;
     }
 
@@ -67,23 +88,32 @@ export const edit_account = async (req: any, res: Response) => {
     let profileImageProvider = account.imageStorageProvider || null;
 
     if (profileImage) {
-      // Upload the profile image to Firebase Storage
+      // Compress Profile Image using Sharp
+      const compressedProfileBuffer = await sharp(profileImage.buffer)
+        .resize({ width: 500, height: 500, fit: 'cover' })
+        .webp({ quality: 80 })
+        .toBuffer();
+
       const timestamp = Date.now();
-      const filename = `${account.username}-${account.name}-${timestamp}-${profileImage.originalname}`;
-      const metadata = { contentType: profileImage.mimetype };
-      const profileImageRef = ref(storage, `images/profile/ID-${account.id}/profile/-${filename}`);
+      const filename = `${username || account.username}-${name || account.name}-${timestamp}-profile.webp`;
+      const s3Key = `ID-${account.id}/mages/profile/${filename}`;
 
-      await uploadBytes(profileImageRef, profileImage.buffer, metadata);
-      profileImageURL = await getDownloadURL(profileImageRef);
-      profileImageProvider = 'firebase';
+      const uploadParams = {
+        Bucket: bucketName,
+        Key: s3Key,
+        Body: compressedProfileBuffer,
+        ContentType: 'image/webp',
+      };
 
-      // Delete the old profile image if it exists
-      if (account.image && account.imageStorageProvider === 'firebase') {
-        const oldProfileImageRef = ref(storage, account.image);
-        await deleteObject(oldProfileImageRef).catch(() => console.log('Old profile image not found'));
+      await s3Client.send(new PutObjectCommand(uploadParams));
+      profileImageURL = s3Key;
+      profileImageProvider = 'aws';
+
+      if (account.image && account.imageStorageProvider === 'aws') {
+        const deleteParams = { Bucket: bucketName, Key: account.image };
+        await s3Client.send(new DeleteObjectCommand(deleteParams)).catch(() => console.log('Old profile image not found'));
       }
     } else if (!profileImageURL) {
-      // Set profile image provider to null if no image exists
       profileImageProvider = null;
     }
 
@@ -110,10 +140,7 @@ export const edit_account = async (req: any, res: Response) => {
     console.error(err);
     return res.status(500).json({ message: 'Failed to update account', error: err });
   }
-};
-
-
-
+}
 //**********************************************************************************************/
 // ---------------------------------Search Account--------------------------------------------/
 //**********************************************************************************************/

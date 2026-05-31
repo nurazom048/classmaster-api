@@ -25,7 +25,7 @@ services:
 
   # pgAdmin
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:9.6
     container_name: pgadmin-ui
     restart: always
 
@@ -98,20 +98,20 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-  # # Cloudflare Tunnel
-  # tunnel:
-  #   image: cloudflare/cloudflared:latest
-  #   container_name: cloudflare_tunnel
+  # Cloudflare Tunnel
+  tunnel:
+    image: cloudflare/cloudflared:2025.5.0
+    container_name: cloudflare_tunnel
 
-  #   restart: always
+    restart: always
 
-  #   depends_on:
-  #     - api
+    depends_on:
+      - api
 
-  #   volumes:
-  #     - ./.cloudflared:/etc/cloudflared
+    volumes:
+      - ./.cloudflared:/etc/cloudflared
 
-  #   command: tunnel --config /etc/cloudflared/config.yml run
+    command: tunnel --config /etc/cloudflared/config.yml run
 
 volumes:
   pgdata:

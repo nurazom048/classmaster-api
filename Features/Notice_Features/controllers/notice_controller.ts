@@ -50,7 +50,7 @@ export const addNotice = async (req: any, res: Response) => {
 
 
         // Step 5: Upload PDF to MinIO S3
-        const fileName = `notices/academyId-${findAccount.id}/uid-${uuid}-${req.file.originalname}`;
+        const fileName = `/academyId-${findAccount.id}/notices/uid-${uuid}-${req.file.originalname}`;
 
         // TODO: I will add a bucket name in the .env 
         // const bucketName = process.env.MINIO_BUCKET_NAME || 'storageforclassmaster';
