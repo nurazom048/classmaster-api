@@ -1,5 +1,6 @@
+import { initializeApp } from "firebase/app";
 
-export const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyDeDlJSWUPr3CDVbUoxA-Ag_FKnAS3GOi0",
   authDomain: "rutinapp-cadc1.firebaseapp.com",
   projectId: "rutinapp-cadc1",
@@ -9,3 +10,7 @@ export const firebaseConfig = {
   measurementId: "G-98CE05FZG6"
 };
 
+// Client App ইনিশিয়ালাইজ করা হলো
+const firebaseClientApp = initializeApp(firebaseConfig);
+
+export default firebaseClientApp;

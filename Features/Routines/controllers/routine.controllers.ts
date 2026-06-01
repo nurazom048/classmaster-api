@@ -2,19 +2,11 @@ import express, { Request, Response } from 'express';
 
 // Models
 import prisma from '../../../prisma/schema/prisma.clint';
+import { BUCKET_NAME, minioS3Client } from '../../../services/storage/storage.minio.config';
+import { DeleteObjectCommand, ListObjectsV2Command, ListObjectsV2CommandOutput } from '@aws-sdk/client-s3';
 
 
-//! firebase
-import { initializeApp } from 'firebase/app';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-const firebase_storage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_storage.firebaseConfig); // Initialize Firebase
-// Get a reference to the Firebase storage bucket
-const storage = getStorage();
 
-
-// routine firebase
-import { deleteRoutineMediaFolder } from '../firebase/routines.firebase';
 
 //*******************************************************************************/
 //--------------------------------- createRoutine  ------------------------------/
@@ -109,9 +101,9 @@ export const deleteRoutineById = async (req: any, res: Response) => {
 
   try {
     // Start transaction
-    const result = await prisma.$transaction(async (prisma) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Step 1: Check if the routine exists and belongs to the user
-      const existingRoutine = await prisma.routine.findFirst({
+      const existingRoutine = await tx.routine.findFirst({
         where: {
           id: routineID,
           routineOwner: { id: ownerId },
@@ -123,23 +115,59 @@ export const deleteRoutineById = async (req: any, res: Response) => {
       }
 
       // Step 2: Delete the related routine members
-      await prisma.routineMember.deleteMany({
+      await tx.routineMember.deleteMany({
         where: {
           routineId: existingRoutine.id,
         },
       });
 
-
       // Step 3: Delete the routine
-      const deletedRoutine = await prisma.routine.delete({
+      const deletedRoutine = await tx.routine.delete({
         where: { id: existingRoutine.id },
       });
 
       // Return the deleted routine details
       return deletedRoutine;
     });
-    // delete all the media file from firebase
-    await deleteRoutineMediaFolder(routineID);
+
+    // 🔥 MinIO থেকে "ফোল্ডার" ডিলিট করার লজিক
+    const prefix = `ID-${ownerId}/routine/routineID-${routineID}/`;
+
+    let isTruncated = true;
+    let continuationToken: string | undefined = undefined;
+
+    // লুপ চালিয়ে ওই প্রিফিক্সের আন্ডারে থাকা সব ফাইল ডিলিট করা হচ্ছে
+    while (isTruncated) {
+      // 💡 এখানে explicitly টাইপ বলে দেওয়া হলো 
+      const listResponse: ListObjectsV2CommandOutput = await minioS3Client.send(
+        new ListObjectsV2Command({
+          Bucket: BUCKET_NAME,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        })
+      );
+
+      if (listResponse.Contents && listResponse.Contents.length > 0) {
+        for (const item of listResponse.Contents) {
+          if (item.Key) {
+            try {
+              await minioS3Client.send(
+                new DeleteObjectCommand({
+                  Bucket: BUCKET_NAME,
+                  Key: item.Key,
+                })
+              );
+            } catch (deleteError) {
+              console.error(`❌ Failed to delete object: ${item.Key}`, deleteError);
+            }
+          }
+        }
+      }
+
+      // যদি ফাইলের পরিমাণ অনেক বেশি হয়, তাহলে পরের ব্যাচ লোড করার জন্য
+      isTruncated = listResponse.IsTruncated ?? false;
+      continuationToken = listResponse.NextContinuationToken;
+    }
 
     // If transaction completes successfully
     res.status(200).json({
@@ -153,8 +181,6 @@ export const deleteRoutineById = async (req: any, res: Response) => {
     res.status(500).json({ message: `Routine deletion failed: ${message}` });
   }
 };
-
-
 //*******************************************************************************/
 //--------------------------------- search Routine  ------------------------------/
 //*******************************************************************************/

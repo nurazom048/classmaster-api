@@ -1,11 +1,10 @@
-// Firebase admin sdk from Firebase config
-import admin from 'firebase-admin';
-const serviceAccount = require('../../../config/firebase/admin.sdk');
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+// 🔥 ১. Firebase Admin SDK (ব্যাকএন্ডের পাওয়ারফুল কাজের জন্য)
+import admin from '../../../config/firebase/firebase.config.admin';
+// 🔥 ২. Firebase Client SDK for login and signup
+import firebaseClientApp from '../../../config/firebase/firebase.client.sdk';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-const firebaseApp = require('../../../config/firebase/firebase.config');
-const auth = getAuth(firebaseApp);
 
+const auth = getAuth(firebaseClientApp);
 //
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
@@ -15,6 +14,7 @@ import prisma from '../../../prisma/schema/prisma.clint';
 import { AccountType } from '@prisma/client';
 import { handleLoginError } from '../helper/handel.err';
 import { printD } from '../../../utils/utils';
+import { getTimestamp } from '../../../utils/timestamp.util';
 
 //**********************************************************************************************/
 // --------------------------------- login Account --------------------------------------------/
@@ -25,8 +25,8 @@ export const loginAccount = async (req: Request, res: Response) => {
   try {
     let account: any = null;
     let accountData: any = null;
-    console.log("username " + username + " password " + password);
-    console.log("email " + email);
+    // console.log("username " + username + " password " + password ,"email " + email););
+
 
     // Step 1: Check for pending account status
     const pendingAccount = await PendingAccount.findOne({ $or: [{ username }, { email }] });
@@ -145,15 +145,8 @@ export const loginAccount = async (req: Request, res: Response) => {
     });
 
     // Step 9: Send success response with email
-    console.log({
-      message: "Login successful",
-      authToken,
-      refreshToken,
-      account: {
-        ...account,
-        accountData: { email: accountData.email },
-      },
-    });
+    console.log(`🟢 [${getTimestamp()}] [Login] Success | User: ${account.username} (${accountData.email}) | Type: ${account.accountType}`);
+    console.log(`[TOKEN] Bearer Token `, authToken);
 
     res.status(200).json({
       message: "Login successful",

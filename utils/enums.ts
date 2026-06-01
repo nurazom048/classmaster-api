@@ -4,3 +4,12 @@ export enum ActiveStatus {
     JOINED = "joined",
     PENDING = "pending",
 }
+
+//
+export enum imageStorageProviderTS {
+    FIREBASE = "firebase",
+    AWS = "aws",
+    OTHHERS = "others",
+    MINIO = "minio",
+
+}

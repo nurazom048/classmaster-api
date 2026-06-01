@@ -1,18 +1,12 @@
 import bcrypt from 'bcrypt';
-import express, { Request, Response } from 'express';
+import { Response } from 'express';
 
 //? firebase
-import { initializeApp, getApp } from 'firebase/app';
-const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
-import { firebaseConfig } from "../../../config/firebase/firebase_storage";
 import prisma from '../../../prisma/schema/prisma.clint';
-import { printD } from '../../../utils/utils';
-import { s3Client } from '../../../services/storage/storage.mino.s3';
+import { minioS3Client } from '../../../services/storage/storage.minio.config';
 import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-const storage = getStorage();
 
-// Initialize Firebase
-initializeApp(firebaseConfig);
+
 
 //file compressino 
 import sharp from 'sharp';
@@ -20,15 +14,14 @@ import { removeNameSpace } from '../helper/ac_helper';
 
 // Firebase auth
 const admin = require('firebase-admin');
-const { auth } = require("firebase-admin");
-// const { use } = require('../../routes/account_route');
+
 
 
 //**********************************************************************************************/
 // ---------------------------------Edit Account --------------------------------------------/
 //**********************************************************************************************/
 export const edit_account = async (req: any, res: Response) => {
-  const { name, username, about, email } = req.body;
+  const { name, username, about } = req.body;
 
   try {
     // Step 1: Fetch the current account details
@@ -64,7 +57,6 @@ export const edit_account = async (req: any, res: Response) => {
       // 🟢 Applied sanitized names to file name
       const filename = `${removeNameSpace(username || account.username)}-${removeNameSpace(name || account.name)}-${timestamp}-cover.webp`;
 
-
       const s3Key = `ID-${account.id}/images/cover/${filename}`;
 
       const uploadParams = {
@@ -74,13 +66,13 @@ export const edit_account = async (req: any, res: Response) => {
         ContentType: 'image/webp',
       };
 
-      await s3Client.send(new PutObjectCommand(uploadParams));
+      await minioS3Client.send(new PutObjectCommand(uploadParams));
       coverImageURL = s3Key;
       coverImageProvider = 'aws';
 
       if (account.coverImage && account.coverImageStorageProvider === 'aws') {
         const deleteParams = { Bucket: bucketName, Key: account.coverImage };
-        await s3Client.send(new DeleteObjectCommand(deleteParams)).catch(() => console.log('Old cover image not found'));
+        await minioS3Client.send(new DeleteObjectCommand(deleteParams)).catch(() => console.log('Old cover image not found'));
       }
     } else if (!coverImageURL) {
       coverImageProvider = null;
@@ -110,13 +102,13 @@ export const edit_account = async (req: any, res: Response) => {
         ContentType: 'image/webp',
       };
 
-      await s3Client.send(new PutObjectCommand(uploadParams));
+      await minioS3Client.send(new PutObjectCommand(uploadParams));
       profileImageURL = s3Key;
       profileImageProvider = 'aws';
 
       if (account.image && account.imageStorageProvider === 'aws') {
         const deleteParams = { Bucket: bucketName, Key: account.image };
-        await s3Client.send(new DeleteObjectCommand(deleteParams)).catch(() => console.log('Old profile image not found'));
+        await minioS3Client.send(new DeleteObjectCommand(deleteParams)).catch(() => console.log('Old profile image not found'));
       }
     } else if (!profileImageURL) {
       profileImageProvider = null;
@@ -340,7 +332,7 @@ export const changePassword = async (req: any, res: Response) => {
 
 // *****************     forgetPassword      *******************************/
 export const forgetPassword = async (req: any, res: Response) => {
-  const { email, phone, username } = req.body;
+  const { email, username } = req.body;
 
   try {
     if (!email && !username) return res.status(400).json({ message: "Please fill the form" });

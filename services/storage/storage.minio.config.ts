@@ -1,12 +1,13 @@
 import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
 
-// ENV
-const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || "http://localhost:9000";
-const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || "admin";
-const MINIO_ACCESS_PASSWORD = process.env.MINIO_SECRET_KEY || "password123";
+// 💡 ENV Variables (সেন্ট্রালাইজড এবং এক্সপোর্টেড)
+export const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'storageforclassmaster';
+export const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || "http://localhost:9000";
+export const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || "admin";
+export const MINIO_ACCESS_PASSWORD = process.env.MINIO_SECRET_KEY || "password123";
 
-// S3 Client Setup
-export const s3Client = new S3Client({
+// 💡 S3 Client Setup (নাম পরিবর্তন করে minioS3Client রাখা হয়েছে)
+export const minioS3Client = new S3Client({
     region: "us-east-1",
     endpoint: MINIO_ENDPOINT,
     credentials: {
@@ -16,29 +17,40 @@ export const s3Client = new S3Client({
     forcePathStyle: true,
 });
 
-//
 // MinIO Connection Checker
 export const connectMinIO = async () => {
+
+    const publicReadPolicy = {
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Sid: "PublicReadGetObject",
+                Effect: "Allow",
+                Principal: "*",
+                Action: ["s3:GetObject"],
+                Resource: [`arn:aws:s3:::${BUCKET_NAME}/*`] // তোমার বাকেটের ভেতরের সব অবজেক্ট
+            }
+        ]
+    };
+
+
+
     try {
-        await s3Client.send(new ListBucketsCommand({}));
+        // 💡 এখানে minioS3Client ব্যবহার করা হয়েছে
+        await minioS3Client.send(new ListBucketsCommand({}));
 
         const HOST_IP = "127.0.0.1";
 
         console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         console.log("📦 MinIO Storage Connected");
         console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
         console.log(`📦 Internal Endpoint : ${MINIO_ENDPOINT}`);
-
         console.log(`🌐 MinIO API         : http://localhost:9000`);
         console.log(`🌐 MinIO API IP      : http://${HOST_IP}:9000`);
-
         console.log(`🖥️ MinIO Console     : http://localhost:9001`);
         console.log(`🖥️ Console IP        : http://${HOST_IP}:9001`);
-
         console.log(`🔑 Access Key        : ${MINIO_ACCESS_KEY}`);
         console.log(`🔐 Secret Key        : ${MINIO_ACCESS_PASSWORD}`);
-
         console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     } catch (error: any) {

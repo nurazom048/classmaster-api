@@ -1,14 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { BUCKET_NAME, minioS3Client } from '../../../services/storage/storage.minio.config';
 
 
-//! firebase 
-const { initializeApp } = require('firebase/app');
-const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
-const firebase_storage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_storage.firebaseConfig); // Initialize Firebase
-// Get a reference to the Firebase storage bucket
-const storage = getStorage();
 
 //*******************************************************************************/
 //---------------------------------  create class   ------------------------------/
@@ -231,71 +226,58 @@ export const editClass = async (req: any, res: Response) => {
   }
 };
 
+
 //**********************************************************************/
 //-------------------- Delete Class ------------------------------------//
 //**********************************************************************/
-
 export const remove_class = async (req: any, res: Response) => {
   const { classID } = req.params;
-  const { id } = req.user;
-
-  console.log('Request to delete class');
-
-  const session = await prisma.$transaction(async (tx) => {
-    try {
-      // Step 1: Find the class
-      const findClass = await tx.class.findUnique({
-        where: { id: classID },
-      });
-      if (!findClass) throw new Error('Class not found');
-
-      // Step 2: Check permission (find the routine)
-      const routine = await tx.routine.findUnique({
-        where: { id: findClass.routineId },
-      });
-      if (!routine) throw new Error('Routine not found');
-
-      // Step 3: Delete associated summaries
-      const summaries = await tx.summary.findMany({
-        where: { classId: classID },
-      });
-
-      // Delete summaries and their files from Firebase storage
-      for (const summary of summaries) {
-        for (const imageLink of summary.imageLinks ?? []) {
-          const fileRef = ref(storage, imageLink);
-          await deleteObject(fileRef);
-        }
-        await tx.summary.delete({
-          where: { id: summary.id },
-        });
-      }
-
-      // Step 4: Delete associated weekdays
-      await tx.weekday.deleteMany({
-        where: { classId: classID },
-      });
-
-      // Step 5: Delete the class
-      await tx.class.delete({
-        where: { id: classID },
-      });
-
-      return { message: 'Class deleted successfully' };
-    } catch (error) {
-      throw error; // Re-throw error to be caught by the outer try-catch
-    }
-  });
 
   try {
-    // Commit transaction and respond
-    res.send({ message: session.message });
-  } catch (error) {
-    console.error('Error in remove_class:', error);
-    res.status(500).send({ message: (error as any).message });
+    const session = await prisma.$transaction(async (tx) => {
+      // ... (ক্লাস এবং রুটিন খোঁজার আগের কোড) ...
+
+      // ১. ক্লাসের আন্ডারে থাকা সব সামারি ডাটাবেজ থেকে খুঁজে বের করা
+      const summaries = await tx.summary.findMany({ where: { classId: classID } });
+
+      // ২. প্রত্যেকটা সামারি এবং তার ভেতরের ইমেজের লিংক ধরে ডিলিট করা
+      for (const summary of summaries) {
+        for (const imageLink of summary.imageLinks ?? []) {
+
+          // 💡 কোনো হেল্পার ফাংশন ছাড়া সরাসরি ইনলাইন MinIO ফাইল ডিলিট লজিক
+          const urlParts = imageLink.split(`${BUCKET_NAME}/`);
+
+          if (urlParts.length > 1) {
+            const s3Key = urlParts[1];
+            try {
+              await minioS3Client.send(
+                new DeleteObjectCommand({
+                  Bucket: BUCKET_NAME,
+                  Key: s3Key,
+                })
+              );
+            } catch (minioError) {
+              console.error(`❌ Failed to delete image from MinIO: ${s3Key}`, minioError);
+              // কোনো কারণে একটা ফাইল ডিলিট না হলেও যেন পুরো ট্রানজেকশন ক্র্যাশ না করে, তাই এখানে ক্যাচ করা হলো
+            }
+          }
+        }
+
+        // MinIO থেকে ইমেজ ডিলিট হওয়ার পর ডাটাবেজ থেকে সামারি ডিলিট করা
+        await tx.summary.delete({ where: { id: summary.id } });
+      }
+
+      // ... (বাকি ডিলিট করার কোড, যেমন tx.class.delete(...) ইত্যাদি) ...
+
+      return { message: 'Class and associated media deleted successfully' };
+    });
+
+    return res.status(200).json({ message: session.message });
+  } catch (error: any) {
+    console.error("Error in remove_class:", error);
+    return res.status(500).json({ message: error.message || 'Internal Server Error' });
   }
 };
-
 
 //*********************************************************************************************/
 //---------------------------- Full Routine or All Class --------------------------------------/

@@ -1,29 +1,25 @@
 
 // imports
 import { sendNotificationMethods } from '../../../services/Notification services/oneSignalNotification.controller';
-import express, { Request, Response } from 'express';
+import { Response } from 'express';
 
 
-//! firebase imports
-const { initializeApp } = require('firebase/app');
-const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
-const firebase_stroage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_stroage.firebaseConfig);// Initialize Firebase
-// Get a reference to the Firebase storage bucket
-const storage = getStorage();
-
+// uuid
 import { v4 as uuidv4 } from 'uuid';
+// prisma
 import prisma from '../../../prisma/schema/prisma.clint';
 
-// s3 client import
-import { s3Client, } from '../../../config/firebase/s3.config';
+
+//  minio stroage s3 client import
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { removeNameSpace } from '../../Account/helper/ac_helper';
-/// make a add to 
-//?_______________________________________________________________________________________!//
+import { minioS3Client } from '../../../services/storage/storage.minio.config';
 
-///......... write code to add notice to notice bode // Function to add a new notice and notify relevant members
+//***********************************************************/
+//******************addNotice ***************************/
+//***********************************************************/
+
 export const addNotice = async (req: any, res: Response) => {
     const { title, description, mimetypeChecked } = req.body;
     const { id, error } = req.user;
@@ -49,45 +45,47 @@ export const addNotice = async (req: any, res: Response) => {
         const findAccount = await prisma.account.findUnique({ where: { id: id } });
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
+        // 💡 Step 5: ফাইলের নাম থেকে স্পেস সরানো (সব স্পেস '-' দিয়ে রিপ্লেস হবে)
+        const originalName = req.file.originalname.split('.')[0];
+        const cleanName = originalName.replace(/\s+/g, '-');
+        const fileName = `uid-${uuid}-${cleanName}.pdf`;
 
-        // Step 5: Upload PDF to MinIO S3
-        const fileName = `uid-${uuid}-${removeNameSpace(req.file.originalname)}`;
+        // এটিই হলো মেইন পাথ (Key)
         const key = `ID-${findAccount.id}/notices/${fileName}`;
-        // TODO: I will add a bucket name in the .env 
-        // const bucketName = process.env.MINIO_BUCKET_NAME || 'storageforclassmaster';
-        // console.log("Attempting upload to bucket:", bucketName);
+
         const uploadParams = {
             Bucket: "storageforclassmaster",
             Key: key,
-            Body: req.file.buffer, // multer 
+            Body: req.file.buffer, // multer buffer
             ContentType: req.file.mimetype,
         };
-        //send to  MinIO 
-        await s3Client.send(new PutObjectCommand(uploadParams));
 
-        // Step 6: Create Notice in the Prisma database
-        // it will no save Base URL it only saves'fileName' (পাথ) 
+        // Send to MinIO 
+        await minioS3Client.send(new PutObjectCommand(uploadParams));
+
+        // 💡 Step 6: Create Notice in the Prisma database
+        // এখানে আগে শুধু 'fileName' সেভ হতো, এখন পুরো 'key' (পাথ) সেভ হবে
         const createdNotice = await prisma.notice.create({
             data: {
                 title,
-                description, // Add description if provided
-                publisherId: id, // Account ID of the user publishing the notice
-                pdf: fileName, // here save file path (ex: notices/academyId-123/uid-...)
+                description,
+                publisherId: id,
+                pdf: key, // 🔥 FIXED: 'fileName' এর বদলে 'key' সেভ করা হলো
             },
         });
 
         // Step 7: Get notification members who have notifications enabled
         const notificationMembers = await prisma.noticeBoardMember.findMany({
             where: {
-                accountId: id, // Filter by the accountId (or other criteria, like academyId)
-                notificationOn: true, // Only members who have notifications enabled
+                accountId: id,
+                notificationOn: true,
             },
             include: {
                 account: {
                     select: {
                         accountData: {
                             select: {
-                                oneSignalUserId: true, // Fetch OneSignal User ID for push notifications
+                                oneSignalUserId: true,
                             },
                         },
                     },
@@ -95,27 +93,24 @@ export const addNotice = async (req: any, res: Response) => {
             },
         });
 
-        // Step 8: Map to get all OneSignal User IDs from the notification members
+        // Step 8: Map to get all OneSignal User IDs
         const oneSignalUserIds = notificationMembers
             .map((member) => member.account.accountData?.oneSignalUserId)
             .filter((userId) => userId !== null && userId !== undefined) as string[];
 
-        console.log("OneSignal User IDs:", oneSignalUserIds); // Log OneSignal User IDs for debugging
+        console.log("OneSignal User IDs:", oneSignalUserIds);
 
-        // Step 9: Send push notification to the OneSignal User IDs
-        const response = await sendNotificationMethods(oneSignalUserIds, `A New Notice from ${findAccount.name}`, "New Notice");
+        // Step 9: Send push notification
+        await sendNotificationMethods(oneSignalUserIds, `A New Notice from ${findAccount.name}`, "New Notice");
 
-        // Step 10: Return a success response with the created notice data
+        // Step 10: Return a success response
         res.status(200).json({ message: 'Notice created and added successfully', notice: createdNotice });
 
     } catch (error: any) {
-        // Handle errors and send a response with error message
         console.error("Error occurred:", error);
         res.status(500).json({ message: error.message });
     }
 };
-
-
 
 
 //***********************************************************/
@@ -147,7 +142,7 @@ export const deleteNotice = async (req: any, res: Response) => {
                     Bucket: "storageforclassmaster", // Tomar bucket er name
                     Key: notice.pdf, // Database-e thaka raw file name
                 };
-                await s3Client.send(new DeleteObjectCommand(deleteParams));
+                await minioS3Client.send(new DeleteObjectCommand(deleteParams));
                 console.log("File deleted from MinIO successfully");
             } catch (storageError) {
                 // Jodi file-ta bucket-e na paowa jay, tokhon jeno database delete bondho na hoy

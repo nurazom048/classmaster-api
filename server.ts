@@ -20,15 +20,15 @@ import notification from "./Features/Notification_Features/routes/notification.r
 // DB Connections
 import { maineDB, NotificationDB } from "./prisma/mongodb.connection";
 import { connectPostgres } from "./prisma/schema/prisma.clint";
-import { connectMinIO } from "./services/storage/storage.mino.s3";
+import { connectMinIO, minioS3Client } from "./services/storage/storage.minio.config";
 
 // Helpers
 import { isTokenExpired } from "./services/Authentication/helper/Jwt.helper";
 
 // s3 imports
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "./config/firebase/s3.config"; // Path-ti tomar file structure onujayi thik kore nio
 import { startBackupScheduler } from "./services/backup/backup.service";
+import { getStorageFile } from "./services/storage/storage.minio.controller";
 
 // ===============================
 // 🚀 APP INITIALIZATION
@@ -36,11 +36,7 @@ import { startBackupScheduler } from "./services/backup/backup.service";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-
 const PORT = process.env.PORT || 4000;
-
-
-
 
 // ===============================
 // 🧩 MIDDLEWARE
@@ -91,35 +87,7 @@ app.use("/class", class_route);
 app.use("/summary", summary);
 app.use("/notice", notice);
 app.use("/notification", notification);
-
-// s3 route
-app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {
-  try {
-    const bucket = req.params.bucket as string;
-    const key = req.params.key as string;
-
-    const command = new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    });
-
-    const response = await s3Client.send(command);
-
-    // 🔴 সংশোধন: Content-Type কমেন্ট করা যাবে না, এটি লাগবেই!
-    res.setHeader('Content-Type', response.ContentType || 'application/pdf');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Content-Disposition', 'inline');
-
-    if (response.Body) {
-      (response.Body as any).pipe(res);
-    } else {
-      res.status(404).json({ message: "File content is empty" });
-    }
-  } catch (error) {
-    console.error("❌ MinIO File Error:", error);
-    res.status(404).json({ message: "File not found or access denied" });
-  }
-});
+app.get('/storage/:bucket/*', getStorageFile)  //mino staroage route
 // Base Checkers
 app.get("/", (req, res) => res.status(200).json({ status: "online", message: "✅ ClassMaster API is Now online ready" }));
 app.use((req, res) => res.status(404).json({ message: "❌ 404: Route Not Found" }));

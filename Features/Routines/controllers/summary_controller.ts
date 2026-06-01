@@ -1,22 +1,17 @@
 import express, { Request, Response } from 'express';
-//! firebase
-const { initializeApp } = require('firebase/app');
-const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
-const firebase_storage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_storage.firebaseConfig); // Initialize Firebase
-// Get a reference to the Firebase storage bucket
-const storage = getStorage();
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+
 // prisma
 import prisma from '../../../prisma/schema/prisma.clint';
 import { imageStorageProvider } from '@prisma/client';
-import { summaryImageUploader } from '../firebase/routines.firebase';
-//
-//
-//
+// minio storage
+import { minioS3Client, BUCKET_NAME } from '../../../services/storage/storage.minio.config';
+//file compression
+import sharp from 'sharp';
+
 //*********************************************************************************/
 //--------------------------- -add summary  --------------------------------------/
 //********************************************************************************/
-// Helper function to check file MIME types and upload summaries
 export const addSummary = async (req: any, res: Response) => {
   const { message, checkedType } = req.body;
   const { classID } = req.params;
@@ -24,18 +19,48 @@ export const addSummary = async (req: any, res: Response) => {
   const { routineID } = req;
 
   try {
-    let imageStorageProvider: imageStorageProvider | null = null;
+    let provider: imageStorageProvider | null = null;
+    const downloadUrls: string[] = []; // This will now ONLY store paths (s3Keys)
+    const files = req.files || [];
 
-    // Step 1: Upload images to Firebase Storage
-    const downloadUrls = await summaryImageUploader({
-      files: req.files,
-      classId: classID,
-      routineID,
-    });
+    if (files.length > 0) {
+      const timestamp = Date.now();
 
-    // Determine image storage provider if images are uploaded
+      for (let i = 0; i < files.length; i++) {
+        // 💡 1. ফাইলের নাম থেকে স্পেস সরানো এবং এক্সটেনশন বাদ দেওয়া
+        const originalName = files[i].originalname.split('.')[0];
+        const cleanName = originalName.replace(/\s+/g, '-'); // স্পেসগুলোকে '-' বানিয়ে দিবে
+
+        // 💡 2. নতুন নাম জেনারেট করা (যেহেতু webp তে কনভার্ট করছি, তাই এক্সটেনশন .webp)
+        const filename = `${timestamp}-${i}-${cleanName}.webp`;
+        const s3Key = `ID-${id}/routine/routineID-${routineID}/classID-${classID}/summary_files/${filename}`;
+
+        // 💡 3. Sharp দিয়ে ইমেজ কম্প্রেস করা
+        const compressedBuffer = await sharp(files[i].buffer)
+          .resize({ width: 1200, withoutEnlargement: true }) // ১২০০px এর বেশি বড় করবে না
+          .webp({ quality: 80 }) // WebP ফরম্যাটে ৮০% কোয়ালিটিতে কম্প্রেস করবে
+          .toBuffer();
+
+        try {
+          await minioS3Client.send(
+            new PutObjectCommand({
+              Bucket: BUCKET_NAME,
+              Key: s3Key,
+              Body: compressedBuffer, // কম্প্রেসড বাফার পাঠানো হলো
+              ContentType: 'image/webp', // কন্টেন্ট টাইপ চেঞ্জ করে webp করা হলো
+            })
+          );
+
+          // শুধু পাথ সেভ করা হচ্ছে
+          downloadUrls.push(s3Key);
+        } catch (uploadError) {
+          console.error(`❌ Failed to upload image ${filename} to MinIO:`, uploadError);
+        }
+      }
+    }
+
     if (downloadUrls.length > 0) {
-      imageStorageProvider = 'firebase';
+      provider = imageStorageProvider.minio;
     }
 
     // Step 2: Perform database operations in a transaction
@@ -44,14 +69,13 @@ export const addSummary = async (req: any, res: Response) => {
         data: {
           ownerId: id,
           text: message?.trim() === "" && downloadUrls.length > 0 ? '' : message,
-          imageLinks: downloadUrls,
-          imageStorageProvider,
+          imageLinks: downloadUrls, // Just the paths!
+          imageStorageProvider: provider,
           routineId: routineID,
           classId: classID,
         },
       });
 
-      // Update routine's updatedAt field
       await tx.routine.update({
         where: { id: routineID },
         data: { updatedAt: new Date() },
@@ -60,7 +84,6 @@ export const addSummary = async (req: any, res: Response) => {
       return summary;
     });
 
-    // Step 3: Send success response
     return res.status(201).json({
       message: 'Summary created successfully',
       summary: createdSummary,
@@ -71,12 +94,9 @@ export const addSummary = async (req: any, res: Response) => {
   }
 };
 
-
 //***************************************************************************************/
 //--------------------------- -Get class summary list  ----------------------------------/
 //**************************************************************************************/
-
-//## Here you can get saved summary or summary by class ID// Fetch and list class summaries or saved summaries for an account
 export const get_class_summary_list = async (req: any, res: Response) => {
   const { classID } = req.params;
   const { page = 1, limit = 10 } = req.query;
@@ -85,22 +105,16 @@ export const get_class_summary_list = async (req: any, res: Response) => {
     let summaries: any[] = [];
     let totalCount = 0;
 
-    // Helper function to remove fields with null values
     const removeNullFields = (data: any) =>
       JSON.parse(JSON.stringify(data, (key, value) => (value === null ? undefined : value)));
 
     if (!classID) {
-      // Fetch saved summaries for the logged-in account
       const account = await prisma.account.findUnique({
         where: { id: req.user.id },
         select: {
           saveSummary: {
             select: {
-              id: true,
-              text: true,
-              imageLinks: true,
-              createdAt: true,
-              routineId: true,
+              id: true, text: true, imageLinks: true, imageStorageProvider: true, createdAt: true, routineId: true, // Included provider
               class: { select: { id: true, name: true, instructorName: true } },
               owner: { select: { id: true, username: true, name: true, image: true } },
             },
@@ -113,7 +127,6 @@ export const get_class_summary_list = async (req: any, res: Response) => {
       totalCount = await prisma.summary.count({ where: { savedAccountId: req.user.id } });
       summaries = account?.saveSummary?.map(removeNullFields) ?? [];
     } else {
-      // Fetch summaries for a specific class
       const classInstance = await prisma.class.findUnique({ where: { id: classID } });
       if (!classInstance) return res.status(404).json({ message: "Class not found" });
 
@@ -121,7 +134,6 @@ export const get_class_summary_list = async (req: any, res: Response) => {
 
       summaries = await prisma.summary.findMany({
         where: { classId: classID },
-
         include: {
           owner: { select: { id: true, username: true, name: true, image: true } },
           class: { select: { id: true, name: true, instructorName: true } },
@@ -146,20 +158,16 @@ export const get_class_summary_list = async (req: any, res: Response) => {
   }
 };
 
-
-
-
-//************* SUMMARY STATUS ********************/
+//*********************************************************************************/
+//--------------------------- -SUMMARY STATUS  --------------------------------------/
+//********************************************************************************/
 export const summary_status = async (req: any, res: Response) => {
   try {
     const { summaryID } = req.params;
     const { id: userId } = req.user;
 
-    if (!summaryID || !userId) {
-      return res.status(400).json({ message: "Missing required parameters." });
-    }
+    if (!summaryID || !userId) return res.status(400).json({ message: "Missing required parameters." });
 
-    // Fetch summary and related routine details
     const foundSummary = await prisma.summary.findUnique({
       where: { id: summaryID },
       include: { routine: true },
@@ -169,7 +177,6 @@ export const summary_status = async (req: any, res: Response) => {
 
     const { ownerId, routineId } = foundSummary;
 
-    // Determine user roles and permissions
     const routineMember = await prisma.routineMember.findFirst({
       where: { routineId, accountId: userId },
     });
@@ -178,20 +185,13 @@ export const summary_status = async (req: any, res: Response) => {
     const isOwner = routineMember?.owner ?? false;
     const isCaptain = routineMember?.captain ?? false;
 
-    // Check if the summary is saved by the user
     const isSummarySaved = Boolean(
       await prisma.summary.findFirst({
         where: { id: summaryID, savedAccountId: userId },
       })
     );
 
-    // Response with status and roles
-    return res.status(200).json({
-      summaryOwner,
-      isOwner,
-      isCaptain,
-      isSummarySaved,
-    });
+    return res.status(200).json({ summaryOwner, isOwner, isCaptain, isSummarySaved });
   } catch (error) {
     console.error("Error in summary_status:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -202,86 +202,44 @@ export const summary_status = async (req: any, res: Response) => {
 //--------------------------------- saveUnsaveSummary ----------------------------------/
 //*************************************************************************************/
 export const saveUnsaveSummary = async (req: any, res: Response) => {
+  // (Unchanged logic)
   try {
     const { save, summaryId } = req.body;
     const { id } = req.user;
 
-    // Find the summary by ID
-    const foundSummary = await prisma.summary.findUnique({
-      where: { id: summaryId },
-    });
-
-    if (!foundSummary) {
-      return res.status(404).json({ message: 'Summary not found' });
-    }
-
+    const foundSummary = await prisma.summary.findUnique({ where: { id: summaryId } });
+    if (!foundSummary) return res.status(404).json({ message: 'Summary not found' });
 
     switch (save) {
       case 'true':
-        // Check if the summary is already saved by the user
         const isSaved = await prisma.account.findFirst({
-          where: {
-            id: id, // Make sure to use the user's ID
-            saveSummary: {
-              some: { id: summaryId }, // Check if summary is in the saveSummary relation
-            },
-          },
+          where: { id: id, saveSummary: { some: { id: summaryId } } },
         });
+        if (isSaved) return res.status(409).json({ message: 'Summary already saved' });
 
-        if (isSaved) {
-          return res.status(409).json({ message: 'Summary already saved' });
-        }
-
-        // Create a new SaveSummary document
         await prisma.account.update({
           where: { id: id },
-          data: {
-            saveSummary: {
-              connect: { id: summaryId }, // Connect the saved summary to the account
-            },
-          },
+          data: { saveSummary: { connect: { id: summaryId } } },
         });
-
-        return res.status(200).json({
-          message: 'Summary saved successfully',
-          save: true,
-        });
+        return res.status(200).json({ message: 'Summary saved successfully', save: true });
 
       case 'false':
-        // Check if the summary is saved by the user
         const ifSaved = await prisma.account.findFirst({
-          where: {
-            id: req.user.id,
-            saveSummary: {
-              some: { id: summaryId },
-            },
-          },
+          where: { id: id, saveSummary: { some: { id: summaryId } } },
         });
+        if (!ifSaved) return res.status(404).json({ message: 'Saved summary not found' });
 
-        if (!ifSaved) {
-          return res.status(404).json({ message: 'Saved summary not found' });
-        }
-
-        // Remove the saved summary
         await prisma.account.update({
           where: { id: id },
-          data: {
-            saveSummary: {
-              disconnect: { id: summaryId }, // Disconnect the saved summary from the account
-            },
-          },
+          data: { saveSummary: { disconnect: { id: summaryId } } },
         });
-
-        return res.status(200).json({
-          message: 'Summary unsaved successfully',
-          save: false,
-        });
+        return res.status(200).json({ message: 'Summary unsaved successfully', save: false });
 
       default:
         return res.status(400).json({ message: 'Save condition is required' });
     }
   } catch (error: any) {
-    console.error('Error:', error); // Add logging for debugging
+    console.error('Error:', error);
     return res.status(500).json({ message: error.message });
   }
 };
@@ -289,28 +247,35 @@ export const saveUnsaveSummary = async (req: any, res: Response) => {
 //*************************************************************************************/
 //--------------------------------- Remove Summary ----------------------------------/
 //*************************************************************************************/
-
 export const removeSummary = async (req: any, res: Response) => {
   const { summaryID } = req.params;
-  const findSummary = req.findSummary; // Use the summary data from middleware
+  const findSummary = req.findSummary;
 
   try {
-    // Transaction: Delete save records and remove the summary
     await prisma.$transaction(async (tx) => {
-      // Delete the summary record
       await tx.summary.delete({ where: { id: summaryID } });
     });
 
-    // Remove images from Firebase storage if any exist
     for (const imageLink of findSummary.imageLinks ?? []) {
-      const fileRef = ref(storage, imageLink);
-      await deleteObject(fileRef);
+      // 🔥 FIXED: Since imageLink is now JUST the s3Key, no need to split it!
+      const s3Key = imageLink;
+
+      try {
+        await minioS3Client.send(
+          new DeleteObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: s3Key,
+          })
+        );
+      } catch (deleteError) {
+        console.error(`❌ Failed to delete object: ${s3Key}`, deleteError);
+      }
     }
 
     return res.status(200).json({ message: "Summary deleted successfully." });
 
   } catch (error: any) {
-    console.error("Error in remove_summary handler:", error);
+    console.error("Error in removeSummary handler:", error);
     return res.status(500).json({ message: "Internal Server Error." });
   }
 };
