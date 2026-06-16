@@ -1,59 +1,52 @@
-নিচে তোমার **Classmaster API project-এর জন্য professional README.md** বানিয়ে দিলাম। এটা GitHub-এ সরাসরি paste করতে পারবে 👇
 
----
-
-```md
 # 📚 Classmaster API
 
-A full-featured backend system for Classmaster EdTech platform built with **Node.js, Prisma, PostgreSQL, MinIO, Docker, and Cloudflare Tunnel**.
+> A scalable, production-ready backend system for the **Classmaster EdTech platform** built with  
+**Node.js, Prisma, PostgreSQL, MinIO, Docker, and Cloudflare Tunnel**.
 
----
+## ✨ Features
 
-## 🚀 Features
-
-- 🔐 Authentication & API backend (Node.js)
+- 🔐 Secure Authentication & REST API (Node.js)
 - 🗄️ PostgreSQL database with Prisma ORM
-- 📦 File storage using MinIO (S3 compatible)
+- 📦 S3-compatible file storage using MinIO
 - 🐳 Fully containerized with Docker Compose
-- 🌐 Public access via Cloudflare Tunnel
-- 🧾 pgAdmin database management UI
-- ⚡ Real-time scalable backend architecture
+- 🌐 Public exposure via Cloudflare Tunnel
+- 🧾 pgAdmin for database management
+- ⚡ Scalable modular backend architecture
 
 ---
 
 ## 🏗️ Tech Stack
 
-- Node.js (Express / TypeScript)
-- PostgreSQL 18
-- Prisma ORM
-- Docker & Docker Compose
-- MinIO (Object Storage)
-- Cloudflare Tunnel
-- pgAdmin
+| Layer        | Technology |
+|--------------|------------|
+| Backend      | Node.js (Express / TypeScript) |
+| Database     | PostgreSQL 18 |
+| ORM          | Prisma |
+| Storage      | MinIO (S3 Compatible) |
+| DevOps       | Docker, Docker Compose |
+| Tunnel       | Cloudflare Tunnel |
+| Admin Panel  | pgAdmin |
 
 ---
 
 ## 📁 Project Structure
 
-```
-
 classmaster-api/
 │
 ├── prisma/                # Database schema & migrations
-├── src/                   # Main backend source code
-├── docker-compose.yml     # Multi-container setup
+├── src/                   # Application source code
+├── docker-compose.yml     # Multi-service orchestration
 ├── Dockerfile             # API container build
-├── .env                   # Environment variables
-├── .cloudflared/         # Cloudflare tunnel config
+├── .env.example          # Environment variables template
+├── .cloudflared/         # Cloudflare tunnel configuration
 └── README.md
 
-````
 
----
 
 ## ⚙️ Setup Instructions
 
-### 1. Clone repository
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/your-username/classmaster-api.git
@@ -62,17 +55,18 @@ cd classmaster-api
 
 ---
 
-### 2. Setup environment variables
+### 2. Configure Environment Variables
 
-Create `.env` file:
+Create a `.env` file in root directory:
 
 ```env
-DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster
+DATABASE_URL=
 MINIO_ENDPOINT=http://minio:9000
-MINIO_ACCESS_KEY=admin
-MINIO_SECRET_KEY=password123
+MINIO_ACCESS_KEY=
+MINIO_SECRET_KEY=
 MINIO_BUCKET_NAME=classmaster
 ```
+
 
 ---
 
@@ -84,9 +78,7 @@ docker compose up --build
 
 ---
 
-## 🌐 Services
-
-After running successfully:
+## 🌐 Service Endpoints
 
 | Service   | URL                                            |
 | --------- | ---------------------------------------------- |
@@ -108,28 +100,11 @@ minio.classmaster.top
 s3.classmaster.top
 ```
 
-Configured via `cloudflared`:
 
-```yaml
-ingress:
-  - hostname: api.classmaster.top
-    service: http://api:4000
 
-  - hostname: pg.classmaster.top
-    service: http://pgadmin:80
+## 🧪 Database Commands
 
-  - hostname: minio.classmaster.top
-    service: http://minio:9001
-
-  - hostname: s3.classmaster.top
-    service: http://minio:9000
-```
-
----
-
-## 🧪 Database
-
-Run Prisma migration:
+Run migrations:
 
 ```bash
 npx prisma migrate dev
@@ -145,41 +120,22 @@ npx prisma studio
 
 ## 🐳 Docker Services
 
-* `api` → Node.js backend
-* `db` → PostgreSQL
-* `pgadmin` → Database UI
-* `minio` → Object storage
-* `cloudflare_tunnel` → Public access
+* **api** → Node.js backend
+* **db** → PostgreSQL database
+* **pgadmin** → Database UI
+* **minio** → Object storage (S3)
+* **cloudflared** → Cloudflare tunnel gateway
 
 ---
 
-## 📌 Notes
+## 📌 Important Notes
 
 * Always use **Docker service names**, not `localhost`
-* Example: `http://api:4000` not `http://localhost:4000`
-* Cloudflare Tunnel handles all public routing
 
----
+  * Example: `http://api:4000` ✔️
+  * Not: `http://localhost:4000` ❌
 
-## 👨‍💻 Author
+* Keep `.env` file secret
 
-Developed by **Classmaster Dev Team**
+* Use `.env.example` for sharing structure only
 
----
-
-## 📜 License
-
-MIT License
-
-```
-
----
-
-# 👍 চাইলে আমি next step এ এগুলোও করে দিতে পারি:
-- :contentReference[oaicite:0]{index=0}
-- :contentReference[oaicite:1]{index=1}
-- :contentReference[oaicite:2]{index=2}
-- :contentReference[oaicite:3]{index=3}
-
-বললেই দিচ্ছি 🚀
-```
