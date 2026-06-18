@@ -52,7 +52,16 @@ services:
       MINIO_ROOT_PASSWORD: password123
     command: server /data --console-address ":9001"
 
-  # ৪. Cloudflare Tunnel
+  dufs:
+    image: sigoden/dufs:latest
+    container_name: dufs
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./classmaster_data:/data
+    command: /data -A --auth admin:password123@/:rw
+
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: cloudflare_tunnel
@@ -67,7 +76,7 @@ services:
   api:
     build: .
     container_name: api
-    user: "1000:1000" # তোমার উবুন্টু ইউজারের পারমিশন
+    #user: "1000:1000" # তোমার উবুন্টু ইউজারের পারমিশন 
     env_file:
       - .env
     ports:
