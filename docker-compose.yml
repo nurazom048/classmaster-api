@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      # লোকাল ফোল্ডারের বদলে Named Volume ব্যবহার করা হলো পারমিশন ইস্যু এড়াতে
+      # লোকাল ফোল্ডারের বদলে Named Volume ব্যবহার করা হলো পারমিশন ইস্যু এড়াতে
       - pgdata:/var/lib/postgresql
 
     healthcheck:
@@ -57,7 +57,7 @@ services:
     container_name: dufs
     restart: always
     ports:
-      - "5000:5000"
+      - "8081:5000"
     volumes:
       - ./classmaster_data:/data
     command: /data -A --auth admin:password123@/:rw
@@ -66,6 +66,10 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: cloudflare_tunnel
     restart: always
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+
     volumes:
       - ./.cloudflared:/etc/cloudflared
     command: tunnel --config /etc/cloudflared/config.yml run
@@ -81,13 +85,18 @@ services:
       - .env
     ports:
       - "4000:4000"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
     environment:
-      # এখানে postgres-db এর বদলে db দেওয়া হলো
+      - NODE_OPTIONS=--dns-result-order=ipv4first
+      # এখানে postgres-db এর বদলে db দেওয়া হলো
       - DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster?schema=public
       - MINIO_ENDPOINT=http://local-minio:9000
       - MINIO_ACCESS_KEY=admin
@@ -96,7 +105,7 @@ services:
     restart: always
     depends_on:
       db:
-        condition: service_healthy # ডাটাবেজ হেলদি হওয়ার পর API স্টার্ট হবে
+        condition: service_healthy # ডাটাবেজ হেলদি হওয়ার পর API স্টার্ট হবে
     volumes:
       - .:/app
       - /app/node_modules
@@ -111,6 +120,7 @@ services:
         - action: rebuild
           path: package.json
 
-# Named Volume ডিক্লেয়ার করা হলো
+# Named Volume ডিক্লেয়ার করা হলো
 volumes:
   pgdata:
+

@@ -9,7 +9,7 @@ build/services
 build/server.js
 classmaster_data/s3_storage/storageforclassmaster
 google-credentials.json
-
+config/firebase/admin.sdk.json
 node_modules
 .env
 dist

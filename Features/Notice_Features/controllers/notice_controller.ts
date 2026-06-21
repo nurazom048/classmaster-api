@@ -247,28 +247,31 @@ export const leaveMember = async (req: any, res: Response) => {
 //***********************************************************/
 // recentNotice
 export const recentNotice = async (req: any, res: Response) => {
-    const { id } = req.user;
     const { page = 1, limit = 10 } = req.query;
 
     try {
-        // Step 1: User joto notice board er member, shegular list newa
-        const allJoinedNoticeBoard = await prisma.noticeBoardMember.findMany({
-            where: { memberId: id },
-            select: { accountId: true },
-        });
+        let academyIDs: string[] = [];
+        if (!req.isGuest) {
+            const { id } = req.user;
+            // Step 1: User joto notice board er member, shegular list newa
+            const allJoinedNoticeBoard = await prisma.noticeBoardMember.findMany({
+                where: { memberId: id },
+                select: { accountId: true },
+            });
 
-        // Step 2: Academy ID-gula array-te convert kora
-        const academyIDs = allJoinedNoticeBoard.map((item) => item.accountId);
+            // Step 2: Academy ID-gula array-te convert kora
+            academyIDs = allJoinedNoticeBoard.map((item) => item.accountId);
+        }
 
         // Step 3: Total notice count kora pagination calculation er jonno
         const count = await prisma.notice.count({
-            where: { publisherId: { in: academyIDs } },
+            where: req.isGuest ? {} : { publisherId: { in: academyIDs } },
         });
         const totalPages = Math.ceil(count / parseInt(limit.toString()));
 
         // Step 4: Notices fetch kora account details shoho
         const notices = await prisma.notice.findMany({
-            where: { publisherId: { in: academyIDs } },
+            where: req.isGuest ? {} : { publisherId: { in: academyIDs } },
             select: {
                 id: true,
                 title: true,
@@ -368,6 +371,17 @@ export const recentNoticeByAcademeID = async (req: any, res: Response) => {
 export const current_user_status = async (req: any, res: Response) => {
     try {
         const { academyID } = req.params;
+        
+        if (req.isGuest) {
+            return res.status(200).json({
+                message: "Check noticeboard status",
+                isOwner: false,
+                activeStatus: "not_joined",
+                isSave: false,
+                notificationOn: false,
+            });
+        }
+
         const { id } = req.user;
 
         let isOwner = false;

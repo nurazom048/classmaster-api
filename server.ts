@@ -18,7 +18,7 @@ import notice from "./Features/Notice_Features/routes/notice_route";
 import notification from "./Features/Notification_Features/routes/notification.route";
 
 // DB Connections
-import { maineDB, NotificationDB } from "./prisma/mongodb.connection";
+import { maineDB, NotificationDB } from "./prisma/mongodb.connection"; // ❌ MongoDB commented out
 import { connectPostgres } from "./prisma/schema/prisma.clint";
 import { connectMinIO } from "./services/storage/storage.mino.s3";
 
@@ -69,7 +69,7 @@ app.use(
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Authorization", "x-refresh-token", "Content-Type"],
+    allowedHeaders: ["Authorization", "x-refresh-token", "Content-Type", "X-Guest", "X-App-Client"],
     exposedHeaders: ['Authorization', 'x-refresh-token'],
     credentials: true,
   })
@@ -192,11 +192,11 @@ io.on("connection", (socket) => {
 const startServer = async () => {
   try {
     // MongoDB
-    await Promise.all([
-      maineDB.asPromise(),
-      NotificationDB.asPromise(),
-    ]);
-    console.log("✅ MongoDB Connected");
+    // await Promise.all([
+    //   maineDB.asPromise(),
+    //   NotificationDB.asPromise(),
+    // ]);
+    // console.log("✅ MongoDB Connected");
 
     // PostgreSQL
     await connectPostgres();
@@ -212,7 +212,7 @@ const startServer = async () => {
     // Start Server
     server.listen(PORT, () => {
       const baseURL = `http://localhost:${PORT}`;
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🚀 Server now running on port ${PORT}`);
       console.log(`🌐 URL: ${baseURL}`);
     });
 

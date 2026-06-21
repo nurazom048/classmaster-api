@@ -331,6 +331,22 @@ export const save_routines = async (req: any, res: Response) => {
 export const current_user_status = async (req: any, res: Response) => {
   try {
     const { routineId } = req.params;
+
+    if (req.isGuest) {
+      const routine = await prisma.routine.findUnique({
+        where: { id: routineId },
+        include: { routineMembers: true }
+      });
+      return res.status(200).json({
+        isOwner: false,
+        isCaptain: false,
+        activeStatus: 'not_joined',
+        isSaved: false,
+        memberCount: routine ? routine.routineMembers.length : 0,
+        notificationOn: false,
+      });
+    }
+
     const { id } = req.user;
 
 
@@ -430,48 +446,76 @@ export const current_user_status = async (req: any, res: Response) => {
 
 
 export const homeFeed = async (req: any, res: Response) => {
-  const { id: loggedInUserId } = req.user;  // Logged-in user's ID
   const { userID } = req.params;  // Optional user ID filter
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 3;
   const skip = (page - 1) * limit;  // Calculate pagination offset
 
   try {
-    // Step 1: Get IDs of routines joined by the logged-in user
-    const joinedRoutineIds = await prisma.routineMember.findMany({
-      where: { accountId: loggedInUserId },
-      select: { routineId: true },
-    });
+    let routines;
+    let totalCount;
 
-    const routineIdList = joinedRoutineIds.map(({ routineId }) => routineId);
-
-    // Step 2: Fetch routines based on userID presence
-    const routines = await prisma.routine.findMany({
-      where: userID
-        ? { ownerAccountId: userID }  // Show routines created by userID
-        : { id: { in: routineIdList } },  // Show routines joined by logged-in user
-      skip,
-      take: limit,
-      select: {
-        id: true,
-        routineName: true,
-        routineOwner: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-            image: true,
+    if (req.isGuest) {
+      // Guest mode: If userID is provided, show routines created by userID, otherwise show all routines
+      routines = await prisma.routine.findMany({
+        where: userID ? { ownerAccountId: userID } : {},
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          routineName: true,
+          routineOwner: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              image: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Step 3: Count total routines for pagination
-    const totalCount = await prisma.routine.count({
-      where: userID
-        ? { ownerAccountId: userID }
-        : { id: { in: routineIdList } },
-    });
+      totalCount = await prisma.routine.count({
+        where: userID ? { ownerAccountId: userID } : {},
+      });
+    } else {
+      const { id: loggedInUserId } = req.user;  // Logged-in user's ID
+      // Step 1: Get IDs of routines joined by the logged-in user
+      const joinedRoutineIds = await prisma.routineMember.findMany({
+        where: { accountId: loggedInUserId },
+        select: { routineId: true },
+      });
+
+      const routineIdList = joinedRoutineIds.map(({ routineId }) => routineId);
+
+      // Step 2: Fetch routines based on userID presence
+      routines = await prisma.routine.findMany({
+        where: userID
+          ? { ownerAccountId: userID }  // Show routines created by userID
+          : { id: { in: routineIdList } },  // Show routines joined by logged-in user
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          routineName: true,
+          routineOwner: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      // Step 3: Count total routines for pagination
+      totalCount = await prisma.routine.count({
+        where: userID
+          ? { ownerAccountId: userID }
+          : { id: { in: routineIdList } },
+      });
+    }
 
     // Step 4: Return the response with relevant data
     res.status(200).json({

@@ -65,11 +65,11 @@ const cleanupOldBackups = async () => {
 //***************************************************************************/
 
 export const startBackupScheduler = async () => {
-    // [TESTING] Running every 8 minutes
-    console.log(`[LOG] 🕒 Backup Scheduler Initialized: Running every 8 MINUTES (Testing Mode).`);
+    // Production: Every 1 hour
+    console.log(`[LOG] 🕒 Backup Scheduler Initialized: Running every 1 HOUR.`);
 
-    // 🔴 8 Hour Logic (take backup every 8 Hours : for Production)
-    cron.schedule('0 */8 * * *', async () => {
+    // 🔴 Every 1 hour (at minute 0)
+    cron.schedule('0 * * * *', async () => {
 
         // 🟢 8 Minute Logic ((take backup every 8 minutes : for testing)
         // cron.schedule('*/8 * * * *', async () => {

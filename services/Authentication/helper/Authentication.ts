@@ -8,6 +8,35 @@ dotenv.config();
 export const verifyToken = async (req: any, res: Response, next: NextFunction) => {
   console.log('verifyToken', req.headers);
   try {
+    const isGuest = req.headers["x-guest"] === "true";
+    const appClient = req.headers["x-app-client"];
+
+    if (isGuest && appClient === "ClassMaster") {
+      req.user = null;
+      req.isGuest = true;
+
+      const path = req.originalUrl.split('?')[0];
+      const isAllowed =
+        req.method === 'GET' ||
+        (req.method === 'POST' && (
+          path === '/notice/recent' ||
+          path === '/notice/recent/' ||
+          /^\/notice\/recent\/[^\/]+\/?$/.test(path) ||
+          /^\/notice\/status\/[^\/]+\/?$/.test(path) ||
+          path === '/routine/home' ||
+          path === '/routine/home/' ||
+          /^\/routine\/home\/[^\/]+\/?$/.test(path) ||
+          /^\/routine\/status\/[^\/]+\/?$/.test(path)
+        ));
+
+      if (!isAllowed) {
+        return res.status(403).json({
+          message: "You are using Guest Mode. Please login to continue."
+        });
+      }
+
+      return next();
+    }
 
     // check is have token 
     if (!req.headers.authorization) {
