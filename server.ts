@@ -61,17 +61,18 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("❌ Not allowed by CORS"));
-      }
-    },
+    credentials: true,
+    origin: true,
+    // origin: (origin, callback) => {
+    //   if (!origin || allowedOrigins.includes(origin)) {
+    //     callback(null, true);
+    //   } else {
+    //     callback(new Error("❌ Not allowed by CORS"));
+    //   }
+    // },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Authorization", "x-refresh-token", "Content-Type", "X-Guest", "X-App-Client"],
     exposedHeaders: ['Authorization', 'x-refresh-token'],
-    credentials: true,
   })
 );
 
@@ -192,10 +193,10 @@ io.on("connection", (socket) => {
 const startServer = async () => {
   try {
     // MongoDB
-    // await Promise.all([
-    //   maineDB.asPromise(),
-    //   NotificationDB.asPromise(),
-    // ]);
+    await Promise.all([
+      maineDB.asPromise(),
+      NotificationDB.asPromise(),
+    ]);
     // console.log("✅ MongoDB Connected");
 
     // PostgreSQL

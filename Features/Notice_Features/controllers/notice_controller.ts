@@ -11,7 +11,6 @@ const firebase_stroage = require("../../../config/firebase/firebase_storage");
 initializeApp(firebase_stroage.firebaseConfig);// Initialize Firebase
 // Get a reference to the Firebase storage bucket
 const storage = getStorage();
-
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../../../prisma/schema/prisma.clint';
 
@@ -22,24 +21,28 @@ import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 /// make a add to 
 //?_______________________________________________________________________________________!//
 
-///......... write code to add notice to notice bode // Function to add a new notice and notify relevant members
+// ============================================================================
+// CONTROLLERS
+// ============================================================================
+
+// Function to add a new notice and notify relevant members
 export const addNotice = async (req: any, res: Response) => {
     const { title, description, mimetypeChecked } = req.body;
     const { id, error } = req.user;
     const uuid = uuidv4();
 
     try {
-        // Step 1: Validate inputs
+        // Step 1: Validate required inputs
         if (error) return res.status(400).json({ message: 'PDF file is required' });
         if (!req.file) return res.status(400).json({ message: 'PDF file is required' });
         if (!title) return res.status(400).json({ message: 'title is required' });
 
-        // Step 2: Check file size (Limit: 10 MB)
-        if (req.file.size > 10 * 1024 * 1024) {
-            return res.status(400).json({ message: 'File size exceeds the allowed limit (10 MB)' });
+        // Step 2: Check file size (Limit: 15 MB)
+        if (req.file.size > 15 * 1024 * 1024) {
+            return res.status(400).json({ message: 'File size exceeds the allowed limit (15 MB)' });
         }
 
-        // Step 3: Check file type
+        // Step 3: Check file type mapping
         if (!mimetypeChecked && req.file.mimetype !== 'application/pdf') {
             return res.status(400).json({ message: 'Only PDF files are allowed' });
         }
@@ -48,116 +51,97 @@ export const addNotice = async (req: any, res: Response) => {
         const findAccount = await prisma.account.findUnique({ where: { id: id } });
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
-
-        // Step 5: Upload PDF to MinIO S3
+        // Step 5: Upload PDF to MinIO / S3 Bucket
         const fileName = `notices/academyId-${findAccount.id}/uid-${uuid}-${req.file.originalname}`;
-
-        // TODO: I will add a bucket name in the .env 
-        // const bucketName = process.env.MINIO_BUCKET_NAME || 'storageforclassmaster';
-        // console.log("Attempting upload to bucket:", bucketName);
         const uploadParams = {
             Bucket: "storageforclassmaster",
             Key: fileName,
-            Body: req.file.buffer, // multer 
+            Body: req.file.buffer, // Buffer mapped from multer
             ContentType: req.file.mimetype,
         };
-        //send to  MinIO 
         await s3Client.send(new PutObjectCommand(uploadParams));
 
-        // Step 6: Create Notice in the Prisma database
-        // it will no save Base URL it only saves'fileName' (পাথ) 
+        // Step 6: Create Notice in the Prisma database (Saving raw file path)
         const createdNotice = await prisma.notice.create({
             data: {
                 title,
-                description, // Add description if provided
-                publisherId: id, // Account ID of the user publishing the notice
-                pdf: fileName, // here save file path (ex: notices/academyId-123/uid-...)
+                description,
+                publisherId: id,
+                pdf: fileName,
             },
         });
 
-        // Step 7: Get notification members who have notifications enabled
+        // Step 7: Get all noticeboard members who have notifications enabled
         const notificationMembers = await prisma.noticeBoardMember.findMany({
             where: {
-                accountId: id, // Filter by the accountId (or other criteria, like academyId)
-                notificationOn: true, // Only members who have notifications enabled
+                accountId: id,
+                notificationOn: true,
             },
             include: {
                 account: {
                     select: {
                         accountData: {
-                            select: {
-                                oneSignalUserId: true, // Fetch OneSignal User ID for push notifications
-                            },
+                            select: { oneSignalUserId: true },
                         },
                     },
                 },
             },
         });
 
-        // Step 8: Map to get all OneSignal User IDs from the notification members
+        // Step 8: Map to extract OneSignal User IDs from members
         const oneSignalUserIds = notificationMembers
             .map((member) => member.account.accountData?.oneSignalUserId)
             .filter((userId) => userId !== null && userId !== undefined) as string[];
 
-        console.log("OneSignal User IDs:", oneSignalUserIds); // Log OneSignal User IDs for debugging
+        // Step 9: Send push notification via OneSignal
+        if (oneSignalUserIds.length > 0) {
+            await sendNotificationMethods(oneSignalUserIds, `A New Notice from ${findAccount.name}`, "New Notice");
+        }
 
-        // Step 9: Send push notification to the OneSignal User IDs
-        const response = await sendNotificationMethods(oneSignalUserIds, `A New Notice from ${findAccount.name}`, "New Notice");
-
-        // Step 10: Return a success response with the created notice data
+        // Step 10: Return a success response with the created notice
         res.status(200).json({ message: 'Notice created and added successfully', notice: createdNotice });
 
     } catch (error: any) {
-        // Handle errors and send a response with error message
         console.error("Error occurred:", error);
         res.status(500).json({ message: error.message });
     }
 };
-
-
-
-
-//***********************************************************/
-//******************Delete Notice ***************************/
-//***********************************************************/
 
 export const deleteNotice = async (req: any, res: Response) => {
     const { noticeId } = req.params;
     const { id } = req.user;
 
     try {
-        // Step 1: Account khuje ber kora ebong check kora account exist kore kina
+        // Step 1: Find user account and verify it exists
         const findAccount = await prisma.account.findUnique({ where: { id: id } });
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
-        // Step 2: Delete korar jonno notice-ti khuje ber kora
+        // Step 2: Find the requested notice to delete
         const notice = await prisma.notice.findUnique({ where: { id: noticeId } });
         if (!notice) return res.status(404).json({ message: 'Notice not found' });
 
-        // Step 3: Check kora je ei notice-ti ei user-er kina (Permission Check)
+        // Step 3: Permission Check - Verify this notice belongs to the requesting user
         if (notice.publisherId !== id) {
             return res.status(403).json({ message: 'You do not have permission to delete this notice' });
         }
 
-        // Step 4: MinIO theke file-ti delete kora (AWS S3 SDK use kore)
+        // Step 4: Delete the PDF file from the MinIO / S3 bucket
         if (notice.pdf) {
             try {
                 const deleteParams = {
-                    Bucket: "storageforclassmaster", // Tomar bucket er name
-                    Key: notice.pdf, // Database-e thaka raw file name
+                    Bucket: "storageforclassmaster",
+                    Key: notice.pdf,
                 };
                 await s3Client.send(new DeleteObjectCommand(deleteParams));
-                console.log("File deleted from MinIO successfully");
             } catch (storageError) {
-                // Jodi file-ta bucket-e na paowa jay, tokhon jeno database delete bondho na hoy
                 console.error('Error deleting notice file from MinIO:', storageError);
             }
         }
 
-        // Step 5: Database theke notice-ti delete kora
+        // Step 5: Delete the notice record from the database
         await prisma.notice.delete({ where: { id: noticeId } });
 
-        // Return success response
+        // Step 6: Return success response
         res.status(200).json({ message: 'Notice deleted successfully' });
 
     } catch (error: any) {
@@ -165,7 +149,6 @@ export const deleteNotice = async (req: any, res: Response) => {
         res.status(500).json({ message: 'Error deleting notice', error: error.message });
     }
 };
-//************  join noticeboard ***************************/
 
 export const joinNoticeboard = async (req: any, res: Response) => {
     const { academyID } = req.params;
@@ -174,28 +157,21 @@ export const joinNoticeboard = async (req: any, res: Response) => {
     try {
         if (!academyID) return res.status(400).json({ message: 'AcademyID is required' });
 
-
-        // Step 1: Check if the academy account exists
+        // Step 1: Check if the target academy account exists
         const academyAccount = await prisma.account.findUnique({ where: { id: academyID } });
         if (!academyAccount) return res.status(404).json({ message: 'AcademyAccount not found' });
 
-
-        // Step 2: Check if the user is already a member of the academy
+        // Step 2: Check if the user is already a member of this academy
         const existingMember = await prisma.noticeBoardMember.findFirst({
-            where: {
-                accountId: academyID,
-                memberId: id
-            }
+            where: { accountId: academyID, memberId: id }
         });
         if (existingMember) return res.status(409).json({ message: 'You are already a member' });
 
-        // Step 3: Join as a member
-        const newMember = await prisma.noticeBoardMember.create({
-            data: {
-                accountId: academyID,
-                memberId: id,
-            },
+        // Step 3: Create a new membership record in the database
+        await prisma.noticeBoardMember.create({
+            data: { accountId: academyID, memberId: id },
         });
+
         // Step 4: Respond with success message
         res.status(200).json({ message: 'You are now a member of this noticeboard' });
     } catch (error: any) {
@@ -203,37 +179,30 @@ export const joinNoticeboard = async (req: any, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
-//************  leaveMember ***************************/
+
 export const leaveMember = async (req: any, res: Response) => {
     const { academyID } = req.params;
     const { id } = req.user;
+
     try {
         if (!academyID) return res.status(400).json({ message: 'AcademyID is required' });
 
         // Step 1: Check if the academy account exists
-        const findAcademy = await prisma.account.findUnique({
-            where: { id: academyID },
-        });
+        const findAcademy = await prisma.account.findUnique({ where: { id: academyID } });
         if (!findAcademy) return res.status(404).json({ message: 'Account not found' });
 
-        // Step 2: Check if the user is a member of the academy
+        // Step 2: Verify the user is actually a member of the academy
         const alreadyMember = await prisma.noticeBoardMember.findFirst({
-            where: {
-                accountId: academyID,
-                memberId: id,
-            }
+            where: { accountId: academyID, memberId: id }
         });
-        if (!alreadyMember) {
-            return res.status(404).json({ message: 'You are not a member of this academy' });
-        }
+        if (!alreadyMember) return res.status(404).json({ message: 'You are not a member of this academy' });
 
-        // Step 3: Delete the member from the notice board
+        // Step 3: Delete the member record from the noticeboard
         await prisma.noticeBoardMember.delete({
-            where: {
-                id: alreadyMember.id,  // Deleting the member based on their unique ID
-            }
+            where: { id: alreadyMember.id }
         });
 
+        // Step 4: Respond with success
         res.status(200).json({ message: 'Successfully left the noticeboard' });
     } catch (error: any) {
         console.error(error);
@@ -241,52 +210,43 @@ export const leaveMember = async (req: any, res: Response) => {
     }
 };
 
-
-//***********************************************************/
-//****************** recentNotice ***************************/
-//***********************************************************/
-// recentNotice
 export const recentNotice = async (req: any, res: Response) => {
     const { page = 1, limit = 10 } = req.query;
 
     try {
         let academyIDs: string[] = [];
+
         if (!req.isGuest) {
             const { id } = req.user;
-            // Step 1: User joto notice board er member, shegular list newa
+            // Step 1: Fetch all noticeboards the user has joined
             const allJoinedNoticeBoard = await prisma.noticeBoardMember.findMany({
                 where: { memberId: id },
                 select: { accountId: true },
             });
 
-            // Step 2: Academy ID-gula array-te convert kora
+            // Step 2: Extract the raw Academy IDs into an array
             academyIDs = allJoinedNoticeBoard.map((item) => item.accountId);
         }
 
-        // Step 3: Total notice count kora pagination calculation er jonno
+        // Step 3: Count total matching notices for pagination calculation
         const count = await prisma.notice.count({
             where: req.isGuest ? {} : { publisherId: { in: academyIDs } },
         });
         const totalPages = Math.ceil(count / parseInt(limit.toString()));
 
-        // Step 4: Notices fetch kora account details shoho
+        // Step 4: Fetch paginated notices including publisher account details
         const notices = await prisma.notice.findMany({
             where: req.isGuest ? {} : { publisherId: { in: academyIDs } },
             select: {
                 id: true,
                 title: true,
-                pdf: true, // DB path (Flutter-e base URL add hobe)
+                pdf: true,
                 description: true,
                 publisherId: true,
                 createdAt: true,
                 updatedAt: true,
                 Account: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        image: true, // DB path
-                    },
+                    select: { id: true, name: true, username: true, image: true },
                 },
             },
             skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
@@ -294,7 +254,7 @@ export const recentNotice = async (req: any, res: Response) => {
             orderBy: { createdAt: 'desc' },
         });
 
-        // Step 5: Map kora jeno null properties gulo response theke remove hoy
+        // Step 5: Clean null properties to undefined for clean response data
         const finalNotices = notices.map((notice) => {
             return {
                 ...notice,
@@ -305,11 +265,11 @@ export const recentNotice = async (req: any, res: Response) => {
                     username: notice.Account.username ?? undefined,
                 },
                 description: notice.description ?? undefined,
-                pdf: notice.pdf ?? undefined, // Raw path returned
+                pdf: notice.pdf ?? undefined,
             };
         }).filter((notice) => notice.publisherId !== null);
 
-        // Step 6: Response pathano pagination info shoho
+        // Step 6: Return standard paginated response
         res.status(200).json({
             message: 'Success - All recent notices',
             notices: finalNotices,
@@ -322,28 +282,59 @@ export const recentNotice = async (req: any, res: Response) => {
         res.status(500).json({ message: error });
     }
 };
-// view all notices by notice id
+// Add this controller function
+export const getNoticeById = async (req: Request, res: Response) => {
+    const noticeIdParam = req.params.noticeId;
+    const noticeId = Array.isArray(noticeIdParam) ? noticeIdParam[0] : noticeIdParam;
+
+    if (!noticeId) {
+        return res.status(400).json({ message: 'Notice ID is required' });
+    }
+
+    try {
+        // Step 1: Find notice by ID, including publisher account info
+        const notice = await prisma.notice.findUnique({
+            where: { id: noticeId },
+            include: {
+                Account: {
+                    select: { name: true, username: true, image: true }
+                }
+            }
+        });
+
+        // Step 2: Check if notice exists
+        if (!notice) {
+            return res.status(404).json({ message: "Notice not found" });
+        }
+
+        // Step 3: Return success response
+        res.status(200).json({ notice });
+    } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+};
 export const recentNoticeByAcademeID = async (req: any, res: Response) => {
     const { academyID } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
     try {
-        // Step 1: Academy account check kora
+        // Step 1: Verify the academy account exists
         const findAccount = await prisma.account.findUnique({ where: { id: academyID } });
         if (!findAccount) return res.status(404).json({ message: "Account not found" });
 
-        // Step 2: Total count calculation
+        // Step 2: Count total notices for this academy for pagination calculation
         const count = await prisma.notice.count({ where: { publisherId: academyID } });
         const totalPages = Math.ceil(count / parseInt(limit.toString()));
 
-        // Step 3: Database theke data pagination shoho fetch kora
+        // Step 3: Fetch paginated data for the specific academy
         const notices = await prisma.notice.findMany({
             where: { publisherId: academyID },
             select: {
                 id: true,
                 title: true,
                 description: true,
-                pdf: true, // Returning original DB path
+                pdf: true,
                 createdAt: true,
                 updatedAt: true,
                 publisherId: true,
@@ -354,10 +345,10 @@ export const recentNoticeByAcademeID = async (req: any, res: Response) => {
             orderBy: { createdAt: 'desc' },
         });
 
-        // Step 4: Cleaning data and returning success
+        // Step 4: Return formatted paginated response
         res.status(200).json({
             message: "Success",
-            notices: notices, // Flutter e base URL add korar jonno ready
+            notices: notices,
             currentPage: parseInt(page.toString()),
             totalPages,
             totalCount: count,
@@ -367,11 +358,11 @@ export const recentNoticeByAcademeID = async (req: any, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
-//************** current_user_status *********** */
+
 export const current_user_status = async (req: any, res: Response) => {
     try {
         const { academyID } = req.params;
-        
+
         if (req.isGuest) {
             return res.status(200).json({
                 message: "Check noticeboard status",
@@ -383,7 +374,6 @@ export const current_user_status = async (req: any, res: Response) => {
         }
 
         const { id } = req.user;
-
         let isOwner = false;
         let activeStatus = "not_joined";
         let isSave = false;
@@ -391,36 +381,39 @@ export const current_user_status = async (req: any, res: Response) => {
 
         // Step 1: Find the academy account
         const academyAccount = await prisma.account.findUnique({ where: { id: academyID } });
-        if (!academyAccount) {
-            return res.status(404).json({ message: "Academy account not found" });
-        }
+        if (!academyAccount) return res.status(404).json({ message: "Academy account not found" });
 
-        // Step 2: Check if the user is a member
+        // Step 2: Check if the currently logged-in user is a member
         const foundMember = await prisma.noticeBoardMember.findFirst({
             where: { accountId: academyID, memberId: id },
         });
+
+        // Step 3: Check early return if the user is not a member
         if (!foundMember) {
-            return res.status(404).json({ message: "You are not a member of this Academy" });
+            return res.status(200).json({
+                message: "Check noticeboard status",
+                isOwner: false,
+                isCaptain: false,
+                activeStatus: "not_joined",
+                isSave: false,
+                memberCount: 0,
+                sentRequestCount: 0,
+                notificationOn: false,
+                summaryOwner: false,
+                isSummarySaved: false,
+            });
         }
 
-        // Step 3: Determine the user's active status
-        if (foundMember) {
-            activeStatus = "joined";
-
-            // Check if the user is the owner
-            if (foundMember.accountId.toString() === id) {
-                isOwner = true;
-            }
-
-            // Check if notification is enabled
-            if (foundMember.notificationOn === true) {
-                notificationOn = true;
-            }
-
-            // If additional "isSave" logic is needed, you can add it here.
-            // For now, it remains as false, but you can implement any specific check for "isSave" if required.
+        // Step 4: Determine member privileges and notification flags
+        activeStatus = "joined";
+        if (foundMember.accountId.toString() === id) {
+            isOwner = true;
+        }
+        if (foundMember.notificationOn === true) {
+            notificationOn = true;
         }
 
+        // Step 5: Send final response with status
         res.status(200).json({
             message: "Check noticeboard status",
             isOwner,
@@ -434,70 +427,35 @@ export const current_user_status = async (req: any, res: Response) => {
     }
 };
 
-
-//************* Notification on**************//
-
-export const notification_On = async (req: any, res: Response) => {
+export const updateNotification = async (req: any, res: Response) => {
     const { academyID } = req.params;
+    const { notificationOn } = req.body;
     const { id } = req.user;
 
     try {
-        // Step 1: Find the academy account
+        // Step 1: Find the academy account to ensure it exists
         const academyAccount = await prisma.account.findUnique({ where: { id: academyID } });
         if (!academyAccount) return res.status(404).json({ message: "Academy account not found" });
 
-
-        // Step 2: Check if the user is a member
+        // Step 2: Check if the user is a member of this academy's noticeboard
         const foundMember = await prisma.noticeBoardMember.findFirst({ where: { accountId: academyID, memberId: id } });
         if (!foundMember) return res.status(404).json({ message: "You are not a member of this Academy" });
 
-
-        // Step 3: Check if the user has already turned on notifications
-        if (foundMember.notificationOn) return res.status(200).json({ message: "Notifications are already turned on", notificationOn: true });
-
-        // Step 4: Update notificationOn field to true
-        await prisma.noticeBoardMember.update({
-            where: { id: foundMember.id },
-            data: { notificationOn: true },
-        });
-        res.status(200).json({ message: "Notifications turned on", notificationOn: true });
-    } catch (error: any) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    }
-};
-
-
-
-//************* Notification off **************//
-
-export const notification_Off = async (req: any, res: Response) => {
-    const { academyID } = req.params;
-    const { id } = req.user;
-
-    try {
-        // Step 1: Find the academy account
-        const academyAccount = await prisma.account.findUnique({ where: { id: academyID } });
-        if (!academyAccount) return res.status(404).json({ message: "Academy account not found" });
-
-        // Step 2: Check if the user is a member
-        const foundMember = await prisma.noticeBoardMember.findFirst({ where: { accountId: academyID, memberId: id } });
-        if (!foundMember) return res.status(404).json({ message: "You are not a member of this Academy" });
-
-        // Step 3: Check if the user has already turned off notifications
-        if (!foundMember.notificationOn) {
-            return res.status(200).json({ message: "Notifications are already turned off", notificationOn: false });
+        // Step 3: Prevent unnecessary database calls if state is already equal
+        if (foundMember.notificationOn === notificationOn) {
+            return res.status(200).json({ message: `Notifications are already ${notificationOn ? 'on' : 'off'}`, notificationOn });
         }
 
-        // Step 4: Update notificationOn field to false
+        // Step 4: Update the notificationOn field in the database
         await prisma.noticeBoardMember.update({
             where: { id: foundMember.id },
-            data: { notificationOn: false },
+            data: { notificationOn: notificationOn },
         });
 
-        res.status(200).json({ message: "Notifications turned off", notificationOn: false });
+        // Step 5: Respond with success
+        res.status(200).json({ message: `Notifications turned ${notificationOn ? 'on' : 'off'}`, notificationOn });
     } catch (error: any) {
         console.error(error);
         res.status(500).json({ message: error.message });
     }
-};
+}

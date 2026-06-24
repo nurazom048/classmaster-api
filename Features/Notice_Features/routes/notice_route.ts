@@ -8,49 +8,55 @@ import {
     current_user_status,
     joinNoticeboard,
     leaveMember,
-    notification_Off,
-    notification_On,
     recentNotice,
     recentNoticeByAcademeID,
+    updateNotification,
+    getNoticeById,
 
 } from "../controllers/notice_controller";
 import { checkAccountType } from '../middleware/notice.middleware'
 
-// Set up multer with the storage
 const upload = multer({
-    //limits: { fileSize: 11 * 1024 * 1024 }
     storage: multer.memoryStorage(),
-    // fileFilter: (req, file, cb) => {
-    //     if (file.mimetype !== 'application/pdf') {
-
-    //         return cb(new Error('Only PDF files are allowed'), false);
-    //     }
-    //     cb(null, true);
-    // },
+    limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB limit
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype !== 'application/pdf') {
+            return cb(new Error('Only PDF files are allowed'));
+        }
+        cb(null, true);
+    }
 });
 
-// add notice 
-router.route("/add/").post(verifyToken, checkAccountType, upload.single('pdf_file'), addNotice);
-router.route("/:noticeId").delete(verifyToken, deleteNotice);//... Delete notice
+
+// ============================================================================
+// RESTful API ROUTES
+// ============================================================================
+
+// 1. Notices (General)
+router.route("/")
+    .get(verifyToken, recentNotice)                               // Get home feed
+    .post(verifyToken, checkAccountType, upload.single('pdf_file'), addNotice); // Create notice
+// Add this route in your ROUTES section
+router.route("/:noticeId").get(getNoticeById);
 
 
-// get notice
+router.route("/:noticeId")
+    .delete(verifyToken, deleteNotice);                           // Delete notice
 
-//******     check status   ********/ 
-router.route("/status/:academyID").post(verifyToken, current_user_status);
+// 2. Academy Specific Notices & Status
+router.route("/academy/:academyID")
+    .get(verifyToken, recentNoticeByAcademeID);                   // Get academy notices
 
-// join and leave notice board
-router.route("/join/:academyID").post(verifyToken, joinNoticeboard);
-router.route("/leave/:academyID").delete(verifyToken, leaveMember);
-// status
-//notification on off
-router.post('/notification/off/:academyID', verifyToken, notification_Off);
-router.post('/notification/on/:academyID', verifyToken, notification_On);
+router.route("/academy/:academyID/status")
+    .get(verifyToken, current_user_status);                       // Check member status
 
-//******     recent notice   ********/ 
-router.route("/recent/").post(verifyToken, recentNotice);
-router.route("/recent/:academyID").post(verifyToken, recentNoticeByAcademeID);
+// 3. Noticeboard Membership
+router.route("/academy/:academyID/member")
+    .post(verifyToken, joinNoticeboard)                           // Join noticeboard
+    .delete(verifyToken, leaveMember);                            // Leave noticeboard
 
-
+// 4. Notifications
+router.route("/academy/:academyID/notification")
+    .put(verifyToken, updateNotification);                        // Toggle notifications on/off
 
 export default router;
