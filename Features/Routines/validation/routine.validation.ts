@@ -8,7 +8,7 @@ export const classValidation = (req: Request, res: Response, next: NextFunction)
 
     try {
         const { name, instructorName, subjectCode, room, weekday, startTime, endTime } = req.body; // Added `startTime` and `endTime`
-        const { routineId } = req.params;
+        const routineId = req.params.routineId || req.params.routineID;
 
         // Validation for required fields
         if (!name) {
@@ -35,7 +35,7 @@ export const classValidation = (req: Request, res: Response, next: NextFunction)
             return res.status(400).json({ message: "Validation failed: 'endTime' is required" });
         }
         if (!routineId) {
-            return res.status(400).json({ message: "Validation failed: 'routineId' is required" });
+            return res.status(400).json({ message: `Validation failed: 'routineId'${routineId} is required` });
         }
 
         // Proceed to the next middleware/controller if all validations pass
@@ -50,7 +50,8 @@ export const classValidation = (req: Request, res: Response, next: NextFunction)
 
 //@cakedPermission
 export const cakedPermission = async (req: any, res: Response, next: NextFunction) => {
-    const { routineId } = req.params;
+    const routineId = req.params.routineId || req.params.routineID;
+
     const userID = req.user?.id;
 
     if (!routineId) {

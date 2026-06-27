@@ -1,336 +1,151 @@
-import express, { Request, Response } from 'express';
-
-// Models
+import { Request, Response } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
-
 
 //! firebase
 import { initializeApp } from 'firebase/app';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getStorage, ref, deleteObject } from 'firebase/storage';
 const firebase_storage = require("../../../config/firebase/firebase_storage");
 initializeApp(firebase_storage.firebaseConfig); // Initialize Firebase
-// Get a reference to the Firebase storage bucket
 const storage = getStorage();
 
-
-// routine firebase
+// routine firebase (Ensure this path is correct for your project)
 import { deleteRoutineMediaFolder } from '../firebase/routines.firebase';
 
-//*******************************************************************************/
-//--------------------------------- createRoutine  ------------------------------/
-//*******************************************************************************/
+// ==========================================
+// 🌐 GLOBAL ROUTINE ACTIONS
+// ==========================================
+
+/**
+ * GET /
+ * Handles Global Feed, Search, Saved Routines, and User-specific Routines.
+ * Query Params: ?search=... | ?type=saved | ?username=...
+ */
+export const listRoutines = async (req: any, res: Response) => {
+  const { search, type, username, page = 1, limit = 10 } = req.query;
+  const userId = req.user?.id || (req.isGuest ? null : undefined);
+
+  try {
+    let whereClause: any = {};
+
+    if (search) {
+      whereClause.routineName = { contains: String(search), mode: 'insensitive' };
+    }
+
+    if (type === 'saved' && userId) {
+      whereClause.savedBy = { some: { id: userId } };
+    }
+
+    if (username) {
+      whereClause.routineOwner = { username: String(username) };
+    }
+
+    // If no specific query is provided and user is logged in, show their routines (joined/created)
+    if (!search && !type && !username && userId) {
+      const joinedRoutineIds = await prisma.routineMember.findMany({
+        where: { accountId: userId },
+        select: { routineId: true },
+      });
+      const routineIdList = joinedRoutineIds.map(({ routineId }) => routineId);
+      whereClause.id = { in: routineIdList };
+    }
+
+    const routines = await prisma.routine.findMany({
+      where: whereClause,
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+      orderBy: { createdAt: 'desc' },
+      include: {
+        routineOwner: {
+          select: { id: true, name: true, username: true, image: true }
+        },
+        _count: {
+          select: { routineMembers: true, savedBy: true, classes: true }
+        }
+      }
+    });
+
+    const totalCount = await prisma.routine.count({ where: whereClause });
+
+    const formattedRoutines = routines.map(routine => ({
+      id: routine.id,
+      routineName: routine.routineName,
+      ownerAccountId: routine.ownerAccountId, // Explicitly pass the ID
+      routineOwner: routine.routineOwner,     // Match the Dart model key
+      isOwner: userId === routine.ownerAccountId, // Populated owner status indicator
+      createdAt: routine.createdAt,
+      stats: {
+        totalMembers: routine._count.routineMembers,
+        totalSaved: routine._count.savedBy,
+        totalClasses: routine._count.classes,
+      }
+    }));
+
+    res.status(200).json({
+      message: "Routines fetched successfully",
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalCount / Number(limit)),
+      totalCount,
+      routines: formattedRoutines
+    });
+
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred while fetching routines", error: error.message });
+  }
+};
 
 export const createRoutine = async (req: any, res: Response) => {
   const { name } = req.body;
-  const ownerId = req.user?.id; // Ensure `req.user` is populated with authenticated user details
+  const ownerId = req.user?.id;
 
-  if (!name || !ownerId) {
-    return res.status(400).json({ message: "Routine name and ownerId are required" });
-  }
+  if (!name || !ownerId) return res.status(400).json({ message: "Routine name and ownerId are required" });
 
   try {
-    // Start transaction
-    const result = await prisma.$transaction(async (prisma) => {
-      // Step 1: Check if a routine with the same name and owner already exists
-
-
-      const existingRoutine = await prisma.routine.findFirst({
-        where: {
-          routineName: name,
-          routineOwner: { id: ownerId },
-        },
+    const result = await prisma.$transaction(async (tx) => {
+      const existingRoutine = await tx.routine.findFirst({
+        where: { routineName: name, routineOwner: { id: ownerId } },
       });
 
-      if (existingRoutine) {
-        throw new Error("Routine already created with this name");
-      }
+      if (existingRoutine) throw new Error("Routine already created with this name");
 
-      // Step 2: Create a new routine
-      const createdRoutine = await prisma.routine.create({
-        data: {
-          routineName: name,
-          routineOwner: {
-            connect: { id: ownerId },
-          },
-        },
+      const createdRoutine = await tx.routine.create({
+        data: { routineName: name, routineOwner: { connect: { id: ownerId } } },
       });
 
-      // Step 3: Create a new RoutineMember instance
-      const routineMember = await prisma.routineMember.create({
-        data: {
-          routineId: createdRoutine.id,
-          accountId: ownerId,
-          owner: true,
-        },
+      const routineMember = await tx.routineMember.create({
+        data: { routineId: createdRoutine.id, accountId: ownerId, owner: true },
       });
 
-      // Step 4: Update the user's routines list (optional, based on schema)
-      const updatedUser = await prisma.account.update({
+      const updatedUser = await tx.account.update({
         where: { id: ownerId },
-        data: {
-          createdRoutines: { connect: { id: createdRoutine.id } },
-        },
+        data: { createdRoutines: { connect: { id: createdRoutine.id } } },
       });
 
-      // Return all results
-      return {
-        createdRoutine,
-        routineMember,
-        updatedUser,
-      };
+      return { createdRoutine, routineMember, updatedUser };
     });
 
-    // If transaction completes successfully
     res.status(201).json({
       message: "Routine created successfully",
       routine: result.createdRoutine,
       user: result.updatedUser,
       routineMember: result.routineMember,
     });
-
-
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
     console.error("Error creating routine:", error);
-    res.status(500).json({ message: `Routine creation failed: ${message}` });
-  }
-}
-//*******************************************************************************/
-//--------------------------------- deleteRoutine  ------------------------------/
-//*******************************************************************************/
-
-export const deleteRoutineById = async (req: any, res: Response) => {
-  const { routineID } = req.params;  // Routine ID from request parameters
-  const ownerId = req.user?.id; // Ensure `req.user` is populated with authenticated user details
-
-  if (!routineID || !ownerId) {
-    return res.status(400).json({ message: "Routine ID and ownerId are required" });
-  }
-
-  try {
-    // Start transaction
-    const result = await prisma.$transaction(async (prisma) => {
-      // Step 1: Check if the routine exists and belongs to the user
-      const existingRoutine = await prisma.routine.findFirst({
-        where: {
-          id: routineID,
-          routineOwner: { id: ownerId },
-        },
-      });
-
-      if (!existingRoutine) {
-        throw new Error("Routine not found or you are not the owner");
-      }
-
-      // Step 2: Delete the related routine members
-      await prisma.routineMember.deleteMany({
-        where: {
-          routineId: existingRoutine.id,
-        },
-      });
-
-
-      // Step 3: Delete the routine
-      const deletedRoutine = await prisma.routine.delete({
-        where: { id: existingRoutine.id },
-      });
-
-      // Return the deleted routine details
-      return deletedRoutine;
-    });
-    // delete all the media file from firebase
-    await deleteRoutineMediaFolder(routineID);
-
-    // If transaction completes successfully
-    res.status(200).json({
-      message: "Routine deleted successfully",
-      routine: result,
-    });
-
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error deleting routine:", error);
-    res.status(500).json({ message: `Routine deletion failed: ${message}` });
+    res.status(500).json({ message: `Routine creation failed: ${error.message || "Unknown error"}` });
   }
 };
 
-
-//*******************************************************************************/
-//--------------------------------- search Routine  ------------------------------/
-//*******************************************************************************/
-export const searchRoutine = async (req: any, res: Response) => {
-  const { src } = req.query; // get the search string from the query parameters
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-
-
-  try {
-    const regex = new RegExp(src, "i"); // Case-insensitive regex search pattern
-
-    // Get the count of routines that match the search criteria
-    const count = await prisma.routine.count({
-      where: {
-        OR: [
-          { routineName: { contains: src, mode: 'insensitive' } },
-          {
-            routineOwner: {
-              username: { contains: src, mode: 'insensitive' }
-            }
-          }
-        ]
-      }
-    });
-
-    // Get the routines with pagination
-    const routines = await prisma.routine.findMany({
-      where: {
-        OR: [
-          { routineName: { contains: src, mode: 'insensitive' } },
-          {
-            routineOwner: {
-              username: { contains: src, mode: 'insensitive' }
-            }
-          }
-        ]
-      },
-      select: {
-        id: true,
-        routineName: true,
-        routineOwner: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-            image: true
-          }
-        }
-      },
-      skip: (page - 1) * limit,
-      take: limit
-    });
-
-    if (routines.length === 0) {
-      return res.status(404).json({ message: "No routines found" });
-    }
-
-    res.status(200).json({
-      routines,
-      currentPage: page,
-      totalPages: Math.ceil(count / limit),
-      totalCount: count
-    });
-  } catch (error: any) {
-    console.error("Error searching routines:", error);
-    res.status(500).json({ message: "An error occurred while searching routines" });
-  }
-};
-
-
-
-//***************************************************************************************/
-//--------------------Save and unsave  Routine  &  show save routine --------------------/
-//**************************************************************************************/
-
-export const save_and_unsave_routine = async (req: any, res: Response) => {
-  const { routineId } = req.params;
-  const { saveCondition } = req.body;
-  const { id: userId } = req.user;
-
-  // Validate saveCondition
-  if (!["true", "false"].includes(saveCondition)) {
-    return res.status(400).json({ message: "Invalid saveCondition. Must be 'true' or 'false'." });
-  }
-
-  try {
-    // Check if routine exists and if it's already saved
-    const [routine, isSaved] = await Promise.all([
-      prisma.routine.findUnique({ where: { id: routineId } }),
-      prisma.account.findFirst({ where: { id: userId, savedRoutines: { some: { id: routineId } } } })
-    ]);
-
-    if (!routine) return res.status(404).json({ message: "Routine not found" });
-
-    // If saveCondition is "true" and already saved, return message
-    if (saveCondition === "true" && isSaved) {
-      return res.status(200).json({ message: "Routine is already saved", save: true });
-    }
-
-    // If saveCondition is "false" and not saved, return message
-    if (saveCondition === "false" && !isSaved) {
-      return res.status(400).json({ message: "Routine is not currently saved" });
-    }
-
-    // Save or unsave the routine
-    await prisma.account.update({
-      where: { id: userId },
-      data: {
-        savedRoutines: saveCondition === "true"
-          ? { connect: { id: routineId } }
-          : { disconnect: { id: routineId } }
-      },
-    });
-
-    const message = saveCondition === "true" ? "Routine saved successfully" : "Routine unsaved successfully";
-    return res.status(200).json({ message, save: saveCondition === "true" });
-  } catch (error) {
-    console.error("Error handling save/unsave routine:", error);
-    res.status(500).json({ message: "An error occurred while processing the request." });
-  }
-};
-
-
-//.......save routines.../
-export const save_routines = async (req: any, res: Response) => {
-  const { id } = req.user;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 2;
-
-  try {
-    // // Find the account by primary username
-    // const account = await Account.findById(id);
-    // if (!account) return res.status(404).json({ message: "Account not found" });
-
-    // // Find the saved routines for the account and populate owner details
-    // const savedRoutines = await SaveRoutine.find({ savedByAccountID: id })
-    //   .populate({
-    //     path: 'routineID',
-    //     select: 'name ownerid',
-    //     populate: {
-    //       path: 'ownerid',
-
-
-    //       select: 'name username image'
-    //     }
-    //   })
-    //   .limit(limit)
-    //   .skip((page - 1) * limit);
-
-    // // Count the total number of saved routines
-    // const count = await SaveRoutine.countDocuments({ savedByAccountID: id });
-
-    // // Prepare response data
-    // const response = {
-    //   savedRoutines: savedRoutines.map((routine: any) => routine.routineID),
-    //   currentPage: page,
-    //   totalPages: Math.ceil(count / limit)
-    // };
-
-    // res.status(200).json(response);
-    // console.log(response);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
-
-//***************************************************************************************/
-//---------------------------- current_user_status --------------------------------------/
-//**************************************************************************************/
+// ==========================================
+// 🎯 SPECIFIC ROUTINE ACTIONS
+// ==========================================
 
 export const current_user_status = async (req: any, res: Response) => {
   try {
-    const { routineId } = req.params;
+    // 🐛 Fix: Safely check for both casing styles to prevent undefined Prisma queries
+    const routineId = req.params.routineId || req.params.routineID;
+
+    if (!routineId) return res.status(400).json({ message: 'Routine ID is required in URL parameters' });
 
     if (req.isGuest) {
       const routine = await prisma.routine.findUnique({
@@ -338,100 +153,48 @@ export const current_user_status = async (req: any, res: Response) => {
         include: { routineMembers: true }
       });
       return res.status(200).json({
-        isOwner: false,
-        isCaptain: false,
-        activeStatus: 'not_joined',
-        isSaved: false,
-        memberCount: routine ? routine.routineMembers.length : 0,
-        notificationOn: false,
+        isOwner: false, isCaptain: false, activeStatus: 'not_joined',
+        isSaved: false, memberCount: routine ? routine.routineMembers.length : 0, notificationOn: false,
       });
     }
 
     const { id } = req.user;
-
-
-
-    // Find the routine
     const routine = await prisma.routine.findUnique({
-      where: { id: routineId }, // Find routine by ID
-      include: {
-        routineMembers: true, // Include members for the routine
-        RoutinesJoinRequest: true, // Include join requests for the routine
-      },
+      where: { id: routineId },
+      include: { routineMembers: true, RoutinesJoinRequest: true },
     });
 
-    if (!routine) {
-      return res.status(404).json({ message: 'Routine not found' });
-    }
+    if (!routine) return res.status(404).json({ message: 'Routine not found' });
 
-    // Get the member count
-    const memberCount = routine.routineMembers.length;
-
-    let isOwner = false;
-    let isCaptain = false;
     let activeStatus = 'not_joined';
     let isSaved = false;
-    let notificationOn = false;
 
-    // Check if the user has saved the routine (savedRoutines relation)
     const savedRoutine = await prisma.account.findUnique({
       where: { id },
-      select: {
-        savedRoutines: {
-          where: { id: routineId }, // Checking if the routine is saved by the user
-        },
-      },
+      select: { savedRoutines: { where: { id: routineId } } },
     });
 
-    // Explicitly check if savedRoutines is not undefined or null
-    if (savedRoutine && savedRoutine.savedRoutines && savedRoutine.savedRoutines.length > 0) {
-      isSaved = true;
-    }
+    if ((savedRoutine?.savedRoutines?.length ?? 0) > 0) isSaved = true;
 
-    // Check if the user is a member of the routine (routineMembers relation)
     const routineMember = await prisma.routineMember.findFirst({
-      where: {
-        routineId,
-        accountId: id,
-      },
+      where: { routineId, accountId: id },
     });
 
-    if (routineMember) {
-      activeStatus = 'joined';
-      isOwner = routineMember.owner;
-      isCaptain = routineMember.captain;
-      notificationOn = routineMember.notificationOn;
-    }
+    if (routineMember) activeStatus = 'joined';
 
-    // Check if the user has a pending join request (RoutinesJoinRequest relation)
     const pendingRequest = await prisma.routinesJoinRequest.findFirst({
-      where: {
-        routineId,
-        accountIdBy: id,
-      },
+      where: { routineId, accountIdBy: id },
     });
 
-    if (pendingRequest) {
-      activeStatus = 'request_pending';
-    }
-
-    // Respond with user status
-    console.log({
-      isOwner,
-      isCaptain,
-      activeStatus,
-      isSaved,
-      memberCount,
-      notificationOn,
-    });
+    if (pendingRequest) activeStatus = 'request_pending';
 
     res.status(200).json({
-      isOwner,
-      isCaptain,
+      isOwner: routineMember?.owner || false,
+      isCaptain: routineMember?.captain || false,
       activeStatus,
       isSaved,
-      memberCount,
-      notificationOn,
+      memberCount: routine.routineMembers.length,
+      notificationOn: routineMember?.notificationOn || false,
     });
   } catch (error) {
     console.error(error);
@@ -439,94 +202,394 @@ export const current_user_status = async (req: any, res: Response) => {
   }
 };
 
+export const deleteRoutineById = async (req: any, res: Response) => {
+  const routineID = req.params.routineID || req.params.routineId;
+  const ownerId = req.user?.id;
 
-
-
-// //************** user can see all routines where owner or joined ***********
-
-
-export const homeFeed = async (req: any, res: Response) => {
-  const { userID } = req.params;  // Optional user ID filter
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 3;
-  const skip = (page - 1) * limit;  // Calculate pagination offset
+  if (!routineID || !ownerId) return res.status(400).json({ message: "Routine ID and ownerId are required" });
 
   try {
-    let routines;
-    let totalCount;
-
-    if (req.isGuest) {
-      // Guest mode: If userID is provided, show routines created by userID, otherwise show all routines
-      routines = await prisma.routine.findMany({
-        where: userID ? { ownerAccountId: userID } : {},
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          routineName: true,
-          routineOwner: {
-            select: {
-              id: true,
-              username: true,
-              name: true,
-              image: true,
-            },
-          },
-        },
+    const result = await prisma.$transaction(async (tx) => {
+      const existingRoutine = await tx.routine.findFirst({
+        where: { id: routineID, routineOwner: { id: ownerId } },
       });
 
-      totalCount = await prisma.routine.count({
-        where: userID ? { ownerAccountId: userID } : {},
-      });
-    } else {
-      const { id: loggedInUserId } = req.user;  // Logged-in user's ID
-      // Step 1: Get IDs of routines joined by the logged-in user
-      const joinedRoutineIds = await prisma.routineMember.findMany({
-        where: { accountId: loggedInUserId },
-        select: { routineId: true },
-      });
+      if (!existingRoutine) throw new Error("Routine not found or you are not the owner");
 
-      const routineIdList = joinedRoutineIds.map(({ routineId }) => routineId);
+      await tx.routineMember.deleteMany({ where: { routineId: existingRoutine.id } });
+      const deletedRoutine = await tx.routine.delete({ where: { id: existingRoutine.id } });
 
-      // Step 2: Fetch routines based on userID presence
-      routines = await prisma.routine.findMany({
-        where: userID
-          ? { ownerAccountId: userID }  // Show routines created by userID
-          : { id: { in: routineIdList } },  // Show routines joined by logged-in user
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          routineName: true,
-          routineOwner: {
-            select: {
-              id: true,
-              username: true,
-              name: true,
-              image: true,
-            },
-          },
-        },
-      });
+      return deletedRoutine;
+    });
 
-      // Step 3: Count total routines for pagination
-      totalCount = await prisma.routine.count({
-        where: userID
-          ? { ownerAccountId: userID }
-          : { id: { in: routineIdList } },
-      });
-    }
+    try { await deleteRoutineMediaFolder(routineID); } catch (e) { console.error("Firebase deletion failed", e); }
 
-    // Step 4: Return the response with relevant data
+    res.status(200).json({ message: "Routine deleted successfully", routine: result });
+  } catch (error: any) {
+    console.error("Error deleting routine:", error);
+    res.status(500).json({ message: `Routine deletion failed: ${error.message || "Unknown error"}` });
+  }
+};
+
+export const save_and_unsave_routine = async (req: any, res: Response) => {
+  const routineId = req.params.routineId || req.params.routineID;
+  const { saveCondition } = req.body;
+  const { id: userId } = req.user;
+
+  if (!routineId) return res.status(400).json({ message: "Routine ID is required" });
+  if (!["true", "false"].includes(saveCondition)) return res.status(400).json({ message: "Invalid saveCondition. Must be 'true' or 'false'." });
+
+  try {
+    const [routine, isSaved] = await Promise.all([
+      prisma.routine.findUnique({ where: { id: routineId } }),
+      prisma.account.findFirst({ where: { id: userId, savedRoutines: { some: { id: routineId } } } })
+    ]);
+
+    if (!routine) return res.status(404).json({ message: "Routine not found" });
+    if (saveCondition === "true" && isSaved) return res.status(200).json({ message: "Routine is already saved", save: true });
+    if (saveCondition === "false" && !isSaved) return res.status(400).json({ message: "Routine is not currently saved" });
+
+    await prisma.account.update({
+      where: { id: userId },
+      data: {
+        savedRoutines: saveCondition === "true" ? { connect: { id: routineId } } : { disconnect: { id: routineId } }
+      },
+    });
+
     res.status(200).json({
-      message: 'Success',
-      homeRoutines: routines,
-      currentPage: page,
-      totalPages: Math.ceil(totalCount / limit),
-      totalItems: totalCount,
+      message: saveCondition === "true" ? "Routine saved successfully" : "Routine unsaved successfully",
+      save: saveCondition === "true"
+    });
+  } catch (error) {
+    console.error("Error handling save/unsave routine:", error);
+    res.status(500).json({ message: "An error occurred while processing the request." });
+  }
+};
+
+// ==========================================
+// 🏫 CLASSES & WEEKDAYS
+// ==========================================
+
+export const allClass = async (req: any, res: Response) => {
+  const routineID = req.params.routineID || req.params.routineId;
+
+  if (!routineID) return res.status(400).json({ message: "Routine ID is required" });
+
+  try {
+    const routine = await prisma.routine.findUnique({
+      where: { id: routineID },
+      include: { routineOwner: { select: { id: true, name: true, username: true, image: true } } },
+    });
+    if (!routine) return res.status(404).json({ message: 'Routine not found' });
+
+    const classes = await prisma.class.findMany({
+      where: { routineId: routineID },
+      select: { id: true, name: true, instructorName: true, subjectCode: true, routineId: true },
+    });
+
+    const weekdayClasses: { [key: string]: any[] } = { sun: [], mon: [], tue: [], wed: [], thu: [], fri: [], sat: [] };
+
+    const classesWithWeekdays = await prisma.class.findMany({
+      where: { routineId: routineID },
+      include: { weekdays: true },
+    });
+
+    classesWithWeekdays.forEach((classItem) => {
+      classItem.weekdays.forEach((weekday) => {
+        const dayKey = weekday.Day.toLowerCase();
+        if (weekdayClasses[dayKey]) {
+          weekdayClasses[dayKey].push({
+            ...classItem,
+            room: weekday.room,
+            startTime: weekday.startTime,
+            endTime: weekday.endTime,
+          });
+        }
+      });
+    });
+
+    res.status(200).json({ allClass: classes, weekdayClasses, owner: routine.routineOwner });
+  } catch (error) {
+    console.error('Error fetching classes:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const create_class = async (req: any, res: Response) => {
+  const { name, subjectCode, instructorName, startTime, endTime, room, weekday } = req.body;
+  const routineId = req.params.routineId || req.params.routineID;
+
+  if (!routineId) return res.status(400).json({ message: "Routine ID is required" });
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const createdClass = await tx.class.create({
+        data: { name, subjectCode, instructorName, routineId },
+      });
+
+      const createdWeekday = await tx.weekday.create({
+        data: {
+          class: { connect: { id: createdClass.id } },
+          routine: { connect: { id: routineId } },
+          Day: weekday,
+          room,
+          startTime,
+          endTime,
+        },
+      });
+
+      return { createdClass, createdWeekday };
+    });
+    console.log({ message: "Class and weekday created successfully:", result });
+    res.status(201).json({ message: "Class and weekday created successfully", result });
+  } catch (error: any) {
+    console.error({ message: "Error creating class and weekday", error });
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const findClass = async (req: any, res: Response) => {
+  const { classID } = req.params;
+
+  try {
+    const classes = await prisma.class.findFirst({ where: { id: classID } });
+    if (!classes) return res.status(404).send({ message: 'Class not found' });
+
+    const weekdays = await prisma.weekday.findMany({ where: { classId: classID } });
+    res.status(200).send({ message: "Class details fetched", classes, weekdays });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).send({ message: 'Error fetching class', weekdays: [] });
+  }
+};
+
+export const editClass = async (req: any, res: Response) => {
+  const { classID } = req.params;
+  const { name, instructorName, subjectCode } = req.body;
+
+  try {
+    const updatedClass = await prisma.class.update({
+      where: { id: classID },
+      data: { name, instructorName, subjectCode },
+    });
+
+    res.status(200).json({ class: updatedClass, message: 'Class updated successfully' });
+  } catch (error: any) {
+    console.error('Error updating class:', error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+/**
+ * 🦸‍♂️ SUPER UPDATE CLASS
+ * Allows updating class details, adding weekdays, and removing weekdays in ONE transaction
+ */
+export const superUpdateClass = async (req: any, res: Response) => {
+  const { classID } = req.params;
+  // payload expects: { name, instructorName, subjectCode, addWeekdays: [{day, room, startTime, endTime}], removeWeekdayIds: ["id1", "id2"] }
+  const { name, instructorName, subjectCode, addWeekdays = [], removeWeekdayIds = [] } = req.body;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Find existing class to verify it exists and to get the routineId
+      const existingClass = await tx.class.findUnique({
+        where: { id: classID },
+      });
+
+      if (!existingClass) throw new Error("Class not found");
+
+      // 2. Update Class Details
+      const updatedClass = await tx.class.update({
+        where: { id: classID },
+        data: {
+          ...(name && { name }),
+          ...(instructorName && { instructorName }),
+          ...(subjectCode && { subjectCode }),
+        },
+      });
+
+      // 3. Remove Weekdays
+      if (removeWeekdayIds.length > 0) {
+        // Ensure we don't delete all weekdays unless intended (optional safety check)
+        const currentWeekdayCount = await tx.weekday.count({ where: { classId: classID } });
+        if (currentWeekdayCount <= removeWeekdayIds.length && addWeekdays.length === 0) {
+          throw new Error("Class must have at least one weekday. Add new weekdays before removing the remaining ones.");
+        }
+
+        await tx.weekday.deleteMany({
+          where: {
+            id: { in: removeWeekdayIds },
+            classId: classID // Safety check to ensure they belong to this class
+          }
+        });
+      }
+
+      // 4. Add New Weekdays
+      const newlyAddedWeekdays = [];
+      if (addWeekdays.length > 0) {
+        for (const wd of addWeekdays) {
+          const newWd = await tx.weekday.create({
+            data: {
+              classId: classID,
+              routineId: existingClass.routineId,
+              Day: wd.day.toLowerCase(),
+              room: wd.room,
+              startTime: new Date(wd.startTime),
+              endTime: new Date(wd.endTime),
+            }
+          });
+          newlyAddedWeekdays.push(newWd);
+        }
+      }
+
+      // Fetch the final list of weekdays for this class to return to frontend
+      const finalWeekdays = await tx.weekday.findMany({ where: { classId: classID } });
+
+      return { class: updatedClass, weekdays: finalWeekdays };
+    });
+
+    res.status(200).json({
+      message: "Class super updated successfully",
+      data: result
+    });
+
+  } catch (error: any) {
+    console.error("Super update failed:", error);
+    res.status(500).json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const remove_class = async (req: any, res: Response) => {
+  const { classID } = req.params;
+
+  try {
+    const session = await prisma.$transaction(async (tx) => {
+      const findClass = await tx.class.findUnique({ where: { id: classID } });
+      if (!findClass) throw new Error('Class not found');
+
+      const summaries = await tx.summary.findMany({ where: { classId: classID } });
+
+      for (const summary of summaries) {
+        for (const imageLink of summary.imageLinks ?? []) {
+          try {
+            const fileRef = ref(storage, imageLink);
+            await deleteObject(fileRef);
+          } catch (e) { console.error("Could not delete file", e); }
+        }
+        await tx.summary.delete({ where: { id: summary.id } });
+      }
+
+      await tx.weekday.deleteMany({ where: { classId: classID } });
+      await tx.class.delete({ where: { id: classID } });
+
+      return { message: 'Class deleted successfully' };
+    });
+
+    res.send({ message: session.message });
+  } catch (error: any) {
+    console.error('Error in remove_class:', error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+export const classNotification = async (req: any, res: Response) => {
+  const { id } = req.user;
+
+  try {
+    const routineMembers = await prisma.routineMember.findMany({
+      where: { accountId: id },
+      select: { routineId: true },
+    });
+
+    if (routineMembers.length === 0) return res.status(404).json({ message: 'No routines found for the user' });
+
+    const routineIds = routineMembers.map((member) => member.routineId);
+
+    const weekdaysWithClasses = await prisma.weekday.findMany({
+      where: { routineId: { in: routineIds } },
+      include: { class: { select: { id: true, name: true, instructorName: true, subjectCode: true } } },
+    });
+
+    const validWeekdays = weekdaysWithClasses.filter((weekday) => weekday.class !== null);
+
+    res.status(200).json({ allClassForNotification: validWeekdays });
+  } catch (error) {
+    console.error('Error fetching class notifications:', error);
+    res.status(500).json({ message: 'Server Error', notificationOnClasses: [] });
+  }
+};
+
+export const allWeekdayInClass = async (req: any, res: Response) => {
+  const { classID } = req.params;
+
+  try {
+    if (!classID) return res.status(400).send({ message: "classID not found", weekdays: [] });
+    const weekdays = await prisma.weekday.findMany({ where: { classId: classID } });
+    res.send({ message: "All weekdays in the class", weekdays });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).send({ message: error.toString(), weekdays: [] });
+  }
+};
+
+export const addWeekday = async (req: Request, res: Response) => {
+  const classID = req.params.classID as string;
+  const { day, room, startTime, endTime } = req.body;
+
+  try {
+    const transaction = await prisma.$transaction(async (tx) => {
+      const classFind = await tx.class.findUnique({ where: { id: classID } });
+      if (!classFind) throw new Error('Class not found');
+
+      const newWeekday = await tx.weekday.create({
+        data: {
+          classId: classID,
+          routineId: classFind.routineId,
+          Day: day.toLowerCase(),
+          room: room,
+          startTime: new Date(startTime),
+          endTime: new Date(endTime),
+        },
+      });
+
+      return newWeekday;
+    });
+
+    res.send({ message: 'Weekday added successfully', newWeekday: transaction });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Internal server error' });
+  }
+};
+
+export const deleteWeekdayById = async (req: Request, res: Response) => {
+  const weekdayID = req.params.weekdayID as string;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const weekday = await tx.weekday.findUnique({
+        where: { id: weekdayID },
+        select: { id: true, classId: true },
+      });
+
+      if (!weekday) throw new Error('Weekday not found');
+
+      const weekdayCount = await tx.weekday.count({ where: { classId: weekday.classId } });
+      if (weekdayCount <= 1) throw new Error('Class must have at least one weekday. Deletion not allowed.');
+
+      const deletedWeekday = await tx.weekday.delete({ where: { id: weekdayID } });
+      const remainingWeekdays = await tx.weekday.findMany({ where: { classId: weekday.classId } });
+
+      return { deletedWeekday, remainingWeekdays };
+    });
+
+    res.status(200).json({
+      message: 'Weekday deleted successfully',
+      deletedWeekday: result.deletedWeekday,
+      weekdays: result.remainingWeekdays,
     });
   } catch (error: any) {
-    // Step 5: Handle errors gracefully
-    res.status(500).json({ message: error.message });
+    console.error('Error deleting weekday:', error);
+    res.status(500).json({ message: error.message || 'Internal server error', weekdays: [] });
   }
 };

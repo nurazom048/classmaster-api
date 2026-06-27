@@ -10,8 +10,8 @@ import jwt, { Secret } from "jsonwebtoken";
 
 // Routes
 import auth_route from "./Features/Account/routes/auth_route";
-import routine_route from "./Features/Routines/routes/routine_route";
-import class_route from "./Features/Routines/routes/class_route";
+import routine_route from "./Features/Routines/routes/routine_router";
+import routine_member_route from "./Features/Routines/routes/routine_member.route";
 import summary from "./Features/Routines/routes/summary_route";
 import account from "./Features/Account/routes/account_route";
 import notice from "./Features/Notice_Features/routes/notice_route";
@@ -53,6 +53,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // CORS Config
 const allowedOrigins = [
   "http://localhost:5000",
+  "http://localhost:5001",
   "http://localhost:4000",
   "https://classmaster.top",
   "https://www.classmaster.top",
@@ -88,7 +89,7 @@ app.options("*", cors());
 app.use("/auth", auth_route);
 app.use("/account", account);
 app.use("/routine", routine_route);
-app.use("/class", class_route);
+app.use("/routine", routine_member_route);
 app.use("/summary", summary);
 app.use("/notice", notice);
 app.use("/notification", notification);
