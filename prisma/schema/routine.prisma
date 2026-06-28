@@ -78,6 +78,7 @@ model Summary {
     imageStorageProvider imageStorageProvider?
     routineId            String
     classId              String
+    autoDeleteAt         DateTime
     createdAt            DateTime              @default(now())
     updatedAt            DateTime              @updatedAt
 

@@ -12,7 +12,7 @@ import jwt, { Secret } from "jsonwebtoken";
 import auth_route from "./Features/Account/routes/auth_route";
 import routine_route from "./Features/Routines/routes/routine_router";
 import routine_member_route from "./Features/Routines/routes/routine_member.route";
-import summary from "./Features/Routines/routes/summary_route";
+import summary from "./Features/Routine_summary/routes/summary_route";
 import account from "./Features/Account/routes/account_route";
 import notice from "./Features/Notice_Features/routes/notice_route";
 import notification from "./Features/Notification_Features/routes/notification.route";
