@@ -12,16 +12,25 @@ import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../../../services/storage/storage.mino.s3";
 import { summaryFilePath } from '../../../services/storage/stroage.path';
 
-const BUCKET_NAME = process.env.MINIO_BUCKET_NAME || 'storageforclassmaster';
+const BUCKET_NAME = 'storageforclassmaster';
 
 // ==========================================
 // 📝 CREATE SUMMARY
 // ==========================================
 export const addSummary = async (req: any, res: Response) => {
-  const { message, externalLinks } = req.body;
+  const { message } = req.body;
   const { classID } = req.params;
   const { id: userID } = req.user;
   const routineID = req.routineID; // Passed from middleware
+
+  // ✅ Validate required fields
+  if (!routineID) {
+    return res.status(400).json({
+      message: 'routineID is required. Make sure the middleware is passing it correctly.'
+    });
+  }
+
+  console.log("Creating summary with params:", { userID, routineID, classID });
 
   try {
     const files = req.files as Express.Multer.File[] || [];
@@ -29,8 +38,12 @@ export const addSummary = async (req: any, res: Response) => {
 
     // Step 1: Upload Files to MinIO
     if (files.length > 0) {
+      const folderName = routineID;
+      const date = new Date();
+      const month = date.toLocaleString('default', { month: 'long' });
+
       for (const file of files) {
-        const key = summaryFilePath(routineID, userID, file.originalname);
+        const key = `summary/${month}/${folderName}-${userID}/${Date.now()}-${file.originalname}`;
         await s3Client.send(new PutObjectCommand({
           Bucket: BUCKET_NAME,
           Key: key,
@@ -41,25 +54,27 @@ export const addSummary = async (req: any, res: Response) => {
       }
     }
 
-    // Step 2: Set Auto-Delete
+    // Step 2: Set Auto-Delete (120 days from now)
     const autoDeleteDate = new Date();
     autoDeleteDate.setDate(autoDeleteDate.getDate() + 120);
 
     // Step 3: Save to Database
     const createdSummary = await prisma.$transaction(async (tx: any) => {
+      // ✅ Use scalar fields only (simplest approach)
       const summary = await tx.summary.create({
         data: {
           ownerId: userID,
           routineId: routineID,
           classId: classID,
           text: message?.trim() || '',
-          fileLinks: uploadedFileKeys,
-          externalLinks: externalLinks ? JSON.parse(externalLinks) : [],
+          imageLinks: uploadedFileKeys,
+
           autoDeleteAt: autoDeleteDate,
           imageStorageProvider: uploadedFileKeys.length > 0 ? 'aws' : null,
         },
       });
 
+      // Update routine timestamp
       await tx.routine.update({
         where: { id: routineID },
         data: { updatedAt: new Date() },
@@ -74,10 +89,12 @@ export const addSummary = async (req: any, res: Response) => {
     });
   } catch (error: any) {
     console.error('Error creating summary:', error);
-    return res.status(500).json({ message: 'Internal Server Error while creating summary' });
+    return res.status(500).json({
+      message: 'Internal Server Error while creating summary',
+      error: error.message
+    });
   }
 };
-
 // ==========================================
 // 🗑️ DELETE SUMMARY
 // ==========================================
@@ -116,7 +133,7 @@ export const get_summary_list = async (req: any, res: Response) => {
   const userID = req.user.id;
   const skip = (Number(page) - 1) * Number(limit);
   const take = Number(limit);
-
+  console.log("Fetching summaries with params:", { classId, type, page, limit, userID });
   try {
     let summaries: any[] = [];
     let totalCount = 0;
@@ -163,13 +180,19 @@ export const get_summary_list = async (req: any, res: Response) => {
     const formattedSummaries = summaries.map(summary => ({
       id: summary.id,
       text: summary.text,
-      fileLinks: summary.fileLinks || [],
-      externalLinks: summary.externalLinks || [],
+      fileLinks: summary.imageLinks || [],
       createdAt: summary.createdAt,
       owner: summary.owner,
       classInfo: summary.class,
     }));
 
+    console.log({
+      message: "Summaries fetched successfully",
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalCount / take),
+      totalCount,
+      summaries: formattedSummaries,
+    });
     return res.status(200).json({
       message: "Summaries fetched successfully",
       currentPage: Number(page),
@@ -177,6 +200,7 @@ export const get_summary_list = async (req: any, res: Response) => {
       totalCount,
       summaries: formattedSummaries,
     });
+
   } catch (error: any) {
     console.error("Fetch Summary Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });

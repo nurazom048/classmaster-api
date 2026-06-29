@@ -1,6 +1,7 @@
 import prisma from "../../../prisma/schema/prisma.clint";
 import { Request, Response, NextFunction } from 'express';
 //@ summaryAddPermission
+// @ summaryAddPermission
 export const summaryAddPermission = async (req: any, res: Response, next: NextFunction) => {
     const { classID } = req.params;
     const userID = req.user?.id;
@@ -34,6 +35,9 @@ export const summaryAddPermission = async (req: any, res: Response, next: NextFu
         if (!routineMember || (!routineMember.owner && !routineMember.captain)) {
             return res.status(403).json({ message: "Only captains and owners can add summaries." });
         }
+
+        // ✅ Pass routineID to the request object
+        req.routineID = routineId;
 
         // Allow the request to proceed
         next();
