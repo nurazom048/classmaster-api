@@ -15,9 +15,9 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from '../../../prisma/schema/prisma.clint';
 
 // s3 client import
-import { s3Client, } from '../../../config/firebase/s3.config';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client } from '../../../services/storage/storage.mino.s3';
 /// make a add to 
 //?_______________________________________________________________________________________!//
 

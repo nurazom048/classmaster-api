@@ -20,15 +20,15 @@ import notification from "./Features/Notification_Features/routes/notification.r
 // DB Connections
 import { maineDB, NotificationDB } from "./prisma/mongodb.connection"; // ❌ MongoDB commented out
 import { connectPostgres } from "./prisma/schema/prisma.clint";
-import { connectMinIO } from "./services/storage/storage.mino.s3";
 
 // Helpers
 import { isTokenExpired } from "./services/Authentication/helper/Jwt.helper";
 
 // s3 imports
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "./config/firebase/s3.config"; // Path-ti tomar file structure onujayi thik kore nio
 import { startBackupScheduler } from "./services/backup/backup.service";
+import { autoSeedInitialize } from "./services/auto task/seed.notice";
+import { connectMinIO, s3Client } from "./services/storage/storage.mino.s3";
 
 // ===============================
 // 🚀 APP INITIALIZATION
@@ -210,6 +210,8 @@ const startServer = async () => {
 
     // Start Backup Scheduler
     startBackupScheduler();
+    // Fire and forget: Kick off the 2-minute loop in the background
+    autoSeedInitialize();
 
     // Start Server
     server.listen(PORT, () => {
