@@ -12,7 +12,7 @@ import {
 } from './autotask.helper';
 
 const FEED_URL = "https://fearyourcreatorndonotwasteothersright.blogspot.com/feeds/posts/default?alt=json&published-min=2026-01-01T00:00:00&published-max=2026-12-31T23:59:59";
-const TARGET_USER_ID = "6a44ff6eb876a92842c224a1";
+const TARGET_USER_ID = "6a45307892c37c968aebb618";
 
 export interface NoticeData {
     title: string;

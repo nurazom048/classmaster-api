@@ -90,7 +90,7 @@ export const acceptPending = async (req: Request, res: Response) => {
             displayName: name,
             photoURL: image,
             email,
-            emailVerified: true,
+            // emailVerified: true,
         });
 
         // Step 7: Update the pending account status
