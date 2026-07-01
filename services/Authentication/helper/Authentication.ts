@@ -4,9 +4,31 @@ import { generateAuthToken, generateRefreshToken, isTokenExpired } from './Jwt.h
 import dotenv from 'dotenv';
 dotenv.config();
 
+// --- NEW HELPER METHOD ---
+// Extracts and logs only the necessary request data for debugging
+const logEssentialReqData = (req: Request | any) => {
+  const logData: any = {
+    method: req.method,
+    path: req.originalUrl,
+    host: req.headers.host,
+    refreshToken: req.headers['x-refresh-token'] || 'Missing', // Prints the full token string now
+  };
+
+  // Only append 'bodyData' to the log if the request actually contains a body
+  if (req.body && Object.keys(req.body).length > 0) {
+    logData.bodyData = req.body;
+  }
+
+  console.log('[verifyToken] Request Info:', logData);
+};
+
+// -------------------------
+
 // Middleware to verify and refresh tokens
 export const verifyToken = async (req: any, res: Response, next: NextFunction) => {
-  console.log('verifyToken', req.headers);
+  // Replaced the messy req.headers log with the clean helper method
+  logEssentialReqData(req);
+
   try {
     const isGuest = req.headers["x-guest"] === "true";
     const appClient = req.headers["x-app-client"];
@@ -43,10 +65,10 @@ export const verifyToken = async (req: any, res: Response, next: NextFunction) =
       return res.status(401).json({ message: "No token provided" });
     }
 
-
     // Extract the token from the Authorization header
     const tokenArray = req.headers.authorization.split(' ');
     const token = tokenArray[tokenArray.length - 1];
+
     // Check if the token is expired
     const isAuthTokenExpired: boolean = isTokenExpired(token, process.env.JWT_SECRET_KEY as Secret);
 
@@ -56,7 +78,7 @@ export const verifyToken = async (req: any, res: Response, next: NextFunction) =
       // Verify the refresh token
       const refreshToken = req.headers['x-refresh-token'];
       const isRefreshTokenExpired: boolean = isTokenExpired(refreshToken, process.env.REFRESH_TOKEN_SECRET as Secret);
-      console.log('isRefreshTokenExpired', isRefreshTokenExpired);
+      console.log('isRefreshTokenExpired:', isRefreshTokenExpired);
 
       if (isRefreshTokenExpired) {
         // Refresh token has also expired
@@ -66,6 +88,7 @@ export const verifyToken = async (req: any, res: Response, next: NextFunction) =
       // Generate new auth and refresh tokens
       const refreshDecoded = jwt.verify(refreshToken as string, process.env.REFRESH_TOKEN_SECRET as Secret) as any;
       console.log("refreshDecoded:", refreshDecoded);
+
       const newAuthToken = generateAuthToken(refreshDecoded.id, refreshDecoded.username);
       const newRefreshToken = generateRefreshToken(refreshDecoded.id, refreshDecoded.username);
 
@@ -78,6 +101,7 @@ export const verifyToken = async (req: any, res: Response, next: NextFunction) =
       // Decode the new auth token and set it to the user
       const newAuthTokenDecoded = jwt.verify(newAuthToken as string, process.env.JWT_SECRET_KEY as Secret) as any;
       console.log("newAuthTokenDecoded:", newAuthTokenDecoded);
+
       req.user = newAuthTokenDecoded;
       next();
     } else {

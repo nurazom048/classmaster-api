@@ -2,7 +2,6 @@ import { Types } from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 import jwt, { Secret } from 'jsonwebtoken';
-import { printD } from '../../../utils/utils';
 
 
 export const generateAuthToken = (userId: string, username: string): string => {
@@ -22,9 +21,9 @@ export const isTokenExpired = (token: any, envSecret: Secret) => {
     return false; // Token is not expired
   } catch (err: any) {
 
-    printD("error on isTokenExpired " + err);
-    printD("env secret" + process.env.REFRESH_TOKEN_SECRET);
-    printD("env secret" + envSecret);
+    console.log("error on isTokenExpired " + err);
+    console.log("env secret" + process.env.REFRESH_TOKEN_SECRET);
+    console.log("env secret" + envSecret);
     if (err.name === 'TokenExpiredError') {
       return true; // Token has expired
     } else {
