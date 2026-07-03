@@ -95,15 +95,11 @@ async function autoNoticeUpload() {
 
             console.log(`Processing new notice: "${notice.title}"`);
 
-            // পাবলিশারের নাম বের করা
             const accountIdentifier = (publisherAccount as any).username || publisherAccount.name || "ClassMaster";
-
-            // ডাইনামিক ডেসক্রিপশন তৈরি (পুরোনো সব RegEx ক্লিনআপ রিমুভ করে দেওয়া হয়েছে)
             const finalDescription = generateDynamicDescription(notice.title, accountIdentifier);
 
-            // Convert Image(s) into a unified PDF Buffer
+            // এই ফাংশনটি এখন অল ইমেজ ইউআরএল (যেমন: ৪টি ইমেজ) রিসিভ করে একটি ৪ পেইজের পিডিএফ তৈরি করবে।
             const pdfBuffer = await createPdfFromImages(notice.imageUrls, finalDescription);
-
             // Upload generated PDF directly to your MinIO / S3 Bucket
             const uuid = uuidv4();
             const fileName = `notices/academyId-${publisherAccount.id}/uid-${uuid}-auto-notice.pdf`;
@@ -145,6 +141,6 @@ export const autoSeedInitialize = () => {
     autoNoticeUpload();
 
     // Loop every 10 minutes
-    const TWO_MINUTES_MS = 10 * 60 * 1000;
+    const TWO_MINUTES_MS = 1 * 60 * 1000;
     setInterval(autoNoticeUpload, TWO_MINUTES_MS);
 };

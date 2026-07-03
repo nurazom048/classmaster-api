@@ -7,21 +7,38 @@ import PDFDocument from 'pdfkit';
  */
 export function optimizeImageUrl(url: string): string {
     if (!url) return url;
-    return url.replace(/\/(s\d+[-c]*|w\d+-h\d+[^/]*)\//, '/s0/');
-}
 
+    // ১. পুরোনো পাথ-ভিত্তিক সাইজিং পরিবর্তন করে (/s1600/, /w640-h400/) এর জায়গায় /s0/ বসাবে
+    let optimized = url.replace(/\/(s\d+[-c]*|w\d+-h\d+[^/]*)\//, '/s0/');
+
+    // ২. নতুন প্যারামিটার-ভিত্তিক সাইজিং পরিবর্তন করে (=s320, =w640) এর জায়গায় =s0 বসাবে (অরিজিনাল হাই-রেজোলিউশন)
+    optimized = optimized.replace(/=(s\d+[-c]*|w\d+-h\d+.*)$/i, '=s0');
+
+    return optimized;
+}
 /**
  * Helper: Extract all image sources from HTML content
  */
 export function extractImages(html: string | undefined): string[] {
     if (!html) return [];
-    const regex = /<img[^>]+src="([^">]+)"/g;
-    let match;
+
     const urls: string[] = [];
-    while ((match = regex.exec(html)) !== null) {
+
+    // বুলেটপ্রুফ রেগুলার এক্সপ্রেশন: সিঙ্গেল/ডাবল কোট, নিউলাইন এবং কেস-ইনসেনসিটিভ সাপোর্ট করবে
+    const imgRegex = /<img\s+[^>]*?src=["']([^"']+)["']/gi;
+    let match;
+    while ((match = imgRegex.exec(html)) !== null) {
         urls.push(optimizeImageUrl(match[1]));
     }
-    return urls;
+
+    // অনেক সময় ব্লগারে মেইন ইমেজটি লিংকের (Anchor Tag) ভেতরে থাকে, সেটিও আমরা ব্যাকআপ হিসেবে বের করে নিচ্ছি
+    const hrefRegex = /<a\s+[^>]*?href=["']([^"']+\.(?:jpg|jpeg|png|gif|webp|bmp)(?:\?[^"']*)?)["']/gi;
+    while ((match = hrefRegex.exec(html)) !== null) {
+        urls.push(optimizeImageUrl(match[1]));
+    }
+
+    // Set ব্যবহার করে ডুপ্লিকেট ইমেজগুলো বাদ দেওয়া হচ্ছে, যেন পিডিএফে একই পেজ বারবার না আসে
+    return Array.from(new Set(urls));
 }
 
 /**
@@ -38,10 +55,14 @@ export async function createPdfFromImages(imageUrls: string[], textDescription: 
                 resolve(Buffer.concat(buffers as unknown as Uint8Array[]));
             });
 
+            // লুপ চালিয়ে প্রতিটি ইমেজকে আলাদা আলাদা পেজে যুক্ত করা হচ্ছে
             for (const url of imageUrls) {
                 try {
                     const imgRes = await fetch(url);
-                    if (!imgRes.ok) continue;
+                    if (!imgRes.ok) {
+                        console.error(`Failed to fetch image: ${url}, Status: ${imgRes.status}`);
+                        continue;
+                    }
                     const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
 
                     doc.addPage();
@@ -89,7 +110,7 @@ export function generateDynamicDescription(title: string, accountIdentifier: str
         return circularTemplates[Math.floor(Math.random() * circularTemplates.length)];
     }
 
-    if (title.includes('তারিখ') || title.includes('যোগদান') || title.includes('পরীক্ষা') || title.includes('প্রবেশপত্র') || title.includes('মৌখিক')) {
+    if (title.includes('তারিখ') || title.includes('যোগدان') || title.includes('পরীক্ষা') || title.includes('প্রবেশপত্র') || title.includes('مওখিক')) {
         const dateTemplates = [
             `"${title}" সংক্রান্ত গুরুত্বপূর্ণ সময়সূচি প্রকাশ করা হয়েছে। 📅\n\nপরীক্ষা/যোগদানের স্থান, তারিখ এবং অন্যান্য প্রয়োজনীয় নির্দেশনার জন্য নিচের পিডিএফ ডকুমেন্টটি ডাউনলোড করুন।\n\nনিয়মিত নোটিশ আপডেট পেতে ${accountIdentifier} নোটিশ বোর্ডে জয়েন হন।`,
             `গুরুত্বপূর্ণ আপডেট: "${title}"।\n\nসময়সূচি ও পরবর্তী কার্যক্রম সম্পর্কে বিস্তারিত জানতে সংযুক্ত পিডিএফটি চেক করার অনুরোধ রইল।\n\nপ্রতিদিনের দরকারি নোটিশ মিস না করতে ${accountIdentifier}-এর সাথেই থাকুন।`,

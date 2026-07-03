@@ -68,11 +68,11 @@ export const startBackupScheduler = async () => {
     // Production: Every 1 hour
     console.log(`[LOG] 🕒 Backup Scheduler Initialized: Running every 1 HOUR.`);
 
-    // 🔴 Every 1 hour (at minute 0)
-    cron.schedule('0 * * * *', async () => {
+    // // 🔴 Every 1 hour (at minute 0)
+    // cron.schedule('0 * * * *', async () => {
 
-        // 🟢 8 Minute Logic ((take backup every 8 minutes : for testing)
-        // cron.schedule('*/8 * * * *', async () => {
+    //🟢 8 Minute Logic((take backup every 8 minutes : for testing)
+    cron.schedule('*/8 * * * *', async () => {
 
         // Step 1: Purono file cleanup kora
         await cleanupOldBackups();
