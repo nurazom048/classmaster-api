@@ -19,3 +19,10 @@ enum Day {
     thu
     fri
 }
+
+enum NoticeCategory {
+    job_circular
+    notice
+    result
+    other
+}

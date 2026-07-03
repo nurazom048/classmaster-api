@@ -1,8 +1,6 @@
-
 // imports
 import { sendNotificationMethods } from '../../../services/Notification services/oneSignalNotification.controller';
 import express, { Request, Response } from 'express';
-
 
 //! firebase imports
 const { initializeApp } = require('firebase/app');
@@ -18,8 +16,6 @@ import prisma from '../../../prisma/schema/prisma.clint';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from '../../../services/storage/storage.mino.s3';
-/// make a add to 
-//?_______________________________________________________________________________________!//
 
 // ============================================================================
 // CONTROLLERS
@@ -27,7 +23,7 @@ import { s3Client } from '../../../services/storage/storage.mino.s3';
 
 // Function to add a new notice and notify relevant members
 export const addNotice = async (req: any, res: Response) => {
-    const { title, description, mimetypeChecked } = req.body;
+    const { title, description, mimetypeChecked, category } = req.body;
     const { id, error } = req.user;
     const uuid = uuidv4();
 
@@ -68,6 +64,7 @@ export const addNotice = async (req: any, res: Response) => {
                 description,
                 publisherId: id,
                 pdf: fileName,
+                category: (category || 'notice') as any,
             },
         });
 
@@ -211,7 +208,7 @@ export const leaveMember = async (req: any, res: Response) => {
 };
 
 export const recentNotice = async (req: any, res: Response) => {
-    const { page = 1, limit = 10 } = req.query;
+    const { page, limit = 10, category } = req.query;
 
     try {
         let academyIDs: string[] = [];
@@ -228,20 +225,42 @@ export const recentNotice = async (req: any, res: Response) => {
             academyIDs = allJoinedNoticeBoard.map((item) => item.accountId);
         }
 
+        // 🎯 FIX: 'null', 'undefined' বা ভুল ইনপুট ডিফেন্সিভ পার্সিং লেয়ার
+        let parsedPage = parseInt(page as string, 10);
+        if (isNaN(parsedPage) || parsedPage < 1) {
+            parsedPage = 1;
+        }
+
+        let parsedLimit = parseInt(limit as string, 10);
+        if (isNaN(parsedLimit) || parsedLimit < 1) {
+            parsedLimit = 10;
+        }
+
+        const skip = (parsedPage - 1) * parsedLimit;
+
+        const whereClause: any = {};
+        if (!req.isGuest) {
+            whereClause.publisherId = { in: academyIDs };
+        }
+        if (category && category !== 'all') {
+            whereClause.category = category;
+        }
+
         // Step 3: Count total matching notices for pagination calculation
         const count = await prisma.notice.count({
-            where: req.isGuest ? {} : { publisherId: { in: academyIDs } },
+            where: whereClause,
         });
-        const totalPages = Math.ceil(count / parseInt(limit.toString()));
+        const totalPages = Math.ceil(count / parsedLimit);
 
         // Step 4: Fetch paginated notices including publisher account details
         const notices = await prisma.notice.findMany({
-            where: req.isGuest ? {} : { publisherId: { in: academyIDs } },
+            where: whereClause,
             select: {
                 id: true,
                 title: true,
                 pdf: true,
                 description: true,
+                category: true,
                 publisherId: true,
                 createdAt: true,
                 updatedAt: true,
@@ -249,8 +268,8 @@ export const recentNotice = async (req: any, res: Response) => {
                     select: { id: true, name: true, username: true, image: true },
                 },
             },
-            skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
-            take: parseInt(limit.toString()),
+            skip: skip, // 🎯 এখন skip কখনই NaN হবে না
+            take: parsedLimit,
             orderBy: { createdAt: 'desc' },
         });
 
@@ -270,18 +289,26 @@ export const recentNotice = async (req: any, res: Response) => {
         }).filter((notice) => notice.publisherId !== null);
 
         // Step 6: Return standard paginated response
+        console.log(JSON.stringify({
+            message: 'Success - All recent notices',
+            notices: finalNotices,
+            currentPage: parsedPage,
+            totalPages,
+            totalCount: count,
+        }));
         res.status(200).json({
             message: 'Success - All recent notices',
             notices: finalNotices,
-            currentPage: parseInt(page.toString()),
+            currentPage: parsedPage,
             totalPages,
             totalCount: count,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching recent notices:', error);
-        res.status(500).json({ message: error });
+        res.status(500).json({ message: error.message });
     }
 };
+
 // Add this controller function
 export const getNoticeById = async (req: Request, res: Response) => {
     const noticeIdParam = req.params.noticeId;
@@ -314,34 +341,54 @@ export const getNoticeById = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 export const recentNoticeByAcademeID = async (req: any, res: Response) => {
     const { academyID } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page, limit = 10, category } = req.query;
 
     try {
         // Step 1: Verify the academy account exists
         const findAccount = await prisma.account.findUnique({ where: { id: academyID } });
         if (!findAccount) return res.status(404).json({ message: "Account not found" });
 
+        // 🎯 FIX: 'null', 'undefined' বা ভুল ইনপুট ডিফেন্সিভ পার্সিং লেয়ার
+        let parsedPage = parseInt(page as string, 10);
+        if (isNaN(parsedPage) || parsedPage < 1) {
+            parsedPage = 1;
+        }
+
+        let parsedLimit = parseInt(limit as string, 10);
+        if (isNaN(parsedLimit) || parsedLimit < 1) {
+            parsedLimit = 10;
+        }
+
+        const skip = (parsedPage - 1) * parsedLimit;
+
+        const whereClause: any = { publisherId: academyID };
+        if (category && category !== 'all') {
+            whereClause.category = category;
+        }
+
         // Step 2: Count total notices for this academy for pagination calculation
-        const count = await prisma.notice.count({ where: { publisherId: academyID } });
-        const totalPages = Math.ceil(count / parseInt(limit.toString()));
+        const count = await prisma.notice.count({ where: whereClause });
+        const totalPages = Math.ceil(count / parsedLimit);
 
         // Step 3: Fetch paginated data for the specific academy
         const notices = await prisma.notice.findMany({
-            where: { publisherId: academyID },
+            where: whereClause,
             select: {
                 id: true,
                 title: true,
                 description: true,
+                category: true,
                 pdf: true,
                 createdAt: true,
                 updatedAt: true,
                 publisherId: true,
                 Account: { select: { name: true, username: true, image: true } },
             },
-            skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
-            take: parseInt(limit.toString()),
+            skip: skip, // 🎯 এখন skip কখনই NaN হবে না
+            take: parsedLimit,
             orderBy: { createdAt: 'desc' },
         });
 
@@ -349,7 +396,7 @@ export const recentNoticeByAcademeID = async (req: any, res: Response) => {
         res.status(200).json({
             message: "Success",
             notices: notices,
-            currentPage: parseInt(page.toString()),
+            currentPage: parsedPage,
             totalPages,
             totalCount: count,
         });

@@ -13,9 +13,9 @@ model Notice {
     title       String
     pdf         String?
     description String?
-
+    category    NoticeCategory @default(other) // 🎯 ক্যাটাগরি সাপোর্ট
     publisherId String
-    Account     Account @relation("publishedNotice", fields: [publisherId], references: [id], onDelete: Cascade)
+    Account     Account        @relation("publishedNotice", fields: [publisherId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
