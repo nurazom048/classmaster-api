@@ -308,7 +308,7 @@ export const allClass = async (req: any, res: Response) => {
       });
     });
 
-    res.status(200).json({ allClass: classes, weekdayClasses, owner: routine.routineOwner });
+    res.status(200).json({ allClass: classes, weekdayClasses, owner: routine.routineOwner, routineName: routine.routineName });
   } catch (error) {
     console.error('Error fetching classes:', error);
     res.status(500).json({ message: 'Internal server error' });
