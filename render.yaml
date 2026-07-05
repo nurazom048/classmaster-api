@@ -1,0 +1,74 @@
+services:
+  # ----------------------------------------------------
+  # 🐳 1. MinIO Service (S3 object storage container)
+  # ----------------------------------------------------
+  - type: web
+    name: classmaster-minio
+    env: docker
+    dockerImage: quay.io/minio/minio:latest
+    dockerCommand: server /data --console-address ":9001"
+    # Note: Free tier does not support persistent disks. 
+    # To keep files across restarts, use a paid starter instance ($7/m) with a disk,
+    # or keep it free by connecting to Cloudflare R2 (S3-compatible).
+    # disk:
+    #   name: minio-data
+    #   mountPath: /data
+    #   sizeGB: 10
+    envVars:
+      - key: MINIO_ROOT_USER
+        value: admin
+      - key: MINIO_ROOT_PASSWORD
+        value: password123
+
+  # ----------------------------------------------------
+  # 🐳 2. Node.js API Web Service (from Dockerfile)
+  # ----------------------------------------------------
+  - type: web
+    name: classmaster-api
+    env: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    plan: free
+    port: 4000
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: classmaster-db
+          property: connectionString
+      - key: MINIO_ENDPOINT
+        value: http://classmaster-minio:9000 # Internal Render networking endpoint
+      - key: MINIO_ACCESS_KEY
+        value: admin
+      - key: MINIO_SECRET_KEY
+        value: password123
+      - key: MINIO_BUCKET_NAME
+        value: storageforclassmaster
+      - key: JWT_SECRET_KEY
+        sync: true # Will prompt user in dashboard
+      - key: REFRESH_TOKEN_SECRET
+        sync: true
+      - key: MONGODB_URI_MAIN_DB
+        sync: true
+      - key: MONGODB_URI_NOTIFICATION_DB
+        sync: true
+      - key: api_key
+        sync: true
+      - key: PULSE_API_KEY
+        sync: true
+      - key: TELEGRAM_BOT_TOKEN
+        sync: true
+      - key: TELEGRAM_CHAT_ID
+        sync: true
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: true
+
+databases:
+  # ----------------------------------------------------
+  # 🗄️ 3. PostgreSQL Database Service
+  # ----------------------------------------------------
+  - name: classmaster-db
+    databaseName: classmaster
+    user: postgres
+    plan: free

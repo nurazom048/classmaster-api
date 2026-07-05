@@ -33,4 +33,4 @@ EXPOSE 4000
 # 1. prisma generate
 # 2. migrate deploy
 # 3. app start
-CMD sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+CMD sh -c "npx prisma generate && npx prisma db push && npm run dev"
