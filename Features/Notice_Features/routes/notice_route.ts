@@ -20,12 +20,25 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB limit
     fileFilter: (req, file, cb) => {
-        if (file.mimetype !== 'application/pdf') {
+        const ext = file.originalname.toLowerCase().endsWith('.pdf');
+        const mime = file.mimetype;
+        const allowedMimeTypes = ['application/pdf', 'application/x-pdf', 'application/octet-stream'];
+        
+        if (!ext || !allowedMimeTypes.includes(mime)) {
             return cb(new Error('Only PDF files are allowed'));
         }
         cb(null, true);
     }
 });
+
+const handleUpload = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    upload.single('pdf_file')(req, res, (err: any) => {
+        if (err) {
+            return res.status(400).json({ message: err.message });
+        }
+        next();
+    });
+};
 
 
 // ============================================================================
@@ -35,7 +48,7 @@ const upload = multer({
 // 1. Notices (General)
 router.route("/")
     .get(verifyToken, recentNotice)                               // Get home feed
-    .post(verifyToken, checkAccountType, upload.single('pdf_file'), addNotice); // Create notice
+    .post(verifyToken, checkAccountType, handleUpload, addNotice); // Create notice
 // Add this route in your ROUTES section
 router.route("/:noticeId").get(getNoticeById);
 

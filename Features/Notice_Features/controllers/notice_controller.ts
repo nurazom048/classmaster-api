@@ -40,7 +40,9 @@ export const addNotice = async (req: any, res: Response) => {
         }
 
         // Step 3: Check file type mapping
-        if (!mimetypeChecked && req.file.mimetype !== 'application/pdf') {
+        const isPdfMime = req.file.mimetype === 'application/pdf' || req.file.mimetype === 'application/x-pdf' || req.file.mimetype === 'application/octet-stream';
+        const isPdfExt = req.file.originalname.toLowerCase().endsWith('.pdf');
+        if (!mimetypeChecked && (!isPdfMime || !isPdfExt)) {
             return res.status(400).json({ message: 'Only PDF files are allowed' });
         }
 
