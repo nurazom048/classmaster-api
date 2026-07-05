@@ -15,6 +15,7 @@ import prisma from '../../../prisma/schema/prisma.clint';
 // s3 client import
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { getNoticeFilePath } from '../../../services/storage/stroage.path';
 import { s3Client } from '../../../services/storage/storage.mino.s3';
 
 // ============================================================================
@@ -48,7 +49,7 @@ export const addNotice = async (req: any, res: Response) => {
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
         // Step 5: Upload PDF to MinIO / S3 Bucket
-        const fileName = `notices/academyId-${findAccount.id}/uid-${uuid}-${req.file.originalname}`;
+        const fileName = getNoticeFilePath(findAccount.id, uuid, req.file.originalname);
         const uploadParams = {
             Bucket: "storageforclassmaster",
             Key: fileName,

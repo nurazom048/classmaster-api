@@ -107,26 +107,49 @@ export const startBackupScheduler = async () => {
             console.log(`[LOG] ✅ Backup success: ${fileName} (${fileSizeMB} MB)`);
 
             // Success Telegram Message
-            await bot.telegram.sendDocument(
-                CHAT_ID,
-                { source: filePath }, // File path provide kora holo
-                {
-                    caption: `💾 *Postgres Backup Success*\n\n` +
-                        `📊 *Size:* \`${fileSizeMB} MB\`\n` +
-                        `🕒 *Stamp:* \`${new Date().toLocaleString()}\`\n\n` +
-                        `🧹 _Cleanup: Old local files (>5 days) removed._\n` +
-                        `☁️ _Rclone auto-sync will upload this shortly._`,
-                    parse_mode: 'Markdown'
-                }
-            );
+            const stamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
+            try {
+                await bot.telegram.sendDocument(
+                    CHAT_ID,
+                    { source: filePath }, // File path provided
+                    {
+                        caption: `💾 *Postgres Backup Success*\n\n` +
+                            `📊 *Size:* \`${fileSizeMB} MB\`\n` +
+                            `🕒 *Stamp:* \`${stamp}\`\n\n` +
+                            `🧹 _Cleanup: Old local files (>5 days) removed._\n` +
+                            `☁️ _Rclone auto-sync will upload this shortly._`,
+                        parse_mode: 'Markdown'
+                    }
+                );
+                console.log(`[LOG] 🚀 Telegram backup document sent successfully.`);
+            } catch (telegramError: any) {
+                console.error('[LOG] ⚠️ Telegram sendDocument failed, trying text fallback:', telegramError.message);
+                
+                // If sendDocument fails (e.g. too large), send text-only notification
+                await bot.telegram.sendMessage(
+                    CHAT_ID,
+                    `💾 *Postgres Backup Success* (Text Only)\n\n` +
+                    `📊 *Size:* \`${fileSizeMB} MB\`\n` +
+                    `🕒 *Stamp:* \`${stamp}\`\n` +
+                    `📄 *File:* \`${fileName}\`\n` +
+                    `⚠️ *Notice:* Document attachment failed (likely too large or network issue).\n\n` +
+                    `🧹 _Cleanup: Old local files (>5 days) removed._\n` +
+                    `☁️ _Rclone auto-sync will upload this shortly._`,
+                    { parse_mode: 'Markdown' }
+                ).catch((err: any) => {
+                    console.error('[LOG] ❌ Telegram fallback message failed:', err.message);
+                });
+            }
 
         } catch (error: any) {
             console.error('[LOG] ❌ Backup Failed:', error.message);
+            // Send plain text to avoid markdown parsing crashes on error content
             await bot.telegram.sendMessage(
                 CHAT_ID,
-                `🚨 *CRITICAL: Backup Failed*\nError: \`${error.message}\``,
-                { parse_mode: 'Markdown' }
-            );
+                `🚨 CRITICAL: Backup Failed\nError: ${error.message}`
+            ).catch((err: any) => {
+                console.error('[LOG] ❌ Failed to send critical Telegram message:', err.message);
+            });
         }
     });
 };

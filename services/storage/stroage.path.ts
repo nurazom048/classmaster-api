@@ -17,3 +17,13 @@ export const getAccountImagePath = (
     const cleanFileName = originalName.replace(/\s+/g, '-');
     return `Account-id-${accountId}/images/${type}/-${timestamp}-${cleanFileName}`;
 };
+
+export const getNoticeFilePath = (
+    accountId: string,
+    uuid: string,
+    originalName: string
+): string => {
+    const monthName = new Date().toLocaleString('en-US', { month: 'long' });
+    const cleanFileName = originalName.replace(/\s+/g, '-');
+    return `notice/${monthName}/academyId-${accountId}/uid-${uuid}-${cleanFileName}`;
+};

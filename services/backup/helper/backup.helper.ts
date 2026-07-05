@@ -4,18 +4,24 @@
  */
 export const getReadableTimestamp = (): string => {
     const now = new Date();
-    const day = now.getDate();
-    const months = [
-        "march", "april", "may", "june", "july", "august",
-        "september", "october", "november", "december", "january", "february"
-    ];
+    
+    // Get components in Asia/Dhaka time zone
+    const day = now.toLocaleString('en-US', { timeZone: 'Asia/Dhaka', day: 'numeric' });
+    const month = now.toLocaleString('en-US', { timeZone: 'Asia/Dhaka', month: 'long' }).toLowerCase();
+    const year = now.toLocaleString('en-US', { timeZone: 'Asia/Dhaka', year: '2-digit' });
 
-    const month = months[now.getMonth()];
-    const year = now.getFullYear().toString().slice(-2);
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
+    // Get time in 12-hour format with am/pm
+    const timeStr = now.toLocaleString('en-US', { 
+        timeZone: 'Asia/Dhaka', 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+    }).toLowerCase(); // e.g. "8:30 am" or "11:56 pm"
 
-    return `${day}_${month}_${year}_${hours}-${minutes}`;
+    // Replace space with underscore so that the filename is safe (e.g. "8:30_am")
+    const formattedTime = timeStr.replace(/\s+/g, '_');
+    
+    return `${day}_${month}_${year}_${formattedTime}`;
 };
 
 /**
