@@ -1,7 +1,26 @@
-// Firebase admin sdk from Firebase config
 import admin from 'firebase-admin';
-const serviceAccount = require('../../../config/firebase/admin.sdk');
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+
+let serviceAccount: any;
+try {
+  serviceAccount = require('../../../config/firebase/admin.sdk');
+} catch (error) {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (parseError: any) {
+      console.error("❌ Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable:", parseError.message);
+    }
+  } else {
+    console.warn("⚠️ config/firebase/admin.sdk.json not found, and FIREBASE_SERVICE_ACCOUNT environment variable is not defined.");
+  }
+}
+
+if (serviceAccount) {
+  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+} else {
+  console.error("❌ Firebase Admin SDK could not be initialized due to missing credentials.");
+}
+
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 const firebaseApp = require('../../../config/firebase/firebase.config');
 const auth = getAuth(firebaseApp);
@@ -14,7 +33,6 @@ import PendingAccount from '../../../Features/Account/models/pending_account.mod
 import prisma from '../../../prisma/schema/prisma.clint';
 import { AccountType } from '@prisma/client';
 import { handleLoginError } from '../helper/handel.err';
-import { printD } from '../../../utils/utils';
 
 //**********************************************************************************************/
 // --------------------------------- login Account --------------------------------------------/

@@ -1,4 +1,4 @@
-import prisma from '../../../prisma/client';
+import prisma from '../../../prisma/schema/prisma.clint';
 
 /**
  * 🤖 Auto Summary Generator
@@ -24,8 +24,7 @@ export const createAutoSummary = async (
                 classId,
                 ownerId,
                 text,
-                fileLinks: [],
-                externalLinks: [],
+                imageLinks: [],
                 autoDeleteAt: autoDeleteDate, 
             }
         });

@@ -1,7 +1,6 @@
 
 // Firebase admin sdk from Firebase config
 import admin from 'firebase-admin';
-const serviceAccount = require('../../../config/firebase/admin.sdk');
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import prisma from '../../../prisma/schema/prisma.clint';
 const firebaseApp = require('../../../config/firebase/firebase.config');
