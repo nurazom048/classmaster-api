@@ -15,7 +15,7 @@ const admin = require('firebase-admin');
 //**********************************************************************************************/
 
 export const edit_account = async (req: any, res: Response) => {
-  const { name, username, about } = req.body;
+  const { name, username, about, accountType, district, upazila, streetAddress, latitude, longitude } = req.body;
 
   try {
     // Step 1: Fetch the current account details
@@ -71,10 +71,32 @@ export const edit_account = async (req: any, res: Response) => {
         name,
         username,
         about,
+        accountType,
         coverImage: coverImagePath,
         coverImageStorageProvider: coverImageProvider as any,
         image: profileImagePath,
         imageStorageProvider: profileImageProvider as any,
+        address: {
+          upsert: {
+            create: {
+              district: district || null,
+              upazila: upazila || null,
+              streetAddress: streetAddress || null,
+              latitude: (latitude !== undefined && latitude !== null && latitude !== '') ? parseFloat(latitude) : null,
+              longitude: (longitude !== undefined && longitude !== null && longitude !== '') ? parseFloat(longitude) : null,
+            },
+            update: {
+              district: district || null,
+              upazila: upazila || null,
+              streetAddress: streetAddress || null,
+              latitude: (latitude !== undefined && latitude !== null && latitude !== '') ? parseFloat(latitude) : null,
+              longitude: (longitude !== undefined && longitude !== null && longitude !== '') ? parseFloat(longitude) : null,
+            },
+          },
+        },
+      },
+      include: {
+        address: true,
       },
     });
 
@@ -162,6 +184,7 @@ export const view_my_account = async (req: any, res: Response) => {
         lastLoginTime: true,
         createdAt: true,
         updatedAt: true,
+        address: true,
       },
     });
 
@@ -199,6 +222,7 @@ export const viewOthersAccount = async (req: any, res: Response) => {
         lastLoginTime: true,
         createdAt: true,
         updatedAt: true,
+        address: true,
       },
     });
 

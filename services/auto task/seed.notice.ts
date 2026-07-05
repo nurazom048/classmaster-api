@@ -140,7 +140,7 @@ export const autoSeedInitialize = () => {
     // Run immediately on boot
     autoNoticeUpload();
 
-    // Loop every 10 minutes
-    const TWO_MINUTES_MS = 1 * 60 * 1000;
+    // Loop every 20 minutes
+    const TWO_MINUTES_MS = 20 * 60 * 1000;
     setInterval(autoNoticeUpload, TWO_MINUTES_MS);
 };

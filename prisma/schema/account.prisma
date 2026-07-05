@@ -27,6 +27,7 @@ model Account {
     accountType               AccountType           @default(user) // Default to user account type
     lastLoginTime             DateTime? // Optional timestamp for the last login
     accountData               AccountData?          @relation("AccountDataOwner") // Optional relation to AccountData model
+    address                   Address?              
 
     // routine
     createdRoutines    Routine[]       @relation("AccountCreatedRoutines") // Routines created by this account
@@ -44,4 +45,25 @@ model Account {
     publishedNotice   Notice[]            @relation("publishedNotice")
     rePublishedNotice rePublish[]         @relation("rePublishedNoticeCreator")
     NoticeBoardMember NoticeBoardMember[] @relation("NoticeBoardMember")
+}
+
+// --- New Address Model ---
+model Address {
+    id            String   @id @default(uuid())
+    
+    // Bangladesh Address Fields (Dropdown values from UI)
+    district      String?     // e.g., "Dhaka", "Gazipur"
+    upazila       String?     // e.g., "Mirpur", "Gazipur Sadar"
+    streetAddress String?     // e.g., "123 Main St"
+    
+    // Exact Map Location (Only for Academy, but optional)
+    latitude      Float?      
+    longitude     Float?      
+
+    // Relation back to the Account (One-to-One connection)
+    accountId     String   @unique
+    account       Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
 }
