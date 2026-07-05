@@ -71,7 +71,7 @@ app.use(
     //     callback(new Error("❌ Not allowed by CORS"));
     //   }
     // },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Authorization", "x-refresh-token", "Content-Type", "X-Guest", "X-App-Client"],
     exposedHeaders: ['Authorization', 'x-refresh-token'],
   })
