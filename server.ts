@@ -30,6 +30,8 @@ import { startBackupScheduler } from "./services/backup/backup.service";
 import { autoSeedInitialize } from "./services/auto task/seed.notice";
 import { startPolytechnicNoticeFetcher } from "./services/auto task/politechnic_notice/polytechnic.notice";
 import { connectMinIO, s3Client } from "./services/storage/storage.mino.s3";
+import { startSummaryCleanerCron } from "./services/cron/summary_cleaner.cron";
+
 
 // ===============================
 // 🚀 APP INITIALIZATION
@@ -81,8 +83,11 @@ app.use(
 app.options("*", cors());
 
 
-
-
+// Attach Socket.io instance to Express request
+app.use((req: any, res, next) => {
+  req.io = io;
+  next();
+});
 
 // ===============================
 // 📌 ROUTES
@@ -128,66 +133,11 @@ app.get("/", (req, res) => res.status(200).json({ status: "online", message: "�
 app.use((req, res) => res.status(404).json({ message: "❌ 404: Route Not Found" }));
 
 // ===============================
-// 🔌 SOCKET.IO AUTH MIDDLEWARE
+// 🔌 SOCKET.IO INITIALIZATION
 // ===============================
-io.use((socket, next) => {
-  try {
-    const authHeader = socket.handshake.headers["authorization"];
+import { initSockets } from "./sockets/summary_socket";
+initSockets(io);
 
-    if (!authHeader) {
-      return next(new Error("❌ Token missing"));
-    }
-
-    const token = authHeader.split(" ").pop();
-
-    if (!token) {
-      return next(new Error("❌ Token missing"));
-    }
-
-    // Check expiry
-    if (isTokenExpired(token, process.env.JWT_SECRET_KEY as Secret)) {
-      return next(new Error("❌ Token expired"));
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY as Secret);
-    (socket as any).user = decoded;
-
-    next();
-  } catch (error) {
-    return next(new Error("❌ Token verification failed"));
-  }
-});
-
-
-// ===============================
-// 🔗 SOCKET EVENTS
-// ===============================
-io.on("connection", (socket) => {
-  console.log("🟢 User connected:", socket.id);
-
-  socket.on("join room", (room) => {
-    socket.join(room);
-    console.log(`➡️ Joined room: ${room}`);
-  });
-
-  socket.on("leave room", (room) => {
-    socket.leave(room);
-    console.log(`⬅️ Left room: ${room}`);
-  });
-
-  socket.on("chat message", ({ message, room }) => {
-    console.log(`💬 ${room}: ${message}`);
-
-    io.to(room).emit("chat message", {
-      message: "Message received",
-      room,
-    });
-  });
-
-  socket.on("disconnect", () => {
-    console.log("🔴 User disconnected:", socket.id);
-  });
-});
 
 // ===============================
 // Start Server After All DB Connections
@@ -211,6 +161,8 @@ const startServer = async () => {
 
     // Start Backup Scheduler
     startBackupScheduler();
+    // Start Summary Cleaner Cron
+    startSummaryCleanerCron();
     // Fire and forget: Kick off the background loops
     autoSeedInitialize();
     startPolytechnicNoticeFetcher();

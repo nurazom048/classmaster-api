@@ -26,3 +26,11 @@ enum NoticeCategory {
     result
     other
 }
+
+enum SummaryType {
+    TEXT
+    MEDIA
+    POLL
+    SYSTEM
+}
+

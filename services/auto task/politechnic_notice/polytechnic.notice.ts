@@ -232,6 +232,6 @@ export const startPolytechnicNoticeFetcher = () => {
     autoNoticeUpload();
 
     // Loop every 20 minutes (20 * 60 * 1000 ms)
-    const TWENTY_MINUTES_MS = 2 * 60 * 1000;
+    const TWENTY_MINUTES_MS = 60 * 60 * 1000;
     setInterval(autoNoticeUpload, TWENTY_MINUTES_MS);
 };
