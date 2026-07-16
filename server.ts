@@ -25,6 +25,8 @@ import summary from "./Features/Routine_summary/routes/summary_route";
 import account from "./Features/Account/routes/account_route";
 import notice from "./Features/Notice_Features/routes/notice_route";
 import notification from "./Features/Notification_Features/routes/notification.route";
+import { classNotification } from "./Features/Routines/controllers/routine.controllers";
+import { verifyToken } from "./services/Authentication/helper/Authentication";
 
 // DB Connections
 import { maineDB, NotificationDB } from "./prisma/mongodb.connection"; // ❌ MongoDB commented out
@@ -109,6 +111,7 @@ app.use("/routine", routine_member_route);
 app.use("/summary", summary);
 app.use("/notice", notice);
 app.use("/notification", notification);
+app.post("/class/notification", verifyToken, classNotification);
 
 // storage route
 app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {

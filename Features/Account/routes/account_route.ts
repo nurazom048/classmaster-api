@@ -22,7 +22,7 @@ router.post("/edit/change_password/", verifyToken, changePassword);
 // // later add security
 router.post("/edit/forgotPassword/", forgetPassword);
 
-router.route("/").post(verifyToken, upload.single('image'), view_my_account);
+router.route("/").post(verifyToken, view_my_account);
 router.route("/:username").post(viewOthersAccount);
 
 router.route("/find").get(searchAccounts); // search account

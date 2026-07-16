@@ -80,8 +80,8 @@ EOF
 
           cd ${REMOTE_DIR}
 
-          echo "📦 Installing npm dependencies..."
-          npm install --omit=dev
+          # echo "📦 Installing npm dependencies..."
+          # npm install --omit=dev
 
           echo "🗄️ Generating Prisma Client..."
           npx prisma generate
