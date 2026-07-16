@@ -1,13 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { firebaseConfig } from '../../../config/firebase/firebase_storage'; // Replace with the actual path to your firebaseConfig file
 import { Request, Response } from 'express';
 import Notification from '../models/notification.model';
-
-// Initialize Firebase
-initializeApp(firebaseConfig);
-
-const storage = getStorage();
+import { uploadFile, deleteFile } from '../../../utils/bucket';
 
 // Create a notification
 export const createNotification = async (req: Request, res: Response) => {
@@ -26,17 +19,10 @@ export const createNotification = async (req: Request, res: Response) => {
         let imageUrl;
 
         if (image) {
-            // Upload the image to Firebase
             const timestamp = Date.now();
             const filename = `${accountID}-${timestamp}-${image.originalname}`;
-            const metadata = { contentType: image.mimetype };
-            const imageRef = ref(storage, `images/notification/${type}/${filename}`);
-            // Convert Buffer → Uint8Array
-            const fileBuffer = new Uint8Array(image.buffer);
-
-            await uploadBytes(imageRef, fileBuffer, metadata);
-
-            imageUrl = await getDownloadURL(imageRef);
+            const key = `images/notification/${type}/${filename}`;
+            imageUrl = await uploadFile("storageforclassmaster", key, image);
         }
 
         // Create a new notification
@@ -71,10 +57,13 @@ export const deleteNotification = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Notification not found' });
         }
 
-        // Delete the notification from Firebase storage
+        // Delete the notification from storage
         if (notification.imageUrl) {
-            const imageRef = ref(storage, notification.imageUrl);
-            await deleteObject(imageRef);
+            try {
+                await deleteFile("storageforclassmaster", notification.imageUrl);
+            } catch (storageErr) {
+                console.error("Error deleting notification file from storage:", storageErr);
+            }
         }
 
         // Remove the notification from the database

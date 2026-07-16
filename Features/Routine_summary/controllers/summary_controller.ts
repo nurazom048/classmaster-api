@@ -1,16 +1,8 @@
-import express, { Request, Response } from 'express';
-// Firebase
-const { initializeApp } = require('firebase/app');
-const { getStorage } = require('firebase/storage');
-const firebase_storage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_storage.firebaseConfig);
-const storage = getStorage();
-
+import { Response } from 'express';
 // Prisma & AWS
 import prisma from '../../../prisma/schema/prisma.clint';
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "../../../services/storage/storage.mino.s3";
-import { summaryFilePath } from '../../../services/storage/stroage.path';
+import { uploadFile, deleteFile } from '../../../utils/bucket';
+import { SummaryType } from '@prisma/client';
 
 const BUCKET_NAME = 'storageforclassmaster';
 
@@ -18,7 +10,7 @@ const BUCKET_NAME = 'storageforclassmaster';
 // 📝 CREATE SUMMARY
 // ==========================================
 export const addSummary = async (req: any, res: Response) => {
-  const { message } = req.body;
+  const { message, pollOptions, type } = req.body;
   const { classID } = req.params;
   const { id: userID } = req.user;
   const routineID = req.routineID; // Passed from middleware
@@ -36,7 +28,7 @@ export const addSummary = async (req: any, res: Response) => {
     const files = req.files as Express.Multer.File[] || [];
     const uploadedFileKeys: string[] = [];
 
-    // Step 1: Upload Files to MinIO
+    // Step 1: Upload Files to Storage (MinIO or Appwrite)
     if (files.length > 0) {
       const folderName = routineID;
       const date = new Date();
@@ -44,12 +36,7 @@ export const addSummary = async (req: any, res: Response) => {
 
       for (const file of files) {
         const key = `summary/${month}/${folderName}-${userID}/${Date.now()}-${file.originalname}`;
-        await s3Client.send(new PutObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: key,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-        }));
+        await uploadFile(BUCKET_NAME, key, file);
         uploadedFileKeys.push(key);
       }
     }
@@ -57,6 +44,44 @@ export const addSummary = async (req: any, res: Response) => {
     // Step 2: Set Auto-Delete (120 days from now)
     const autoDeleteDate = new Date();
     autoDeleteDate.setDate(autoDeleteDate.getDate() + 120);
+
+    // Determine type and file type
+    let typeValue: SummaryType = SummaryType.TEXT;
+    let fileTypeVal: string | null = null;
+
+    if (uploadedFileKeys.length > 0) {
+      typeValue = SummaryType.MEDIA;
+      const mime = files[0].mimetype;
+      if (mime.startsWith('image/')) {
+        fileTypeVal = 'image';
+      } else if (mime.startsWith('video/')) {
+        fileTypeVal = 'video';
+      } else {
+        fileTypeVal = 'document';
+      }
+    }
+
+    let parsedPollOptions = null;
+    if (pollOptions) {
+      try {
+        parsedPollOptions = typeof pollOptions === 'string'
+          ? JSON.parse(pollOptions)
+          : pollOptions;
+        if (Array.isArray(parsedPollOptions)) {
+          typeValue = SummaryType.POLL;
+          parsedPollOptions = parsedPollOptions.map((opt: any) => ({
+            option: typeof opt === 'string' ? opt : opt.option,
+            votes: opt.votes || []
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to parse pollOptions:", err);
+      }
+    }
+
+    if (type === 'SYSTEM') {
+      typeValue = SummaryType.SYSTEM;
+    }
 
     // Step 3: Save to Database
     const createdSummary = await prisma.$transaction(async (tx: any) => {
@@ -68,9 +93,11 @@ export const addSummary = async (req: any, res: Response) => {
           classId: classID,
           text: message?.trim() || '',
           imageLinks: uploadedFileKeys,
-
           autoDeleteAt: autoDeleteDate,
           imageStorageProvider: uploadedFileKeys.length > 0 ? 'aws' : null,
+          type: typeValue,
+          fileType: fileTypeVal,
+          pollOptions: parsedPollOptions,
         },
       });
 
@@ -83,9 +110,31 @@ export const addSummary = async (req: any, res: Response) => {
       return summary;
     });
 
+    const fullSummary = await prisma.summary.findUnique({
+      where: { id: createdSummary.id },
+      include: {
+        owner: { select: { id: true, username: true, name: true, image: true } },
+        class: { select: { id: true, name: true, instructorName: true } },
+      }
+    });
+
+    if (req.io && fullSummary) {
+      req.io.to(routineID).emit("chat message", {
+        id: fullSummary.id,
+        text: fullSummary.text,
+        fileLinks: fullSummary.imageLinks || [],
+        createdAt: fullSummary.createdAt,
+        owner: fullSummary.owner,
+        classInfo: fullSummary.class,
+        type: fullSummary.type,
+        fileType: fullSummary.fileType,
+        pollOptions: fullSummary.pollOptions,
+      });
+    }
+
     return res.status(201).json({
       message: 'Summary created successfully',
-      summary: createdSummary
+      summary: fullSummary
     });
   } catch (error: any) {
     console.error('Error creating summary:', error);
@@ -95,6 +144,7 @@ export const addSummary = async (req: any, res: Response) => {
     });
   }
 };
+
 // ==========================================
 // 🗑️ DELETE SUMMARY
 // ==========================================
@@ -103,15 +153,12 @@ export const removeSummary = async (req: any, res: Response) => {
   const findSummary = req.findSummary; // From modification permission middleware
 
   try {
-    // Step 1: Delete Files from MinIO
-    for (const fileKey of findSummary.fileLinks ?? []) {
+    // Step 1: Delete Files from Storage (MinIO or Appwrite)
+    for (const fileKey of findSummary.imageLinks ?? []) {
       try {
-        await s3Client.send(new DeleteObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: fileKey,
-        }));
-      } catch (minioErr) {
-        console.error(`Failed to delete file ${fileKey} from MinIO:`, minioErr);
+        await deleteFile(BUCKET_NAME, fileKey);
+      } catch (err) {
+        console.error(`Failed to delete file ${fileKey} from storage:`, err);
       }
     }
 
@@ -184,15 +231,11 @@ export const get_summary_list = async (req: any, res: Response) => {
       createdAt: summary.createdAt,
       owner: summary.owner,
       classInfo: summary.class,
+      type: summary.type,
+      fileType: summary.fileType,
+      pollOptions: summary.pollOptions,
     }));
 
-    console.log({
-      message: "Summaries fetched successfully",
-      currentPage: Number(page),
-      totalPages: Math.ceil(totalCount / take),
-      totalCount,
-      summaries: formattedSummaries,
-    });
     return res.status(200).json({
       message: "Summaries fetched successfully",
       currentPage: Number(page),
@@ -291,5 +334,79 @@ export const saveUnsaveSummary = async (req: any, res: Response) => {
   } catch (error: any) {
     console.error('Error saving/unsaving:', error);
     return res.status(500).json({ message: error.message });
+  }
+};
+
+// ==========================================
+// 🗳️ VOTE IN A POLL
+// ==========================================
+export const votePoll = async (req: any, res: Response) => {
+  const { summaryID } = req.params;
+  const { optionIndex } = req.body; // Zero-based index of option chosen
+  const { id: userID } = req.user;
+
+  if (optionIndex === undefined || optionIndex === null) {
+    return res.status(400).json({ message: "optionIndex is required." });
+  }
+
+  try {
+    const summary = await prisma.summary.findUnique({ where: { id: summaryID } });
+    if (!summary || summary.type !== SummaryType.POLL || !summary.pollOptions) {
+      return res.status(404).json({ message: "Poll summary not found." });
+    }
+
+    let options = summary.pollOptions as any[];
+    const idx = Number(optionIndex);
+    if (idx < 0 || idx >= options.length) {
+      return res.status(400).json({ message: "Invalid optionIndex range." });
+    }
+
+    // Single-choice vote toggle logic
+    options = options.map((opt, currentIdx) => {
+      let votes: string[] = opt.votes || [];
+      if (currentIdx === idx) {
+        if (votes.includes(userID)) {
+          votes = votes.filter(id => id !== userID); // Toggle off if already voted
+        } else {
+          votes.push(userID); // Vote on
+        }
+      } else {
+        votes = votes.filter(id => id !== userID); // Remove vote from other options
+      }
+      return { ...opt, votes };
+    });
+
+    const updatedSummary = await prisma.summary.update({
+      where: { id: summaryID },
+      data: { pollOptions: options },
+      include: {
+        owner: { select: { id: true, username: true, name: true, image: true } },
+        class: { select: { id: true, name: true, instructorName: true } },
+      }
+    });
+
+    const pollResponsePayload = {
+      id: updatedSummary.id,
+      text: updatedSummary.text,
+      fileLinks: updatedSummary.imageLinks || [],
+      createdAt: updatedSummary.createdAt,
+      owner: updatedSummary.owner,
+      classInfo: updatedSummary.class,
+      type: updatedSummary.type,
+      fileType: updatedSummary.fileType,
+      pollOptions: updatedSummary.pollOptions,
+    };
+
+    if (req.io) {
+      req.io.to(updatedSummary.routineId).emit("chat message", pollResponsePayload);
+    }
+
+    return res.status(200).json({
+      message: "Vote cast successfully",
+      summary: pollResponsePayload
+    });
+  } catch (error: any) {
+    console.error("Error voting on poll:", error);
+    return res.status(500).json({ message: "Failed to record vote", error: error.message });
   }
 };

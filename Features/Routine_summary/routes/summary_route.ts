@@ -5,7 +5,8 @@ import {
     removeSummary,
     get_summary_list,
     saveUnsaveSummary,
-    summary_status
+    summary_status,
+    votePoll
 } from '../controllers/summary_controller';
 import { verifyToken } from '../../../services/Authentication/helper/Authentication';
 import { validateSummaryRequest } from '../middleware/summary_middleware';
@@ -51,5 +52,9 @@ router.route('/:summaryID')
 // 💡 Toggle Save status
 router.route('/:summaryID/save-toggle')
     .post(verifyToken, saveUnsaveSummary);
+
+// 💡 Vote in Poll
+router.route('/:summaryID/vote')
+    .post(verifyToken, votePoll);
 
 export default router;

@@ -28,7 +28,11 @@ import { isTokenExpired } from "./services/Authentication/helper/Jwt.helper";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { startBackupScheduler } from "./services/backup/backup.service";
 import { autoSeedInitialize } from "./services/auto task/seed.notice";
+import { startPolytechnicNoticeFetcher } from "./services/auto task/politechnic_notice/polytechnic.notice";
 import { connectMinIO, s3Client } from "./services/storage/storage.mino.s3";
+import { startSummaryCleanerCron } from "./services/cron/summary_cleaner.cron";
+import { getFile } from "./utils/bucket";
+
 
 // ===============================
 // 🚀 APP INITIALIZATION
@@ -80,8 +84,11 @@ app.use(
 app.options("*", cors());
 
 
-
-
+// Attach Socket.io instance to Express request
+app.use((req: any, res, next) => {
+  req.io = io;
+  next();
+});
 
 // ===============================
 // 📌 ROUTES
@@ -94,31 +101,27 @@ app.use("/summary", summary);
 app.use("/notice", notice);
 app.use("/notification", notification);
 
-// s3 route
+// storage route
 app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {
   try {
     const bucket = req.params.bucket as string;
     const key = req.params.key as string;
 
-    const command = new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    });
+    const fileData = await getFile(bucket, key);
 
-    const response = await s3Client.send(command);
-
-    // 🔴 সংশোধন: Content-Type কমেন্ট করা যাবে না, এটি লাগবেই!
-    res.setHeader('Content-Type', response.ContentType || 'application/pdf');
+    res.setHeader('Content-Type', fileData.contentType);
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Content-Disposition', 'inline');
 
-    if (response.Body) {
-      (response.Body as any).pipe(res);
+    if (Buffer.isBuffer(fileData.body)) {
+      res.send(fileData.body);
+    } else if (fileData.body && typeof fileData.body.pipe === "function") {
+      fileData.body.pipe(res);
     } else {
       res.status(404).json({ message: "File content is empty" });
     }
   } catch (error) {
-    console.error("❌ MinIO File Error:", error);
+    console.error("❌ Storage File Error:", error);
     res.status(404).json({ message: "File not found or access denied" });
   }
 });
@@ -127,66 +130,11 @@ app.get("/", (req, res) => res.status(200).json({ status: "online", message: "�
 app.use((req, res) => res.status(404).json({ message: "❌ 404: Route Not Found" }));
 
 // ===============================
-// 🔌 SOCKET.IO AUTH MIDDLEWARE
+// 🔌 SOCKET.IO INITIALIZATION
 // ===============================
-io.use((socket, next) => {
-  try {
-    const authHeader = socket.handshake.headers["authorization"];
+import { initSockets } from "./sockets/summary_socket";
+initSockets(io);
 
-    if (!authHeader) {
-      return next(new Error("❌ Token missing"));
-    }
-
-    const token = authHeader.split(" ").pop();
-
-    if (!token) {
-      return next(new Error("❌ Token missing"));
-    }
-
-    // Check expiry
-    if (isTokenExpired(token, process.env.JWT_SECRET_KEY as Secret)) {
-      return next(new Error("❌ Token expired"));
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY as Secret);
-    (socket as any).user = decoded;
-
-    next();
-  } catch (error) {
-    return next(new Error("❌ Token verification failed"));
-  }
-});
-
-
-// ===============================
-// 🔗 SOCKET EVENTS
-// ===============================
-io.on("connection", (socket) => {
-  console.log("🟢 User connected:", socket.id);
-
-  socket.on("join room", (room) => {
-    socket.join(room);
-    console.log(`➡️ Joined room: ${room}`);
-  });
-
-  socket.on("leave room", (room) => {
-    socket.leave(room);
-    console.log(`⬅️ Left room: ${room}`);
-  });
-
-  socket.on("chat message", ({ message, room }) => {
-    console.log(`💬 ${room}: ${message}`);
-
-    io.to(room).emit("chat message", {
-      message: "Message received",
-      room,
-    });
-  });
-
-  socket.on("disconnect", () => {
-    console.log("🔴 User disconnected:", socket.id);
-  });
-});
 
 // ===============================
 // Start Server After All DB Connections
@@ -205,19 +153,40 @@ const startServer = async () => {
     console.log("✅ PostgreSQL Connected");
 
     // MinIO
-    await connectMinIO();
-    console.log("✅ MinIO Connected");
+    if (process.env.STORAGE_PROVIDER !== 'appwrite') {
+      await connectMinIO();
+      console.log("✅ MinIO Connected");
+    } else {
+      console.log("📦 Storage Provider set to Appwrite (skipping MinIO connection)");
+    }
 
     // Start Backup Scheduler
     startBackupScheduler();
-    // Fire and forget: Kick off the 2-minute loop in the background
+    // Start Summary Cleaner Cron
+    startSummaryCleanerCron();
+    // Fire and forget: Kick off the background loops
     autoSeedInitialize();
+    startPolytechnicNoticeFetcher();
 
     // Start Server
     server.listen(PORT, () => {
       const baseURL = `http://localhost:${PORT}`;
       console.log(`🚀 Server now running on port ${PORT}`);
       console.log(`🌐 URL: ${baseURL}`);
+
+      // Auto-start Cloudflare Tunnel in Production
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Starting Cloudflare Tunnel for Production...');
+        const { exec } = require('child_process');
+        const fs = require('fs');
+        const path = require('path');
+        const localCloudflared = path.join(process.cwd(), 'cloudflared');
+        const bin = fs.existsSync(localCloudflared) ? './cloudflared' : 'cloudflared';
+        const tunnelProcess = exec(`${bin} tunnel --config .cloudflared/config.prod.yml run`);
+
+        tunnelProcess.stdout?.on('data', (data: string) => console.log(`[Tunnel Info] ${data}`));
+        tunnelProcess.stderr?.on('data', (data: string) => console.error(`[Tunnel Error] ${data}`));
+      }
     });
 
   } catch (error) {

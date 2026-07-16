@@ -81,6 +81,11 @@ model Summary {
     autoDeleteAt         DateTime
     createdAt            DateTime              @default(now())
     updatedAt            DateTime              @updatedAt
+    
+    type                 SummaryType           @default(TEXT)
+    fileType             String?
+    pollOptions          Json?
+
 
     // Relations
     owner          Account  @relation("createdSummary", fields: [ownerId], references: [id], onDelete: Cascade)
