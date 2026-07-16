@@ -1,22 +1,10 @@
-// imports
 import { sendNotificationMethods } from '../../../services/Notification services/oneSignalNotification.controller';
 import express, { Request, Response } from 'express';
-
-//! firebase imports
-const { initializeApp } = require('firebase/app');
-const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
-const firebase_stroage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_stroage.firebaseConfig);// Initialize Firebase
-// Get a reference to the Firebase storage bucket
-const storage = getStorage();
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../../../prisma/schema/prisma.clint';
 
-// s3 client import
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getNoticeFilePath } from '../../../services/storage/stroage.path';
-import { s3Client } from '../../../services/storage/storage.mino.s3';
+import { uploadFile, deleteFile } from '../../../utils/bucket';
 
 // ============================================================================
 // CONTROLLERS
@@ -50,15 +38,9 @@ export const addNotice = async (req: any, res: Response) => {
         const findAccount = await prisma.account.findUnique({ where: { id: id } });
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
-        // Step 5: Upload PDF to MinIO / S3 Bucket
+        // Step 5: Upload PDF to Storage (MinIO or Appwrite)
         const fileName = getNoticeFilePath(findAccount.id, uuid, req.file.originalname);
-        const uploadParams = {
-            Bucket: "storageforclassmaster",
-            Key: fileName,
-            Body: req.file.buffer, // Buffer mapped from multer
-            ContentType: req.file.mimetype,
-        };
-        await s3Client.send(new PutObjectCommand(uploadParams));
+        await uploadFile("storageforclassmaster", fileName, req.file);
 
         // Step 6: Create Notice in the Prisma database (Saving raw file path)
         const createdNotice = await prisma.notice.create({
@@ -125,16 +107,12 @@ export const deleteNotice = async (req: any, res: Response) => {
             return res.status(403).json({ message: 'You do not have permission to delete this notice' });
         }
 
-        // Step 4: Delete the PDF file from the MinIO / S3 bucket
+        // Step 4: Delete the PDF file from the bucket (MinIO or Appwrite)
         if (notice.pdf) {
             try {
-                const deleteParams = {
-                    Bucket: "storageforclassmaster",
-                    Key: notice.pdf,
-                };
-                await s3Client.send(new DeleteObjectCommand(deleteParams));
+                await deleteFile("storageforclassmaster", notice.pdf);
             } catch (storageError) {
-                console.error('Error deleting notice file from MinIO:', storageError);
+                console.error('Error deleting notice file from storage:', storageError);
             }
         }
 

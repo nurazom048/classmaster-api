@@ -31,6 +31,7 @@ import { autoSeedInitialize } from "./services/auto task/seed.notice";
 import { startPolytechnicNoticeFetcher } from "./services/auto task/politechnic_notice/polytechnic.notice";
 import { connectMinIO, s3Client } from "./services/storage/storage.mino.s3";
 import { startSummaryCleanerCron } from "./services/cron/summary_cleaner.cron";
+import { getFile } from "./utils/bucket";
 
 
 // ===============================
@@ -100,31 +101,27 @@ app.use("/summary", summary);
 app.use("/notice", notice);
 app.use("/notification", notification);
 
-// s3 route
+// storage route
 app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {
   try {
     const bucket = req.params.bucket as string;
     const key = req.params.key as string;
 
-    const command = new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    });
+    const fileData = await getFile(bucket, key);
 
-    const response = await s3Client.send(command);
-
-    // 🔴 সংশোধন: Content-Type কমেন্ট করা যাবে না, এটি লাগবেই!
-    res.setHeader('Content-Type', response.ContentType || 'application/pdf');
+    res.setHeader('Content-Type', fileData.contentType);
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Content-Disposition', 'inline');
 
-    if (response.Body) {
-      (response.Body as any).pipe(res);
+    if (Buffer.isBuffer(fileData.body)) {
+      res.send(fileData.body);
+    } else if (fileData.body && typeof fileData.body.pipe === "function") {
+      fileData.body.pipe(res);
     } else {
       res.status(404).json({ message: "File content is empty" });
     }
   } catch (error) {
-    console.error("❌ MinIO File Error:", error);
+    console.error("❌ Storage File Error:", error);
     res.status(404).json({ message: "File not found or access denied" });
   }
 });
@@ -156,8 +153,12 @@ const startServer = async () => {
     console.log("✅ PostgreSQL Connected");
 
     // MinIO
-    await connectMinIO();
-    console.log("✅ MinIO Connected");
+    if (process.env.STORAGE_PROVIDER !== 'appwrite') {
+      await connectMinIO();
+      console.log("✅ MinIO Connected");
+    } else {
+      console.log("📦 Storage Provider set to Appwrite (skipping MinIO connection)");
+    }
 
     // Start Backup Scheduler
     startBackupScheduler();
@@ -172,6 +173,20 @@ const startServer = async () => {
       const baseURL = `http://localhost:${PORT}`;
       console.log(`🚀 Server now running on port ${PORT}`);
       console.log(`🌐 URL: ${baseURL}`);
+
+      // Auto-start Cloudflare Tunnel in Production
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Starting Cloudflare Tunnel for Production...');
+        const { exec } = require('child_process');
+        const fs = require('fs');
+        const path = require('path');
+        const localCloudflared = path.join(process.cwd(), 'cloudflared');
+        const bin = fs.existsSync(localCloudflared) ? './cloudflared' : 'cloudflared';
+        const tunnelProcess = exec(`${bin} tunnel --config .cloudflared/config.prod.yml run`);
+
+        tunnelProcess.stdout?.on('data', (data: string) => console.log(`[Tunnel Info] ${data}`));
+        tunnelProcess.stderr?.on('data', (data: string) => console.error(`[Tunnel Error] ${data}`));
+      }
     });
 
   } catch (error) {

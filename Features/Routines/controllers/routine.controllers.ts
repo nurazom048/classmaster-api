@@ -1,15 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
-
-//! firebase
-import { initializeApp } from 'firebase/app';
-import { getStorage, ref, deleteObject } from 'firebase/storage';
-const firebase_storage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_storage.firebaseConfig); // Initialize Firebase
-const storage = getStorage();
-
-// routine firebase (Ensure this path is correct for your project)
-import { deleteRoutineMediaFolder } from '../firebase/routines.firebase';
+import { deleteFile } from '../../../utils/bucket';
 
 // ==========================================
 // 🌐 GLOBAL ROUTINE ACTIONS
@@ -216,13 +207,23 @@ export const deleteRoutineById = async (req: any, res: Response) => {
 
       if (!existingRoutine) throw new Error("Routine not found or you are not the owner");
 
+      // Delete files of all summaries in this routine from the bucket storage
+      const summaries = await tx.summary.findMany({
+        where: { routineId: routineID }
+      });
+      for (const summary of summaries) {
+        for (const imageLink of summary.imageLinks ?? []) {
+          try {
+            await deleteFile("storageforclassmaster", imageLink);
+          } catch (e) { console.error("Could not delete file from storage", e); }
+        }
+      }
+
       await tx.routineMember.deleteMany({ where: { routineId: existingRoutine.id } });
       const deletedRoutine = await tx.routine.delete({ where: { id: existingRoutine.id } });
 
       return deletedRoutine;
     });
-
-    try { await deleteRoutineMediaFolder(routineID); } catch (e) { console.error("Firebase deletion failed", e); }
 
     res.status(200).json({ message: "Routine deleted successfully", routine: result });
   } catch (error: any) {
@@ -472,8 +473,7 @@ export const remove_class = async (req: any, res: Response) => {
       for (const summary of summaries) {
         for (const imageLink of summary.imageLinks ?? []) {
           try {
-            const fileRef = ref(storage, imageLink);
-            await deleteObject(fileRef);
+            await deleteFile("storageforclassmaster", imageLink);
           } catch (e) { console.error("Could not delete file", e); }
         }
         await tx.summary.delete({ where: { id: summary.id } });

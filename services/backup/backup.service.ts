@@ -10,7 +10,7 @@ dotenv.config();
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN as string);
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID as string;
-const BACKUP_DIR = "/app/backups";
+const BACKUP_DIR = path.join(process.cwd(), "backups");
 
 // Backup directory check & creation
 if (!fs.existsSync(BACKUP_DIR)) {

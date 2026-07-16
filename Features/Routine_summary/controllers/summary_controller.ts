@@ -1,15 +1,7 @@
 import { Response } from 'express';
-// Firebase
-const { initializeApp } = require('firebase/app');
-const { getStorage } = require('firebase/storage');
-const firebase_storage = require("../../../config/firebase/firebase_storage");
-initializeApp(firebase_storage.firebaseConfig);
-const storage = getStorage();
-
 // Prisma & AWS
 import prisma from '../../../prisma/schema/prisma.clint';
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "../../../services/storage/storage.mino.s3";
+import { uploadFile, deleteFile } from '../../../utils/bucket';
 import { SummaryType } from '@prisma/client';
 
 const BUCKET_NAME = 'storageforclassmaster';
@@ -36,7 +28,7 @@ export const addSummary = async (req: any, res: Response) => {
     const files = req.files as Express.Multer.File[] || [];
     const uploadedFileKeys: string[] = [];
 
-    // Step 1: Upload Files to MinIO
+    // Step 1: Upload Files to Storage (MinIO or Appwrite)
     if (files.length > 0) {
       const folderName = routineID;
       const date = new Date();
@@ -44,12 +36,7 @@ export const addSummary = async (req: any, res: Response) => {
 
       for (const file of files) {
         const key = `summary/${month}/${folderName}-${userID}/${Date.now()}-${file.originalname}`;
-        await s3Client.send(new PutObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: key,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-        }));
+        await uploadFile(BUCKET_NAME, key, file);
         uploadedFileKeys.push(key);
       }
     }
@@ -166,15 +153,12 @@ export const removeSummary = async (req: any, res: Response) => {
   const findSummary = req.findSummary; // From modification permission middleware
 
   try {
-    // Step 1: Delete Files from MinIO (fixed schema field key to imageLinks)
+    // Step 1: Delete Files from Storage (MinIO or Appwrite)
     for (const fileKey of findSummary.imageLinks ?? []) {
       try {
-        await s3Client.send(new DeleteObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: fileKey,
-        }));
-      } catch (minioErr) {
-        console.error(`Failed to delete file ${fileKey} from MinIO:`, minioErr);
+        await deleteFile(BUCKET_NAME, fileKey);
+      } catch (err) {
+        console.error(`Failed to delete file ${fileKey} from storage:`, err);
       }
     }
 

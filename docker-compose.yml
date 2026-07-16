@@ -70,11 +70,11 @@ services:
       - 1.1.1.1
       - 8.8.8.8
 
+    extra_hosts:
+      - "api:host-gateway"
     volumes:
       - ./.cloudflared:/etc/cloudflared
     command: tunnel --config /etc/cloudflared/config.yml run
-    depends_on:
-      - api
 
   # ৫. Node.js API (Your Main App)
   api:

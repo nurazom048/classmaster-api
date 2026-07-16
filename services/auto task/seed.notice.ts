@@ -1,7 +1,5 @@
-// seed.notice.ts
-import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
-import { s3Client } from '../storage/storage.mino.s3';
+import { uploadFile } from '../../utils/bucket';
 import prisma from '../../prisma/schema/prisma.clint';
 // হেল্পার ফাইল থেকে ইমপোর্ট করা হলো (পাথ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী সেট করবেন)
 import {
@@ -100,18 +98,14 @@ async function autoNoticeUpload() {
 
             // এই ফাংশনটি এখন অল ইমেজ ইউআরএল (যেমন: ৪টি ইমেজ) রিসিভ করে একটি ৪ পেইজের পিডিএফ তৈরি করবে।
             const pdfBuffer = await createPdfFromImages(notice.imageUrls, finalDescription);
-            // Upload generated PDF directly to your MinIO / S3 Bucket
+            // Upload generated PDF directly to Storage
             const uuid = uuidv4();
             const fileName = `notices/academyId-${publisherAccount.id}/uid-${uuid}-auto-notice.pdf`;
 
-            const uploadParams = {
-                Bucket: "storageforclassmaster",
-                Key: fileName,
-                Body: pdfBuffer,
-                ContentType: "application/pdf",
-            };
-
-            await s3Client.send(new PutObjectCommand(uploadParams));
+            await uploadFile("storageforclassmaster", fileName, {
+                buffer: pdfBuffer,
+                mimetype: "application/pdf"
+            });
 
             // Create the DB record in Prisma
             await prisma.notice.create({
