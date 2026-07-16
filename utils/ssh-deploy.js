@@ -8,7 +8,7 @@ const SSH_CONFIG = {
   port: 8022,
   username: 'u0_a374',
   password: '1234',
-  readyTimeout: 10000
+  readyTimeout: 60000
 };
 
 const REMOTE_DIR = '/data/data/com.termux/files/home/classmaster-api';
@@ -86,20 +86,18 @@ EOF
           echo "🗄️ Generating Prisma Client..."
           npx prisma generate
 
-          echo "🧹 Checking for running process on port 4000..."
-          if command -v fuser &> /dev/null; then
-            fuser -k 4000/tcp || true
-          fi
-
-          echo "🚀 Launching app in background..."
-          # Run using nohup in background, redirecting output to log file
-          nohup node dist/server.js > server.log 2>&1 &
+          echo "🚀 Restarting app using PM2..."
+          pm2 reload classmaster-api || pm2 start dist/server.js --name classmaster-api
+          pm2 save
 
           echo "💤 Waiting for server to initialize..."
-          sleep 4
+          sleep 3
 
           echo "📋 Server logs preview:"
-          tail -n 15 server.log || true
+          pm2 logs classmaster-api --lines 20 --no-daemon &
+          LOGS_PID=\$!
+          sleep 3
+          kill \$LOGS_PID 2>/dev/null || true
 
           echo "📡 Checking port 4000 status..."
           netstat -lptn 2>/dev/null | grep 4000 || ss -lptn 2>/dev/null | grep 4000 || true
@@ -127,6 +125,7 @@ EOF
   }).connect(SSH_CONFIG);
 }
 
-runLocalBuild()
-  .then(deploy)
-  .catch(console.error);
+// runLocalBuild()
+//   .then(deploy)
+//   .catch(console.error);
+deploy();

@@ -1,3 +1,12 @@
+// ==========================================
+// 🔧 NODE.JS v26+ POLYFILLS (Must run first)
+// ==========================================
+import { Buffer } from "buffer";
+const bufferModule = require("buffer");
+if (!bufferModule.SlowBuffer) {
+  bufferModule.SlowBuffer = Buffer;
+}
+
 // ===============================
 // 📦 IMPORTS
 // ===============================
