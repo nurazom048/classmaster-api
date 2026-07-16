@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Response } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
 import {

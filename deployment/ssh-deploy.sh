@@ -6,9 +6,9 @@ set -e
 # ==============================================================================
 # CONFIGURATION (Edit these values before running the script)
 # ==============================================================================
-SSH_HOST="your_username@your_server_ip_or_domain"
-SSH_PORT="22"
-APP_DIR="/home/your_username/api.classmaster" # Remote production app directory
+SSH_HOST="u0_a374@192.168.10.51"
+SSH_PORT="8022"
+APP_DIR="classmaster-api"                          # Remote production app directory
 GIT_BRANCH="master"                          # Git branch to pull
 # ==============================================================================
 

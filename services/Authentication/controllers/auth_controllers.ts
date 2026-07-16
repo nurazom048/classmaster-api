@@ -27,7 +27,7 @@ const auth = getAuth(firebaseApp);
 
 //
 import express, { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { generateAuthToken, generateRefreshToken } from '../helper/Jwt.helper';
 import PendingAccount from '../../../Features/Account/models/pending_account.model';
 import prisma from '../../../prisma/schema/prisma.clint';
