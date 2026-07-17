@@ -47,7 +47,7 @@ export const createNotification = async (req: Request, res: Response) => {
 // Delete a notification by ID
 export const deleteNotification = async (req: Request, res: Response) => {
     try {
-        const { notificationId } = req.params;
+        const notificationId = req.params.notificationId as string;
 
         // Find the notification by ID
         const notification = await prisma.notification.findUnique({

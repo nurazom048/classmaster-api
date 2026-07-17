@@ -20,7 +20,7 @@ export const allPendingAccount = async (req: Request, res: Response) => {
 
 //************** acceptPending *********************//
 export const acceptPending = async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     try {
         // Step 1: Retrieve the pending account by ID
