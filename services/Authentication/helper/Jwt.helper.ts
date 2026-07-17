@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 import jwt, { Secret } from 'jsonwebtoken';

@@ -1,13 +1,14 @@
 {
   "name": "class_master_api",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "app.js",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only --poll server.ts",
     "build": "npx prisma generate && tsc && mkdir -p dist/config/firebase && cp config/firebase/admin.sdk.json dist/config/firebase/ 2>/dev/null || true",
+    "postinstall": "npx prisma generate",
     "start": "NODE_ENV=production node dist/server.js"
   },
   "author": "",

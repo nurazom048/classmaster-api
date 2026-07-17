@@ -2,7 +2,6 @@
 
 const { initializeApp } = require("firebase/app");
 const { getAuth } = require("firebase/auth");
-const { models } = require("mongoose");
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 

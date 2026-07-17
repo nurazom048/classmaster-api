@@ -29,7 +29,6 @@ import { classNotification } from "./Features/Routines/controllers/routine.contr
 import { verifyToken } from "./services/Authentication/helper/Authentication";
 
 // DB Connections
-import { maineDB, NotificationDB } from "./prisma/mongodb.connection"; // ❌ MongoDB commented out
 import { connectPostgres } from "./prisma/schema/prisma.clint";
 
 // Helpers
@@ -153,12 +152,7 @@ initSockets(io);
 // ===============================
 const startServer = async () => {
   try {
-    // MongoDB
-    await Promise.all([
-      maineDB.asPromise(),
-      NotificationDB.asPromise(),
-    ]);
-    // console.log("✅ MongoDB Connected");
+
 
     // PostgreSQL
     await connectPostgres();

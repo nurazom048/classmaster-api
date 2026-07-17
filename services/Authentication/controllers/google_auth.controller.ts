@@ -11,9 +11,9 @@ import { Request, Response } from 'express';
 import { generateUniqUsername, } from './auth.methods';
 import { generateAuthToken, generateRefreshToken, } from '../helper/Jwt.helper';
 import { generateAndSetTokens } from '../helper/Authentication';
-import PendingAccount from '../../../Features/Account/models/pending_account.model';
 import nodemailer from 'nodemailer';
 import { AccountType } from '@prisma/client';
+import { sendTelegramMessage } from '../../../utils/telegram';
 
 
 
@@ -30,7 +30,7 @@ export const continueWithGoogle = async (req: Request, res: Response) => {
 
     try {
         // Step 1: Check for pending account approval
-        const pendingAccount = await PendingAccount.findOne({ email: userEmail });
+        const pendingAccount = await prisma.pendingAccount.findUnique({ where: { email: userEmail } });
         if (pendingAccount && !pendingAccount.isAccept) {
             return res.status(402).json({
                 message: "Academy request is pending",
@@ -138,16 +138,37 @@ const createPendingRequest = async (req: Request, res: Response, decodedToken: a
 
     if (!contractInfo) return { message: 'contractInfo is required' };
 
-    const emailAlreadyUsed = await PendingAccount.findOne({ userEmail });
+    const emailAlreadyUsed = await prisma.pendingAccount.findUnique({ where: { email: userEmail } });
     if (emailAlreadyUsed) {
         return { message: "Request already pending with this email" };
     }
 
 
     const username = await generateUniqUsername(userEmail);
-    const account = new PendingAccount({ id: userId, name, username, email: userEmail, image, account_type: accountType, contractInfo, googleSignIn: true });
     const firebaseAuthCreate = await admin.auth().updateUser(userId, { email: userEmail, displayName: name, emailVerified: true });
-    const createdAccount = await account.save();
+    
+    const createdAccount = await prisma.pendingAccount.create({
+        data: {
+            id: userId,
+            name,
+            username,
+            email: userEmail,
+            image,
+            account_type: accountType,
+            contractInfo,
+            googleSignIn: true
+        }
+    });
+
+    // Send Telegram notification
+    await sendTelegramMessage(
+        `📩 <b>New Academy Registration Request (Google Sign-In)</b>\n\n` +
+        `👤 <b>Name:</b> ${name}\n` +
+        `📧 <b>Email:</b> ${userEmail}\n` +
+        `🔑 <b>Username:</b> @${username}\n` +
+        `📄 <b>Contract Info:</b> ${contractInfo}\n` +
+        `🏛️ <b>Account Type:</b> ${accountType}`
+    );
 
     return { message: "Request sent successfully", createdAccount, firebaseAuthCreate };
 };

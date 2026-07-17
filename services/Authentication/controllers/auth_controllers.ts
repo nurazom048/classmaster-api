@@ -29,10 +29,11 @@ const auth = getAuth(firebaseApp);
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { generateAuthToken, generateRefreshToken } from '../helper/Jwt.helper';
-import PendingAccount from '../../../Features/Account/models/pending_account.model';
 import prisma from '../../../prisma/schema/prisma.clint';
 import { AccountType } from '@prisma/client';
 import { handleLoginError } from '../helper/handel.err';
+import { randomUUID } from 'crypto';
+import { sendTelegramMessage } from '../../../utils/telegram';
 
 //**********************************************************************************************/
 // --------------------------------- login Account --------------------------------------------/
@@ -47,7 +48,14 @@ export const loginAccount = async (req: Request, res: Response) => {
     console.log("email " + email);
 
     // Step 1: Check for pending account status
-    const pendingAccount = await PendingAccount.findOne({ $or: [{ username }, { email }] });
+    const pendingAccount = await prisma.pendingAccount.findFirst({
+      where: {
+        OR: [
+          { username: username || undefined },
+          { email: email || undefined }
+        ]
+      }
+    });
     if (pendingAccount) {
       const pendingAccountCredential = await admin.auth().getUserByEmail(pendingAccount.email);
 
@@ -280,7 +288,7 @@ const createPendingRequest = async (req: Request) => {
   }
 
   // Step 2: Check if email already exists in pending accounts
-  const emailAlreadyUsed = await PendingAccount.findOne({ email });
+  const emailAlreadyUsed = await prisma.pendingAccount.findUnique({ where: { email } });
   if (emailAlreadyUsed) {
     return { message: "Request already pending with this email" };
   }
@@ -298,28 +306,42 @@ const createPendingRequest = async (req: Request) => {
   // Step 4: Encrypt the new password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Step 5: Create a pending account request
-  const account = new PendingAccount({
-    name,
-    username,
-    password: hashedPassword,
-    phone,
-    email,
-    account_type: accountType,
-    contractInfo,
-  });
+  // Generate a random UUID for the pending account ID
+  const pendingAccountId = randomUUID();
 
-  // Step 6: Create Firebase user account
+  // Step 5: Create Firebase user account
   const firebaseAuthCreate = await admin.auth().createUser({
-    uid: account.id,
-    displayName: account.name,
+    uid: pendingAccountId,
+    displayName: name,
     email: email,
     password: password,
     emailVerified: false,
   });
 
-  // Step 7: Save the pending account request
-  const createdAccount = await account.save();
+  // Step 6: Create a pending account request in Prisma
+  const createdAccount = await prisma.pendingAccount.create({
+    data: {
+      id: pendingAccountId,
+      name,
+      username,
+      password: hashedPassword,
+      phone,
+      email,
+      account_type: accountType,
+      contractInfo,
+    }
+  });
+
+  // Send Telegram notification
+  await sendTelegramMessage(
+    `📩 <b>New Academy Registration Request</b>\n\n` +
+    `👤 <b>Name:</b> ${name}\n` +
+    `📧 <b>Email:</b> ${email}\n` +
+    `📞 <b>Phone:</b> ${phone || 'N/A'}\n` +
+    `🔑 <b>Username:</b> @${username}\n` +
+    `📄 <b>Contract Info:</b> ${contractInfo}\n` +
+    `🏛️ <b>Account Type:</b> ${accountType}`
+  );
 
   return {
     message: "Request sent successfully",

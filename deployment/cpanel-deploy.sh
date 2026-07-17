@@ -31,6 +31,7 @@ cp -r "prisma" "$TEMP_DIR/"
 cp -r "config" "$TEMP_DIR/"
 cp "package.json" "$TEMP_DIR/"
 cp "package-lock.json" "$TEMP_DIR/"
+cp "app.js" "$TEMP_DIR/"
 
 # Copy .env.example as template
 if [ -f ".env.example" ]; then

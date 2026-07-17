@@ -1,0 +1,17 @@
+model PendingAccount {
+    id           String      @id @default(uuid())
+    isAccept     Boolean     @default(false)
+    email        String      @unique
+    username     String      @unique
+    address      String?
+    name         String?
+    about        String?
+    contractInfo String?
+    phone        String?
+    image        String?
+    coverImage   String?
+    sendTime     DateTime    @default(now())
+    password     String?
+    account_type AccountType @default(user)
+    googleSignIn Boolean     @default(false)
+}
