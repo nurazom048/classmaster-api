@@ -1,4 +1,4 @@
-// import { AccountType,Day,imageStorageProvider } from "enum"
+// import { AccountType,Day,StorageProvider } from "enum"
 // import { Class,Routine,RoutineMember,RoutinesJoinRequest,Summary,Weekday} from "routine"
 // import {Notice,rePublish,NoticeBoardMember } from "notice"
 
@@ -21,9 +21,9 @@ model Account {
     about                     String? // Optional about section
     isVerified                Boolean               @default(false) // Corrected spelling from "isVarified"
     image                     String? // Optional image URL for the account
-    imageStorageProvider      imageStorageProvider? // Enum or string for image storage provider
+    imageStorageProvider      StorageProvider? // Enum or string for image storage provider
     coverImage                String?
-    coverImageStorageProvider imageStorageProvider? // Enum or string for cover image storage provider
+    coverImageStorageProvider StorageProvider? // Enum or string for cover image storage provider
     accountType               AccountType           @default(user) // Default to user account type
     lastLoginTime             DateTime? // Optional timestamp for the last login
     accountData               AccountData?          @relation("AccountDataOwner") // Optional relation to AccountData model

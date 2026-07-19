@@ -45,13 +45,19 @@ services:
         value: password123
       - key: MINIO_BUCKET_NAME
         value: storageforclassmaster
+      - key: STORAGE_PROVIDER
+        value: r2
+      - key: BUCKET_NAME
+        value: strogeforclassmaster
+      - key: R2_ENDPOINT
+        value: https://94310dcf752d881c272a1bbf9798c975.r2.cloudflarestorage.com
+      - key: R2_ACCESS_KEY_ID
+        sync: true
+      - key: R2_SECRET_ACCESS_KEY
+        sync: true
       - key: JWT_SECRET_KEY
         sync: true # Will prompt user in dashboard
       - key: REFRESH_TOKEN_SECRET
-        sync: true
-      - key: MONGODB_URI_MAIN_DB
-        sync: true
-      - key: MONGODB_URI_NOTIFICATION_DB
         sync: true
       - key: api_key
         sync: true

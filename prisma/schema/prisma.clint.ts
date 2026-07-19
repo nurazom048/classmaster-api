@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../client";
 
 const dbUrl = process.env.NODE_ENV === 'production'
   ? process.env.PROD_DATABASE_URL

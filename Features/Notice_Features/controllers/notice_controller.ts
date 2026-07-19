@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from '../../../prisma/schema/prisma.clint';
 
 import { getNoticeFilePath } from '../../../services/storage/stroage.path';
-import { uploadFile, deleteFile } from '../../../utils/bucket';
+import { uploadFile, deleteFile, BUCKET_NAME } from '../../../services/storage/storage';
 
 // ============================================================================
 // CONTROLLERS
@@ -38,9 +38,9 @@ export const addNotice = async (req: any, res: Response) => {
         const findAccount = await prisma.account.findUnique({ where: { id: id } });
         if (!findAccount) return res.status(404).json({ message: 'Account not found' });
 
-        // Step 5: Upload PDF to Storage (MinIO or Appwrite)
+        // Step 5: Upload PDF to Storage (MinIO or Cloudflare R2)
         const fileName = getNoticeFilePath(findAccount.id, uuid, req.file.originalname);
-        await uploadFile("storageforclassmaster", fileName, req.file);
+        await uploadFile(BUCKET_NAME, fileName, req.file);
 
         // Step 6: Create Notice in the Prisma database (Saving raw file path)
         const createdNotice = await prisma.notice.create({
@@ -107,10 +107,10 @@ export const deleteNotice = async (req: any, res: Response) => {
             return res.status(403).json({ message: 'You do not have permission to delete this notice' });
         }
 
-        // Step 4: Delete the PDF file from the bucket (MinIO or Appwrite)
+        // Step 4: Delete the PDF file from the bucket (MinIO or Cloudflare R2)
         if (notice.pdf) {
             try {
-                await deleteFile("storageforclassmaster", notice.pdf);
+                await deleteFile(BUCKET_NAME, notice.pdf);
             } catch (storageError) {
                 console.error('Error deleting notice file from storage:', storageError);
             }

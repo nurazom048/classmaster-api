@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
-import { uploadFile } from '../../utils/bucket';
+import { getAutoNoticeFilePath } from '../storage/stroage.path';
+import { uploadFile, BUCKET_NAME } from '../storage/storage';
+import { StorageProvider } from '../../utils/enums';
 import prisma from '../../prisma/schema/prisma.clint';
 // হেল্পার ফাইল থেকে ইমপোর্ট করা হলো (পাথ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী সেট করবেন)
 import {
@@ -28,11 +30,11 @@ async function fetchRecentNotices(): Promise<NoticeData[]> {
         if (!data.feed || !data.feed.entry) return [];
 
         const now = new Date();
-        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
+        const twoHoursTenMinsAgo = new Date(now.getTime() - (2 * 60 * 60 * 1000 + 10 * 60 * 1000));
 
         const recentEntries = data.feed.entry.filter((entry: any) => {
             const publishedDate = new Date(entry.published.$t);
-            return publishedDate >= oneHourAgo && publishedDate <= now;
+            return publishedDate >= twoHoursTenMinsAgo && publishedDate <= now;
         });
 
         return recentEntries.map((notice: any) => {
@@ -73,7 +75,7 @@ async function autoNoticeUpload() {
 
         const notices = await fetchRecentNotices();
         if (notices.length === 0) {
-            console.log("No new notices found in the last hour.");
+            console.log("No new notices found in the last 2 hours.");
             return;
         }
 
@@ -98,14 +100,12 @@ async function autoNoticeUpload() {
 
             // এই ফাংশনটি এখন অল ইমেজ ইউআরএল (যেমন: ৪টি ইমেজ) রিসিভ করে একটি ৪ পেইজের পিডিএফ তৈরি করবে।
             const pdfBuffer = await createPdfFromImages(notice.imageUrls, finalDescription);
-            // Upload generated PDF directly to Storage
             const uuid = uuidv4();
-            const fileName = `notices/academyId-${publisherAccount.id}/uid-${uuid}-auto-notice.pdf`;
-
-            await uploadFile("storageforclassmaster", fileName, {
+            const fileName = getAutoNoticeFilePath(publisherAccount.id, uuid);
+            await uploadFile(BUCKET_NAME, fileName, {
                 buffer: pdfBuffer,
                 mimetype: "application/pdf"
-            });
+            }, StorageProvider.APPWRITE);
 
             // Create the DB record in Prisma
             await prisma.notice.create({
@@ -134,7 +134,7 @@ export const autoSeedInitialize = () => {
     // Run immediately on boot
     autoNoticeUpload();
 
-    // Loop every 20 minutes
-    const TWO_MINUTES_MS = 20 * 60 * 1000;
-    setInterval(autoNoticeUpload, TWO_MINUTES_MS);
+    // Loop every 30 minutes
+    const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+    setInterval(autoNoticeUpload, THIRTY_MINUTES_MS);
 };

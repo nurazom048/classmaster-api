@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
-import { deleteFile } from '../../../utils/bucket';
+import { deleteFile, BUCKET_NAME } from '../../../services/storage/storage';
 
 // ==========================================
 // 🌐 GLOBAL ROUTINE ACTIONS
@@ -214,7 +214,7 @@ export const deleteRoutineById = async (req: any, res: Response) => {
       for (const summary of summaries) {
         for (const imageLink of summary.imageLinks ?? []) {
           try {
-            await deleteFile("storageforclassmaster", imageLink);
+            await deleteFile(BUCKET_NAME, imageLink);
           } catch (e) { console.error("Could not delete file from storage", e); }
         }
       }
@@ -473,7 +473,7 @@ export const remove_class = async (req: any, res: Response) => {
       for (const summary of summaries) {
         for (const imageLink of summary.imageLinks ?? []) {
           try {
-            await deleteFile("storageforclassmaster", imageLink);
+            await deleteFile(BUCKET_NAME, imageLink);
           } catch (e) { console.error("Could not delete file", e); }
         }
         await tx.summary.delete({ where: { id: summary.id } });

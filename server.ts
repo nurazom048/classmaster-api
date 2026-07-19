@@ -39,9 +39,12 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { startBackupScheduler } from "./services/backup/backup.service";
 import { autoSeedInitialize } from "./services/auto task/seed.notice";
 import { startPolytechnicNoticeFetcher } from "./services/auto task/politechnic_notice/polytechnic.notice";
-import { connectMinIO, s3Client } from "./services/storage/storage.mino.s3";
 import { startSummaryCleanerCron } from "./services/cron/summary_cleaner.cron";
-import { getFile } from "./utils/bucket";
+import { connectMinIO } from "./services/storage/config/minio.storage";
+import { connectR2 } from "./services/storage/config/cloudflare.r2.storage";
+import { connectAppwrite } from "./services/storage/config/appwrite.storage";
+import { storage, getFile, BUCKET_NAME } from "./services/storage/storage";
+import { StorageProvider } from "./utils/enums";
 
 
 // ===============================
@@ -72,6 +75,7 @@ const allowedOrigins = [
   "https://classmaster.top",
   "https://www.classmaster.top",
   "https://api.classmaster.top",
+  "https://c.api.classmaster.top",
 ];
 
 app.use(
@@ -118,7 +122,17 @@ app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {
     const bucket = req.params.bucket as string;
     const key = req.params.key as string;
 
-    const fileData = await getFile(bucket, key);
+    let fileData;
+    try {
+      fileData = await getFile(bucket, key);
+    } catch (error) {
+      if (bucket !== BUCKET_NAME) {
+        console.warn(`⚠️ Bucket mismatch or failed: ${bucket}. Retrying getFile with configured BUCKET_NAME: ${BUCKET_NAME}`);
+        fileData = await getFile(BUCKET_NAME, key);
+      } else {
+        throw error;
+      }
+    }
 
     res.setHeader('Content-Type', fileData.contentType);
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -158,12 +172,13 @@ const startServer = async () => {
     await connectPostgres();
     console.log("✅ PostgreSQL Connected");
 
-    // MinIO
-    if (process.env.STORAGE_PROVIDER !== 'appwrite') {
-      await connectMinIO();
-      console.log("✅ MinIO Connected");
+    // Storage client initialization check
+    if (storage === StorageProvider.R2) {
+      await connectR2();
+    } else if (storage === StorageProvider.APPWRITE) {
+      await connectAppwrite();
     } else {
-      console.log("📦 Storage Provider set to Appwrite (skipping MinIO connection)");
+      await connectMinIO();
     }
 
     // Start Backup Scheduler

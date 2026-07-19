@@ -75,7 +75,7 @@ model Summary {
     ownerId              String
     text                 String
     imageLinks           String[]
-    imageStorageProvider imageStorageProvider?
+    imageStorageProvider StorageProvider?
     routineId            String
     classId              String
     autoDeleteAt         DateTime

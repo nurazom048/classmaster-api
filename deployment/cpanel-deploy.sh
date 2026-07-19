@@ -38,6 +38,12 @@ if [ -f ".env.example" ]; then
     cp ".env.example" "$TEMP_DIR/"
 fi
 
+# Copy active .env file if it exists
+if [ -f ".env" ]; then
+    cp ".env" "$TEMP_DIR/"
+fi
+
+
 # Step 4: Zip everything inside the temp folder
 echo "🗜️ Zipping files into $ZIP_FILE..."
 cd "$TEMP_DIR"

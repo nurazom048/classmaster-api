@@ -1,0 +1,288 @@
+// import { AccountType,Day,StorageProvider } from "enum"
+// import { Class,Routine,RoutineMember,RoutinesJoinRequest,Summary,Weekday} from "routine"
+// import {Notice,rePublish,NoticeBoardMember } from "notice"
+
+model AccountData {
+  id                    String   @id @default(uuid())
+  accountID             Account  @relation("AccountDataOwner", fields: [ownerAccountId], references: [id], onDelete: Cascade)
+  ownerAccountId        String   @unique
+  googleSignIn          Boolean  @default(false) // Whether the account uses Google sign-in
+  email                 String   @unique // Unique email for the account
+  phone                 String?  @unique // Optional unique phone number for the account
+  password              String? // Optional password for the account
+  verificationDocuments String[]
+  oneSignalUserId       String?
+}
+
+model Account {
+  id                        String           @id @default(uuid())
+  username                  String           @unique
+  name                      String
+  about                     String? // Optional about section
+  isVerified                Boolean          @default(false) // Corrected spelling from "isVarified"
+  image                     String? // Optional image URL for the account
+  imageStorageProvider      StorageProvider? // Enum or string for image storage provider
+  coverImage                String?
+  coverImageStorageProvider StorageProvider? // Enum or string for cover image storage provider
+  accountType               AccountType      @default(user) // Default to user account type
+  lastLoginTime             DateTime? // Optional timestamp for the last login
+  accountData               AccountData?     @relation("AccountDataOwner") // Optional relation to AccountData model
+  address                   Address?
+
+  // routine
+  createdRoutines    Routine[]       @relation("AccountCreatedRoutines") // Routines created by this account
+  routineMemberships RoutineMember[] @relation("AccountRoutineMemberships") // Memberships of the account in routines
+  savedRoutines      Routine[]       @relation("AccountSavedRoutines") // Routines saved by this account
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  RoutinesJoinRequest RoutinesJoinRequest[] @relation("accountRoutinesJoinRequest")
+  Summary             Summary[]             @relation("createdSummary") //
+  saveSummary         Summary[]             @relation("savedSummary")
+
+  // notice
+  publishedNotice   Notice[]            @relation("publishedNotice")
+  rePublishedNotice rePublish[]         @relation("rePublishedNoticeCreator")
+  NoticeBoardMember NoticeBoardMember[] @relation("NoticeBoardMember")
+}
+
+// --- New Address Model ---
+model Address {
+  id String @id @default(uuid())
+
+  // Bangladesh Address Fields (Dropdown values from UI)
+  district      String? // e.g., "Dhaka", "Gazipur"
+  upazila       String? // e.g., "Mirpur", "Gazipur Sadar"
+  streetAddress String? // e.g., "123 Main St"
+
+  // Exact Map Location (Only for Academy, but optional)
+  latitude  Float?
+  longitude Float?
+
+  // Relation back to the Account (One-to-One connection)
+  accountId String  @unique
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AccountType {
+  user
+  student
+  academy
+}
+
+enum StorageProvider {
+  minio
+  r2
+  appwrite
+  others
+}
+
+enum Day {
+  sat
+  sun
+  mon
+  tue
+  wed
+  thu
+  fri
+}
+
+enum NoticeCategory {
+  job_circular
+  notice
+  result
+  other
+}
+
+enum SummaryType {
+  TEXT
+  MEDIA
+  POLL
+  SYSTEM
+}
+
+model NoticeBoardMember {
+  id             String  @id @default(uuid())
+  accountId      String
+  notificationOn Boolean @default(false) // Indicates whether notification is on/off for the member
+
+  memberId String // Member ID reference
+  account  Account @relation("NoticeBoardMember", fields: [memberId], references: [id]) // Relation to Account model
+}
+
+model Notice {
+  id String @id @default(uuid())
+
+  title       String
+  pdf         String?
+  description String?
+  category    NoticeCategory @default(other) // 🎯 ক্যাটাগরি সাপোর্ট
+  publisherId String
+  Account     Account        @relation("publishedNotice", fields: [publisherId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rePublish rePublish[] @relation("rePublishedNotice")
+}
+
+model rePublish {
+  id               String @id @default(uuid())
+  republishedTitle String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  noticeId String?
+  Notice   Notice? @relation("rePublishedNotice", fields: [noticeId], references: [id], onDelete: Cascade)
+
+  rePublisherId String
+  Account       Account? @relation("rePublishedNoticeCreator", fields: [rePublisherId], references: [id], onDelete: Cascade)
+}
+
+enum NotificationType {
+  public
+  private
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  accountID String
+  title     String
+  body      String?
+  imageUrl  String?
+  routineID String?
+  NoticeID  String?
+  type      NotificationType @default(public)
+  createdAt DateTime         @default(now())
+}
+
+model PendingAccount {
+  id           String      @id @default(uuid())
+  isAccept     Boolean     @default(false)
+  email        String      @unique
+  username     String      @unique
+  address      String?
+  name         String?
+  about        String?
+  contractInfo String?
+  phone        String?
+  image        String?
+  coverImage   String?
+  sendTime     DateTime    @default(now())
+  password     String?
+  account_type AccountType @default(user)
+  googleSignIn Boolean     @default(false)
+}
+
+model RoutinesJoinRequest {
+  id               String  @id @default(uuid())
+  requestMessage   String?
+  requestedAccount Account @relation("accountRoutinesJoinRequest", fields: [accountIdBy], references: [id], onDelete: Cascade) // Cascade delete when the account is deleted
+
+  // Relation to the Routine the request is for
+  routineId String // ID of the routine the join request is for
+  routine   Routine @relation(fields: [routineId], references: [id], onDelete: Cascade) // Cascade delete when the routine is deleted
+
+  createdAt   DateTime @default(now())
+  accountIdBy String
+}
+
+model Weekday {
+  id        String   @id @default(uuid()) // Primary key
+  routineId String // Foreign key to Routine
+  routine   Routine  @relation("RoutineWeekdays", fields: [routineId], references: [id], onDelete: Cascade) // Relation to Routine
+  classId   String // Foreign key to Class
+  class     Class    @relation("ClassWeekdays", fields: [classId], references: [id], onDelete: Cascade) // Relation to Class
+  room      String // Room information
+  Day       Day // select day by enum
+  startTime DateTime // Start time for the first shift
+  endTime   DateTime // End time for the first shift
+  createdAt DateTime @default(now()) // Auto-generated timestamp for creation
+  updatedAt DateTime @updatedAt // Auto-generated timestamp for updates
+}
+
+model RoutineMember {
+  id             String   @id @default(uuid())
+  accountId      String // Account ID of the member
+  routineId      String // Routine ID
+  member         Account  @relation("AccountRoutineMemberships", fields: [accountId], references: [id])
+  routine        Routine  @relation("RoutineMembers", fields: [routineId], references: [id])
+  notificationOn Boolean  @default(false)
+  captain        Boolean  @default(false)
+  owner          Boolean  @default(false)
+  isSaved        Boolean  @default(false)
+  blacklist      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Routine {
+  id             String          @id @default(uuid()) // Unique identifier for the routine
+  routineName    String // Name of the routine
+  routineOwner   Account         @relation("AccountCreatedRoutines", fields: [ownerAccountId], references: [id]) // Relation to the account who created the routine
+  ownerAccountId String // ID of the account that created the routine
+  routineMembers RoutineMember[] @relation("RoutineMembers") // Members of the routine
+  classes        Class[]         @relation("RoutineClasses") // Classes associated with the routine
+  weekdays       Weekday[]       @relation("RoutineWeekdays") // Weekdays associated with the routine
+  createdAt      DateTime        @default(now()) // Timestamp when the routine was created
+  updatedAt      DateTime        @updatedAt // Timestamp when the routine was last updated
+
+  savedBy             Account[]             @relation("AccountSavedRoutines") // Accounts that saved the routine
+  //accountId           String? // Optional ID of the account associated with the routine (if applicable)
+  RoutinesJoinRequest RoutinesJoinRequest[] // Requests to join the routine
+  Summary             Summary[]             @relation("RoutinesSummary")
+}
+
+model Class {
+  id             String    @id @default(uuid()) // Primary key
+  name           String
+  instructorName String
+  subjectCode    String
+  routineId      String // Foreign key to Routine
+  routine        Routine   @relation("RoutineClasses", fields: [routineId], references: [id], onDelete: Cascade) // Relation to Routine
+  weekdays       Weekday[] @relation("ClassWeekdays") // Relation to Weekday
+  createdAt      DateTime  @default(now()) // Auto-generated timestamp for creation
+  updatedAt      DateTime  @updatedAt // Auto-generated timestamp for updates
+  Summary        Summary[] @relation("classSummary")
+}
+
+model Summary {
+  id                   String           @id @default(uuid())
+  ownerId              String
+  text                 String
+  imageLinks           String[]
+  imageStorageProvider StorageProvider?
+  routineId            String
+  classId              String
+  autoDeleteAt         DateTime
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  type        SummaryType @default(TEXT)
+  fileType    String?
+  pollOptions Json?
+
+  // Relations
+  owner          Account  @relation("createdSummary", fields: [ownerId], references: [id], onDelete: Cascade)
+  routine        Routine  @relation("RoutinesSummary", fields: [routineId], references: [id], onDelete: Cascade)
+  class          Class    @relation("classSummary", fields: [classId], references: [id], onDelete: Cascade)
+  Account        Account? @relation("savedSummary", fields: [savedAccountId], references: [id])
+  savedAccountId String?
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+  output          = "../client"
+  binaryTargets   = ["native", "rhel-openssl-1.0.x", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}

@@ -4,9 +4,10 @@ enum AccountType {
     academy
 }
 
-enum imageStorageProvider {
-    firebase
-    aws
+enum StorageProvider {
+    minio
+    r2
+    appwrite
     others
 }
 

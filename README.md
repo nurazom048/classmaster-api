@@ -94,7 +94,7 @@ docker compose up --build
 Public domains:
 
 ```
-api.classmaster.top
+c.api.classmaster.top
 pg.classmaster.top
 minio.classmaster.top
 s3.classmaster.top

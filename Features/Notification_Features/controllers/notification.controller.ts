@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { uploadFile, deleteFile } from '../../../utils/bucket';
+import { getNotificationImagePath } from '../../../services/storage/stroage.path';
+import { uploadFile, deleteFile, BUCKET_NAME } from '../../../services/storage/storage';
 import prisma from '../../../prisma/schema/prisma.clint';
 
 // Create a notification
@@ -18,10 +19,8 @@ export const createNotification = async (req: Request, res: Response) => {
         let imageUrl;
 
         if (image) {
-            const timestamp = Date.now();
-            const filename = `${accountID}-${timestamp}-${image.originalname}`;
-            const key = `images/notification/${type}/${filename}`;
-            imageUrl = await uploadFile("storageforclassmaster", key, image);
+            const key = getNotificationImagePath(accountID || "", type, image.originalname);
+            imageUrl = await uploadFile(BUCKET_NAME, key, image);
         }
 
         // Create and save the notification to the database
@@ -60,7 +59,7 @@ export const deleteNotification = async (req: Request, res: Response) => {
         // Delete the notification from storage
         if (notification.imageUrl) {
             try {
-                await deleteFile("storageforclassmaster", notification.imageUrl);
+                await deleteFile(BUCKET_NAME, notification.imageUrl);
             } catch (storageErr) {
                 console.error("Error deleting notification file from storage:", storageErr);
             }

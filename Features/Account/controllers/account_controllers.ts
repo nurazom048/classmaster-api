@@ -1,10 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { Response } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
-import {
-  uploadAccountImageToMinIO,
-  deleteAccountImageFromMinIO
-} from '../helper/account.minio.helper';
+import { uploadFile, deleteFile, BUCKET_NAME, storage } from '../../../services/storage/storage';
+import { StorageProvider } from '../../../utils/enums';
 import { getAccountImagePath } from '../../../services/storage/stroage.path';
 
 // Admin initialized as required for other authentication actions
@@ -28,17 +26,22 @@ export const edit_account = async (req: any, res: Response) => {
     let coverImageProvider = account.coverImageStorageProvider || null;
 
     if (coverImageFile) {
-      // Safe check: If an old image exists and was stored in MinIO ('aws'), delete it first
-      if (account.coverImage && account.coverImageStorageProvider === 'aws') {
-        await deleteAccountImageFromMinIO(account.coverImage);
+      // Safe check: If an old image exists, delete it first from its specific provider
+      if (account.coverImage && account.coverImageStorageProvider) {
+        try {
+          await deleteFile(BUCKET_NAME, account.coverImage, account.coverImageStorageProvider as StorageProvider);
+          console.log(`Successfully deleted old image: ${account.coverImage}`);
+        } catch (error) {
+          console.error(`Failed to delete key ${account.coverImage} from storage:`, error);
+        }
       }
 
       // Generate a new clean key path
       coverImagePath = getAccountImagePath(account.id, 'coverImage', coverImageFile.originalname);
 
-      // Upload the file using the clean key
-      await uploadAccountImageToMinIO(coverImageFile, coverImagePath);
-      coverImageProvider = 'aws'; // Set provider to 'aws' for MinIO
+      // Upload the file using the clean key and current active storage
+      await uploadFile(BUCKET_NAME, coverImagePath, coverImageFile);
+      coverImageProvider = storage; // Set provider to current active storage
     } else if (!coverImagePath) {
       coverImageProvider = null;
     }
@@ -49,17 +52,22 @@ export const edit_account = async (req: any, res: Response) => {
     let profileImageProvider = account.imageStorageProvider || null;
 
     if (profileImageFile) {
-      // Safe check: If an old profile image exists and was stored in MinIO ('aws'), delete it first
-      if (account.image && account.imageStorageProvider === 'aws') {
-        await deleteAccountImageFromMinIO(account.image);
+      // Safe check: If an old profile image exists, delete it first from its specific provider
+      if (account.image && account.imageStorageProvider) {
+        try {
+          await deleteFile(BUCKET_NAME, account.image, account.imageStorageProvider as StorageProvider);
+          console.log(`Successfully deleted old image: ${account.image}`);
+        } catch (error) {
+          console.error(`Failed to delete key ${account.image} from storage:`, error);
+        }
       }
 
       // Generate a new clean key path
       profileImagePath = getAccountImagePath(account.id, 'image', profileImageFile.originalname);
 
-      // Upload the file using the clean key
-      await uploadAccountImageToMinIO(profileImageFile, profileImagePath);
-      profileImageProvider = 'aws'; // Set provider to 'aws' for MinIO
+      // Upload the file using the clean key and current active storage
+      await uploadFile(BUCKET_NAME, profileImagePath, profileImageFile);
+      profileImageProvider = storage; // Set provider to current active storage
     } else if (!profileImagePath) {
       profileImageProvider = null;
     }

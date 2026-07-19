@@ -57,8 +57,8 @@ Use this option to package the compiled application and host it on a standard cP
    - In the App config screen, add your environment variables:
      - `NODE_ENV`: `production`
      - `DATABASE_URL`: `prisma+postgres://...` (Your Accelerate connection string)
-     - `STORAGE_PROVIDER`: `appwrite`
-     - `APPWRITE_ENDPOINT`, `APPWRITE_PROJECT_ID`, `APPWRITE_API_KEY`, `APPWRITE_BUCKET_ID`.
+     - `STORAGE_PROVIDER`: `cloudflare` (or `minio`)
+     - `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`.
 4. **Install Dependencies:**
    - Click **Run NPM Install** inside the cPanel Node.js App interface.
 5. **Restart App:**

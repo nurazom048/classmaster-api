@@ -1,16 +1,13 @@
 import cron from 'node-cron';
 import prisma from '../../prisma/schema/prisma.clint';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { s3Client } from '../storage/storage.mino.s3';
-
-const BUCKET_NAME = 'storageforclassmaster';
+import { deleteFile, BUCKET_NAME } from '../storage/storage';
 
 /**
  * Starts the daily cron job to delete summaries and associated MinIO files older than 120 days.
  */
 export function startSummaryCleanerCron() {
   console.log("🧹 Initializing 120-Day Auto-Delete Cron Job...");
-  
+
   // Runs daily at midnight (00:00)
   cron.schedule('0 0 * * *', async () => {
     console.log("🧹 Running daily 120-Day Auto-Delete Cron Job...");
@@ -39,13 +36,10 @@ export function startSummaryCleanerCron() {
         if (summary.imageLinks && summary.imageLinks.length > 0) {
           for (const key of summary.imageLinks) {
             try {
-              await s3Client.send(new DeleteObjectCommand({
-                Bucket: BUCKET_NAME,
-                Key: key
-              }));
-              console.log(`🗑️ Deleted file from MinIO: ${key}`);
+              await deleteFile(BUCKET_NAME, key);
+              console.log(`🗑️ Deleted file from storage: ${key}`);
             } catch (err: any) {
-              console.error(`❌ Failed to delete file ${key} from MinIO:`, err.message);
+              console.error(`❌ Failed to delete file ${key} from storage:`, err.message);
             }
           }
         }

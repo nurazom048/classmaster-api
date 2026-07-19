@@ -3,6 +3,7 @@ export const summaryFilePath = (routineID: string, userID: string, fileName: str
     const cleanFileName = fileName.replace(/\s+/g, '-');
     return `summary/${monthName}/${routineID}-${userID}/${Date.now()}-${cleanFileName}`;
 };
+
 /**
  * Generates a clean relative path (key) to store in the database.
  * No base URL or bucket name is appended, keeping database entries pure.
@@ -13,7 +14,7 @@ export const getAccountImagePath = (
     originalName: string
 ): string => {
     const timestamp = Date.now();
-    // Replacing spaces and special characters to ensure clean paths on MinIO
+    // Replacing spaces and special characters to ensure clean paths on MinIO/R2
     const cleanFileName = originalName.replace(/\s+/g, '-');
     return `Account-id-${accountId}/images/${type}/-${timestamp}-${cleanFileName}`;
 };
@@ -26,4 +27,21 @@ export const getNoticeFilePath = (
     const monthName = new Date().toLocaleString('en-US', { month: 'long' });
     const cleanFileName = originalName.replace(/\s+/g, '-');
     return `notice/${monthName}/academyId-${accountId}/uid-${uuid}-${cleanFileName}`;
+};
+
+export const getNotificationImagePath = (
+    accountID: string,
+    type: string,
+    originalName: string
+): string => {
+    const timestamp = Date.now();
+    const cleanFileName = originalName.replace(/\s+/g, '-');
+    return `images/notification/${type}/${accountID}-${timestamp}-${cleanFileName}`;
+};
+
+export const getAutoNoticeFilePath = (
+    accountId: string,
+    uuid: string
+): string => {
+    return `notice/academyId-${accountId}/uid-${uuid}-auto-notice.pdf`;
 };

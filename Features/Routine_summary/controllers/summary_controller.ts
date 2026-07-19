@@ -1,10 +1,11 @@
 import { Response } from 'express';
 // Prisma & AWS
 import prisma from '../../../prisma/schema/prisma.clint';
-import { uploadFile, deleteFile } from '../../../utils/bucket';
+import { summaryFilePath } from '../../../services/storage/stroage.path';
+import { uploadFile, deleteFile, BUCKET_NAME, storage } from '../../../services/storage/storage';
+import { StorageProvider } from '../../../utils/enums';
 import { SummaryType } from '@prisma/client';
 
-const BUCKET_NAME = 'storageforclassmaster';
 
 // ==========================================
 // 📝 CREATE SUMMARY
@@ -28,14 +29,10 @@ export const addSummary = async (req: any, res: Response) => {
     const files = req.files as Express.Multer.File[] || [];
     const uploadedFileKeys: string[] = [];
 
-    // Step 1: Upload Files to Storage (MinIO or Appwrite)
+    // Step 1: Upload Files to Storage (MinIO or Cloudflare R2)
     if (files.length > 0) {
-      const folderName = routineID;
-      const date = new Date();
-      const month = date.toLocaleString('default', { month: 'long' });
-
       for (const file of files) {
-        const key = `summary/${month}/${folderName}-${userID}/${Date.now()}-${file.originalname}`;
+        const key = summaryFilePath(routineID, userID, file.originalname);
         await uploadFile(BUCKET_NAME, key, file);
         uploadedFileKeys.push(key);
       }
@@ -94,7 +91,7 @@ export const addSummary = async (req: any, res: Response) => {
           text: message?.trim() || '',
           imageLinks: uploadedFileKeys,
           autoDeleteAt: autoDeleteDate,
-          imageStorageProvider: uploadedFileKeys.length > 0 ? 'aws' : null,
+          imageStorageProvider: uploadedFileKeys.length > 0 ? storage : null,
           type: typeValue,
           fileType: fileTypeVal,
           pollOptions: parsedPollOptions,
@@ -153,10 +150,10 @@ export const removeSummary = async (req: any, res: Response) => {
   const findSummary = req.findSummary; // From modification permission middleware
 
   try {
-    // Step 1: Delete Files from Storage (MinIO or Appwrite)
+    // Step 1: Delete Files from Storage (MinIO or Cloudflare R2)
     for (const fileKey of findSummary.imageLinks ?? []) {
       try {
-        await deleteFile(BUCKET_NAME, fileKey);
+        await deleteFile(BUCKET_NAME, fileKey, findSummary.imageStorageProvider as StorageProvider);
       } catch (err) {
         console.error(`Failed to delete file ${fileKey} from storage:`, err);
       }

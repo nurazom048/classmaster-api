@@ -5,6 +5,7 @@ import fs from 'fs';
 import { Telegraf } from 'telegraf';
 import dotenv from 'dotenv';
 import { generateBackupFileName } from './helper/backup.helper';
+import prisma from '../../prisma/schema/prisma.clint';
 
 dotenv.config();
 
@@ -81,6 +82,10 @@ export const startBackupScheduler = async () => {
         const fileName = generateBackupFileName();
         const filePath = path.join(BACKUP_DIR, fileName);
 
+        let finalFilePath = filePath;
+        let finalFileName = fileName;
+        let isJsonBackup = false;
+
         console.log(`[LOG] 🚀 Starting backup process: ${fileName}`);
 
         try {
@@ -91,29 +96,61 @@ export const startBackupScheduler = async () => {
             await new Promise((resolve, reject) => {
                 exec(cmd, (error, stdout, stderr) => {
                     if (error) {
-                        console.error("[LOG] ❌ pg_dump error:", stderr);
                         reject(error);
                     } else {
                         resolve(stdout);
                     }
                 });
             });
+        } catch (error: any) {
+            console.log(`[LOG] ⚠️ pg_dump failed or is not available: ${error.message}`);
+            console.log(`[LOG] 🔄 Falling back to Prisma-based JSON database backup...`);
 
-            const stats = fs.statSync(filePath);
+            try {
+                // Change extension to .json
+                finalFileName = fileName.replace(".dump", ".json");
+                finalFilePath = path.join(BACKUP_DIR, finalFileName);
+                isJsonBackup = true;
+
+                // Fetch tables list from public schema
+                const tablesRes = await prisma.$queryRawUnsafe<{ table_name: string }[]>(`
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                      AND table_name NOT LIKE '_prisma_migrations'
+                      AND table_name NOT LIKE '_Prisma_migrations'
+                `);
+
+                const backupData: Record<string, any[]> = {};
+                for (const t of tablesRes) {
+                    const tableName = t.table_name;
+                    const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "${tableName}"`);
+                    backupData[tableName] = rows;
+                }
+
+                fs.writeFileSync(finalFilePath, JSON.stringify(backupData, null, 2));
+            } catch (fallbackError: any) {
+                console.error("[LOG] ❌ Fallback Prisma backup also failed:", fallbackError.message);
+                throw fallbackError;
+            }
+        }
+
+        try {
+            const stats = fs.statSync(finalFilePath);
             const fileSizeMB = (stats.size / (1024 * 1024)).toFixed(2);
 
             if (stats.size === 0) throw new Error("Backup file is empty.");
 
-            console.log(`[LOG] ✅ Backup success: ${fileName} (${fileSizeMB} MB)`);
+            console.log(`[LOG] ✅ Backup success: ${finalFileName} (${fileSizeMB} MB)`);
 
             // Success Telegram Message
             const stamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
             try {
                 await bot.telegram.sendDocument(
                     CHAT_ID,
-                    { source: filePath }, // File path provided
+                    { source: finalFilePath }, // File path provided
                     {
-                        caption: `💾 *Postgres Backup Success*\n\n` +
+                        caption: `💾 *Postgres Backup Success (${isJsonBackup ? "JSON Format" : "SQL Dump"})*\n\n` +
                             `📊 *Size:* \`${fileSizeMB} MB\`\n` +
                             `🕒 *Stamp:* \`${stamp}\`\n\n` +
                             `🧹 _Cleanup: Old local files (>5 days) removed._\n` +
@@ -131,7 +168,7 @@ export const startBackupScheduler = async () => {
                     `💾 *Postgres Backup Success* (Text Only)\n\n` +
                     `📊 *Size:* \`${fileSizeMB} MB\`\n` +
                     `🕒 *Stamp:* \`${stamp}\`\n` +
-                    `📄 *File:* \`${fileName}\`\n` +
+                    `📄 *File:* \`${finalFileName}\`\n` +
                     `⚠️ *Notice:* Document attachment failed (likely too large or network issue).\n\n` +
                     `🧹 _Cleanup: Old local files (>5 days) removed._\n` +
                     `☁️ _Rclone auto-sync will upload this shortly._`,
