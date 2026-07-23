@@ -307,6 +307,7 @@ exports.Prisma.JsonNullValueFilter = {
   AnyNull: Prisma.AnyNull
 };
 exports.StorageProvider = exports.$Enums.StorageProvider = {
+  s3: 's3',
   minio: 'minio',
   r2: 'r2',
   appwrite: 'appwrite',
@@ -336,7 +337,6 @@ exports.Day = exports.$Enums.Day = {
   sun: 'sun',
   mon: 'mon',
   tue: 'tue',
-  wed: 'wed',
   thu: 'thu',
   fri: 'fri'
 };

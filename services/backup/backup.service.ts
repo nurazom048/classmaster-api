@@ -88,29 +88,22 @@ export const startBackupScheduler = async () => {
 
         console.log(`[LOG] 🚀 Starting backup process: ${fileName}`);
 
-        try {
-            const rawDbUrl = process.env.DATABASE_URL || "";
-            const dbUrl = rawDbUrl.split("?")[0];
-            const cmd = `pg_dump "${dbUrl}" -F c -f "${filePath}"`;
+        const activeDbUrl = (process.env.NODE_ENV === 'production'
+            ? process.env.PROD_DATABASE_URL
+            : process.env.DEV_DATABASE_URL || process.env.DATABASE_URL) || "";
 
-            await new Promise((resolve, reject) => {
-                exec(cmd, (error, stdout, stderr) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(stdout);
-                    }
-                });
-            });
-        } catch (error: any) {
-            console.log(`[LOG] ⚠️ pg_dump failed or is not available: ${error.message}`);
-            console.log(`[LOG] 🔄 Falling back to Prisma-based JSON database backup...`);
+        const isPrismaPostgres = activeDbUrl.startsWith("prisma+postgres://") || activeDbUrl.includes("accelerate.prisma-data.net");
 
+        if (isPrismaPostgres) {
+            // --- PRISMA POSTGRES / ACCELERATE MODE ---
+            // Direct Prisma-based JSON database backup with BigInt serialization fix
             try {
                 // Change extension to .json
                 finalFileName = fileName.replace(".dump", ".json");
                 finalFilePath = path.join(BACKUP_DIR, finalFileName);
                 isJsonBackup = true;
+
+                console.log(`[LOG] 🔄 Running Prisma-based JSON database backup for Prisma Postgres...`);
 
                 // Fetch tables list from public schema
                 const tablesRes = await prisma.$queryRawUnsafe<{ table_name: string }[]>(`
@@ -128,10 +121,66 @@ export const startBackupScheduler = async () => {
                     backupData[tableName] = rows;
                 }
 
-                fs.writeFileSync(finalFilePath, JSON.stringify(backupData, null, 2));
-            } catch (fallbackError: any) {
-                console.error("[LOG] ❌ Fallback Prisma backup also failed:", fallbackError.message);
-                throw fallbackError;
+                // Fix BigInt serialization: convert all BigInt to string in replacer
+                fs.writeFileSync(finalFilePath, JSON.stringify(backupData, (key, value) =>
+                    typeof value === 'bigint' ? value.toString() : value,
+                    2
+                ));
+            } catch (prodError: any) {
+                console.error("[LOG] ❌ Prisma Postgres backup failed:", prodError.message);
+                throw prodError;
+            }
+        } else {
+            // --- STANDARD POSTGRES MODE ---
+            // Try pg_dump with a fallback to JSON backup
+            try {
+                const dbUrl = activeDbUrl.split("?")[0];
+                const cmd = `pg_dump "${dbUrl}" -F c -f "${filePath}"`;
+
+                await new Promise((resolve, reject) => {
+                    exec(cmd, (error, stdout, stderr) => {
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve(stdout);
+                        }
+                    });
+                });
+            } catch (error: any) {
+                console.log(`[LOG] ⚠️ pg_dump failed or is not available: ${error.message}`);
+                console.log(`[LOG] 🔄 Falling back to Prisma-based JSON database backup...`);
+
+                try {
+                    // Change extension to .json
+                    finalFileName = fileName.replace(".dump", ".json");
+                    finalFilePath = path.join(BACKUP_DIR, finalFileName);
+                    isJsonBackup = true;
+
+                    // Fetch tables list from public schema
+                    const tablesRes = await prisma.$queryRawUnsafe<{ table_name: string }[]>(`
+                        SELECT table_name 
+                        FROM information_schema.tables 
+                        WHERE table_schema = 'public' 
+                          AND table_name NOT LIKE '_prisma_migrations'
+                          AND table_name NOT LIKE '_Prisma_migrations'
+                    `);
+
+                    const backupData: Record<string, any[]> = {};
+                    for (const t of tablesRes) {
+                        const tableName = t.table_name;
+                        const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "${tableName}"`);
+                        backupData[tableName] = rows;
+                    }
+
+                    // Fix BigInt serialization: convert all BigInt to string in replacer
+                    fs.writeFileSync(finalFilePath, JSON.stringify(backupData, (key, value) =>
+                        typeof value === 'bigint' ? value.toString() : value,
+                        2
+                    ));
+                } catch (fallbackError: any) {
+                    console.error("[LOG] ❌ Fallback Prisma backup also failed:", fallbackError.message);
+                    throw fallbackError;
+                }
             }
         }
 

@@ -1,54 +1,41 @@
-node_modules
+# Dependencies
 node_modules/
-.env
-env
-build/Fetures
-build/connection
-build/utils
-build/services
-build/server.js
-classmaster_data/s3_storage/storageforclassmaster
-google-credentials.json
-config/firebase/admin.sdk.json
-node_modules
-.env
-dist
-build
-coverage
-cpanel-deploy.zip
-
-
-# Docker
-
-classmaster_data
-pgdata
-backups
-
-# Prisma
-
-prisma/migrations
-
-# Logs
-
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# OS
+# Environment & Secrets
+.env
+.env.local
+.env.development
+.env.production
+google-credentials.json
+config/firebase/admin.sdk.json
 
+# Build Outputs & Archives
+dist/
+build/
+cpanel-deploy.zip
+*.zip
+*.tar
+*.gz
+*.dump
+tmp_package/
+
+# Storage & Data Directories
+classmaster_data/
+pgdata/
+backups/
+filebrowser.db/
+
+# Prisma
+prisma/migrations/
+
+# IDE & OS Metadata
 .DS_Store
 Thumbs.db
-
-# IDE
-
-.vscode
-.idea
-
-# Docker volumes
-
-*.dump
-*.tar
-
-# Linux
-
+.vscode/
+.idea/
+.continue/
+.cloudflared/
 *.swp

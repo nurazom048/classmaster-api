@@ -75,6 +75,7 @@ enum AccountType {
 }
 
 enum StorageProvider {
+  s3
   minio
   r2
   appwrite
@@ -86,7 +87,6 @@ enum Day {
   sun
   mon
   tue
-  wed
   thu
   fri
 }

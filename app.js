@@ -32,4 +32,4 @@ process.on('unhandledRejection', (reason, promise) => {
 require('dotenv').config();
 
 // Start the production server
-require('./dist/server.js');
+require('./build/server.js');

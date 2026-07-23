@@ -98,6 +98,7 @@ export type AccountType = (typeof AccountType)[keyof typeof AccountType]
 
 
 export const StorageProvider: {
+  s3: 's3',
   minio: 'minio',
   r2: 'r2',
   appwrite: 'appwrite',
@@ -112,7 +113,6 @@ export const Day: {
   sun: 'sun',
   mon: 'mon',
   tue: 'tue',
-  wed: 'wed',
   thu: 'thu',
   fri: 'fri'
 };

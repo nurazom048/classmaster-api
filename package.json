@@ -7,8 +7,9 @@
   },
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only --poll server.ts",
-    "build": "npx prisma generate && tsc && mkdir -p dist/config/firebase && cp config/firebase/admin.sdk.json dist/config/firebase/ 2>/dev/null || true && mkdir -p dist/prisma && cp -r prisma/client dist/prisma/",
-    "start": "NODE_ENV=production node dist/server.js"
+    "build": "npx prisma generate && tsc && mkdir -p build/config/firebase && cp config/firebase/admin.sdk.json build/config/firebase/ 2>/dev/null || true && mkdir -p build/prisma && cp -r prisma/client build/prisma/",
+    "start": "NODE_ENV=production node build/server.js",
+    "restore": "ts-node services/backup/restore.ts"
   },
   "author": "",
   "license": "ISC",

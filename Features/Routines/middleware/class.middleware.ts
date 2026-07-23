@@ -40,20 +40,22 @@ export const checkClassAndPermission = async (req: any, res: Response, next: Nex
     }
 };
 
-export const checkDuplicateClass = async (req: Request, res: Response, next: NextFunction) => {
+export const checkDuplicateClass = async (req: any, res: Response, next: NextFunction) => {
     const { name, subjectCode } = req.body;
-    const rawRoutineId = req.params.routineId || req.params.routineID;
+    const rawRoutineId = req.params.routineId || req.params.routineID || req.classData?.routineId;
     const routineId = Array.isArray(rawRoutineId) ? rawRoutineId[0] : rawRoutineId;
+    const { classID } = req.params;
 
     if (!routineId) {
         return res.status(400).json({ message: "Routine ID is required" });
     }
 
     try {
-        // ডাটাবেসে চেক করো এই রুটিনের আন্ডারে একই নামের বা একই কোডের কোনো ক্লাস আছে কি না
+        // ডাটাবেসে চেক করো এই রুটিনের আন্ডারে একই নামের বা একই কোডের কোনো ক্লাস আছে কি না (চলতি ক্লাসটি বাদে)
         const existingClass = await prisma.class.findFirst({
             where: {
                 routineId: routineId,
+                ...(classID ? { id: { not: classID } } : {}),
                 OR: [
                     { name: name },
                     { subjectCode: subjectCode }
@@ -72,7 +74,7 @@ export const checkDuplicateClass = async (req: Request, res: Response, next: Nex
             }
         }
 
-        // যদি কোনো ডুপ্লিকেট না থাকে, তাহলে পরের ধাপে (create_class) যেতে দাও
+        // যদি কোনো ডুপ্লিকেট না থাকে, তাহলে পরের ধাপে যেতে দাও
         next();
     } catch (error: any) {
         console.error("Error checking duplicate class:", error);

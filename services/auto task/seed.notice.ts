@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getAutoNoticeFilePath } from '../storage/stroage.path';
 import { uploadFile, BUCKET_NAME } from '../storage/storage';
-import { StorageProvider } from '../../utils/enums';
 import prisma from '../../prisma/schema/prisma.clint';
 // হেল্পার ফাইল থেকে ইমপোর্ট করা হলো (পাথ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী সেট করবেন)
 import {
@@ -10,6 +9,7 @@ import {
     createPdfFromImages,
     generateDynamicDescription
 } from './autotask.helper';
+import { StorageProvider } from '../../utils/enums';
 
 const FEED_URL = "https://fearyourcreatorndonotwasteothersright.blogspot.com/feeds/posts/default?alt=json&published-min=2026-01-01T00:00:00&published-max=2026-12-31T23:59:59";
 const TARGET_USER_ID = "6a45307892c37c968aebb618";
@@ -105,7 +105,7 @@ async function autoNoticeUpload() {
             await uploadFile(BUCKET_NAME, fileName, {
                 buffer: pdfBuffer,
                 mimetype: "application/pdf"
-            }, StorageProvider.APPWRITE);
+            }, StorageProvider.R2);
 
             // Create the DB record in Prisma
             await prisma.notice.create({

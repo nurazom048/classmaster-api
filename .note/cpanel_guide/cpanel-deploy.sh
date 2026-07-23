@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 ZIP_FILE="cpanel-deploy.zip"
-DIST_DIR="dist"
+DIST_DIR="build"
 
 echo "🚀 Preparing production package for cPanel..."
 
@@ -42,7 +42,6 @@ fi
 if [ -f ".env" ]; then
     cp ".env" "$TEMP_DIR/"
 fi
-
 
 # Step 4: Zip everything inside the temp folder
 echo "🗜️ Zipping files into $ZIP_FILE..."

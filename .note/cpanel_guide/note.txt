@@ -1,0 +1,38 @@
+====================================================================
+ 📋 CPANEL QUICK DEPLOYMENT & CONFIGURATION NOTE
+====================================================================
+
+[1] QUICK DEPLOYMENT COMMAND:
+--------------------------------------------------------------------
+  bash build/cpanel_guide/cpanel-deploy.sh
+
+This script automatically compiles TypeScript, collects all dist/
+assets and prisma schemas, and creates 'cpanel-deploy.zip' ready
+to upload to cPanel.
+
+
+[2] CPANEL NODE.JS APP SETTINGS:
+--------------------------------------------------------------------
+  - Application Root:         api.classmaster
+  - Application URL:          c.api.classmaster.top
+  - Application Startup File: app.js
+  - Node.js Version:          20.x or 22.x
+  - Environment Mode:         production
+
+
+[3] STORAGE PROVIDER (.env):
+--------------------------------------------------------------------
+  STORAGE_PROVIDER=r2
+  BUCKET_NAME=strogeforclassmaster
+
+  R2_ENDPOINT=https://7ccafdf796f3bb50bfbda909ff90ea03.r2.cloudflarestorage.com
+  R2_ACCESS_KEY_ID=3256b1834470716aca72e39343a4995c
+  R2_SECRET_ACCESS_KEY=f9716d4278020372d4728ef4c3d46ca3ef778d31019bb6ad345e4a87a2b6f373
+
+
+[4] LOG FILE LOCATION:
+--------------------------------------------------------------------
+  In cPanel File Manager:
+  /home/username/api.classmaster/passenger_error.log
+
+====================================================================
