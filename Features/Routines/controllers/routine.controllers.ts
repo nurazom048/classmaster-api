@@ -133,8 +133,7 @@ export const createRoutine = async (req: any, res: Response) => {
 
 export const current_user_status = async (req: any, res: Response) => {
   try {
-    // 🐛 Fix: Safely check for both casing styles to prevent undefined Prisma queries
-    const routineId = req.params.routineId || req.params.routineID;
+    const routineId = req.params.routineId || req.params.routineID || req.body?.routineId || req.body?.routineID;
 
     if (!routineId) return res.status(400).json({ message: 'Routine ID is required in URL parameters' });
 
@@ -150,6 +149,53 @@ export const current_user_status = async (req: any, res: Response) => {
     }
 
     const { id } = req.user;
+
+    // Process updates if body contains payload (POST requests for save/unsave or notification toggle)
+    if (req.body) {
+      const { saveCondition, isSaved: bodyIsSaved, notificationOn: bodyNotificationOn, status } = req.body;
+
+      // 1. Handle Save / Unsave state updates
+      if (saveCondition !== undefined || bodyIsSaved !== undefined) {
+        let targetSaveState: boolean;
+        if (saveCondition !== undefined && saveCondition !== null) {
+          targetSaveState = String(saveCondition) === "true";
+        } else {
+          targetSaveState = Boolean(bodyIsSaved);
+        }
+
+        await prisma.account.update({
+          where: { id },
+          data: {
+            savedRoutines: targetSaveState
+              ? { connect: { id: routineId } }
+              : { disconnect: { id: routineId } }
+          },
+        });
+      }
+
+      // 2. Handle Notification On / Off state updates
+      if (bodyNotificationOn !== undefined || status !== undefined) {
+        let targetNotifState: boolean;
+        if (bodyNotificationOn !== undefined) {
+          targetNotifState = Boolean(bodyNotificationOn);
+        } else {
+          targetNotifState = status === 'on' || status === true;
+        }
+
+        const member = await prisma.routineMember.findFirst({
+          where: { accountId: id, routineId }
+        });
+
+        if (member) {
+          await prisma.routineMember.update({
+            where: { id: member.id },
+            data: { notificationOn: targetNotifState }
+          });
+        }
+      }
+    }
+
+    // Retrieve and return unified status object response
     const routine = await prisma.routine.findUnique({
       where: { id: routineId },
       include: { routineMembers: true, RoutinesJoinRequest: true },
@@ -229,41 +275,6 @@ export const deleteRoutineById = async (req: any, res: Response) => {
   } catch (error: any) {
     console.error("Error deleting routine:", error);
     res.status(500).json({ message: `Routine deletion failed: ${error.message || "Unknown error"}` });
-  }
-};
-
-export const save_and_unsave_routine = async (req: any, res: Response) => {
-  const routineId = req.params.routineId || req.params.routineID;
-  const { saveCondition } = req.body;
-  const { id: userId } = req.user;
-
-  if (!routineId) return res.status(400).json({ message: "Routine ID is required" });
-  if (!["true", "false"].includes(saveCondition)) return res.status(400).json({ message: "Invalid saveCondition. Must be 'true' or 'false'." });
-
-  try {
-    const [routine, isSaved] = await Promise.all([
-      prisma.routine.findUnique({ where: { id: routineId } }),
-      prisma.account.findFirst({ where: { id: userId, savedRoutines: { some: { id: routineId } } } })
-    ]);
-
-    if (!routine) return res.status(404).json({ message: "Routine not found" });
-    if (saveCondition === "true" && isSaved) return res.status(200).json({ message: "Routine is already saved", save: true });
-    if (saveCondition === "false" && !isSaved) return res.status(400).json({ message: "Routine is not currently saved" });
-
-    await prisma.account.update({
-      where: { id: userId },
-      data: {
-        savedRoutines: saveCondition === "true" ? { connect: { id: routineId } } : { disconnect: { id: routineId } }
-      },
-    });
-
-    res.status(200).json({
-      message: saveCondition === "true" ? "Routine saved successfully" : "Routine unsaved successfully",
-      save: saveCondition === "true"
-    });
-  } catch (error) {
-    console.error("Error handling save/unsave routine:", error);
-    res.status(500).json({ message: "An error occurred while processing the request." });
   }
 };
 
@@ -494,14 +505,41 @@ export const remove_class = async (req: any, res: Response) => {
 
 export const classNotification = async (req: any, res: Response) => {
   const { id } = req.user;
+  const { routineId, routineID, status } = req.body;
+  const targetRoutineId = routineId || routineID;
 
   try {
+    // If request contains routineId and status, toggle notificationOn for that routine member
+    if (targetRoutineId && status !== undefined) {
+      const isNotificationOn = status === 'on' || status === true;
+
+      const member = await prisma.routineMember.findFirst({
+        where: { accountId: id, routineId: targetRoutineId }
+      });
+
+      if (!member) {
+        return res.status(404).json({ message: 'User is not a member of this routine' });
+      }
+
+      await prisma.routineMember.update({
+        where: { id: member.id },
+        data: { notificationOn: isNotificationOn }
+      });
+
+      return res.status(200).json({
+        message: `Notification turned ${isNotificationOn ? 'on' : 'off'} successfully`,
+        notificationOn: isNotificationOn,
+        notification_Off: !isNotificationOn
+      });
+    }
+
+    // Otherwise, fetch all classes for enabled routines for notification
     const routineMembers = await prisma.routineMember.findMany({
-      where: { accountId: id },
+      where: { accountId: id, notificationOn: true },
       select: { routineId: true },
     });
 
-    if (routineMembers.length === 0) return res.status(404).json({ message: 'No routines found for the user' });
+    if (routineMembers.length === 0) return res.status(200).json({ message: 'No notification routines found', allClassForNotification: [] });
 
     const routineIds = routineMembers.map((member) => member.routineId);
 
@@ -513,9 +551,9 @@ export const classNotification = async (req: any, res: Response) => {
     const validWeekdays = weekdaysWithClasses.filter((weekday) => weekday.class !== null);
 
     res.status(200).json({ allClassForNotification: validWeekdays });
-  } catch (error) {
-    console.error('Error fetching class notifications:', error);
-    res.status(500).json({ message: 'Server Error', notificationOnClasses: [] });
+  } catch (error: any) {
+    console.error('Error in classNotification:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message, notificationOnClasses: [] });
   }
 };
 
