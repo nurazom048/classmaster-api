@@ -4,14 +4,14 @@ import path from 'path';
 import fs from 'fs';
 import { Telegraf } from 'telegraf';
 import dotenv from 'dotenv';
-import { generateBackupFileName } from './helper/backup.helper';
+import { generateBackupFileName } from '../../.notes/database_restore_helper/backup.helper';
 import prisma from '../../prisma/schema/prisma.clint';
 
 dotenv.config();
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN as string);
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID as string;
-const BACKUP_DIR = path.join(process.cwd(), "backups");
+const BACKUP_DIR = path.join(process.cwd(), "classmaster_data", "backups");
 
 // Backup directory check & creation
 if (!fs.existsSync(BACKUP_DIR)) {

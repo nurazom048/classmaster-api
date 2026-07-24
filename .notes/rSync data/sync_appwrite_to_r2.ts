@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { appwriteStorage, APPWRITE_BUCKET_ID } from "../config/appwrite.storage";
-import { r2Client } from "../config/cloudflare.r2.storage";
+import { appwriteStorage, APPWRITE_BUCKET_ID } from "../../services/storage/config/appwrite.storage";
+import { r2Client } from "../../services/storage/config/cloudflare.r2.storage";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import prisma from "../../../prisma/schema/prisma.clint";
+import prisma from "../../prisma/schema/prisma.clint";
 
 const BUCKET_NAME = process.env.BUCKET_NAME || 'stroageforclassmaster';
 

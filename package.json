@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only --poll server.ts",
     "build": "npx prisma generate && tsc && mkdir -p build/config/firebase && cp config/firebase/admin.sdk.json build/config/firebase/ 2>/dev/null || true && mkdir -p build/prisma && cp -r prisma/client build/prisma/",
+    "cpanelbuild": "node .note/cpanel_guide/build-cpanel.js",
     "start": "NODE_ENV=production node build/server.js",
     "restore": "ts-node services/backup/restore.ts"
   },

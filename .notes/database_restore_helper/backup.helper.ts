@@ -1,5 +1,5 @@
 /**
- * readable timestamp provide kore
+ * readable timestamp provider
  * Format: 25_march_26_15-18
  */
 export const getReadableTimestamp = (): string => {
@@ -25,7 +25,7 @@ export const getReadableTimestamp = (): string => {
 };
 
 /**
- * full backup file name-provider
+ * full backup file name provider
  */
 export const generateBackupFileName = (): string => {
     const timestamp = getReadableTimestamp();

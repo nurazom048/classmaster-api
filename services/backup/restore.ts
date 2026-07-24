@@ -9,7 +9,7 @@ async function restoreDatabase() {
 
     if (!backupFilePath) {
         // Find the latest json backup in the backups directory
-        const backupsDir = path.join(process.cwd(), 'backups');
+        const backupsDir = path.join(process.cwd(), 'classmaster_data', 'backups');
         if (!fs.existsSync(backupsDir)) {
             console.error("❌ No backups directory found. Please specify a JSON file path.");
             process.exit(1);
