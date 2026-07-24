@@ -334,6 +334,15 @@ export const create_class = async (req: any, res: Response) => {
   if (!routineId) return res.status(400).json({ message: "Routine ID is required" });
 
   try {
+    const parsedStartTime = new Date(startTime);
+    const parsedEndTime = new Date(endTime);
+
+    if (isNaN(parsedStartTime.getTime()) || isNaN(parsedEndTime.getTime())) {
+      return res.status(400).json({ message: "Invalid startTime or endTime format" });
+    }
+
+    const formattedWeekday = String(weekday).toLowerCase().trim() as any;
+
     const result = await prisma.$transaction(async (tx) => {
       const createdClass = await tx.class.create({
         data: { name, subjectCode, instructorName, routineId },
@@ -343,10 +352,10 @@ export const create_class = async (req: any, res: Response) => {
         data: {
           class: { connect: { id: createdClass.id } },
           routine: { connect: { id: routineId } },
-          Day: weekday,
-          room,
-          startTime,
-          endTime,
+          Day: formattedWeekday,
+          room: String(room),
+          startTime: parsedStartTime,
+          endTime: parsedEndTime,
         },
       });
 
@@ -505,7 +514,7 @@ export const remove_class = async (req: any, res: Response) => {
 
 export const classNotification = async (req: any, res: Response) => {
   const { id } = req.user;
-  const { routineId, routineID, status } = req.body;
+  const { routineId, routineID, status } = req.body || {};
   const targetRoutineId = routineId || routineID;
 
   try {
@@ -525,6 +534,8 @@ export const classNotification = async (req: any, res: Response) => {
         where: { id: member.id },
         data: { notificationOn: isNotificationOn }
       });
+
+      console.log(`🔔 [Notification Toggle] User ${id} set routine ${targetRoutineId} notification to ${isNotificationOn ? 'ON' : 'OFF'} at ${new Date().toISOString()}`);
 
       return res.status(200).json({
         message: `Notification turned ${isNotificationOn ? 'on' : 'off'} successfully`,
@@ -549,6 +560,8 @@ export const classNotification = async (req: any, res: Response) => {
     });
 
     const validWeekdays = weekdaysWithClasses.filter((weekday) => weekday.class !== null);
+
+    console.log(`📡 [Notification Fetch] User ${id} requested active notification classes. Returning ${validWeekdays.length} classes at ${new Date().toISOString()}`);
 
     res.status(200).json({ allClassForNotification: validWeekdays });
   } catch (error: any) {
@@ -579,24 +592,33 @@ export const addWeekday = async (req: Request, res: Response) => {
       const classFind = await tx.class.findUnique({ where: { id: classID } });
       if (!classFind) throw new Error('Class not found');
 
+      const parsedStartTime = new Date(startTime);
+      const parsedEndTime = new Date(endTime);
+
+      if (isNaN(parsedStartTime.getTime()) || isNaN(parsedEndTime.getTime())) {
+        throw new Error('Invalid startTime or endTime date format');
+      }
+
+      const formattedDay = String(day).toLowerCase().trim() as any;
+
       const newWeekday = await tx.weekday.create({
         data: {
           classId: classID,
           routineId: classFind.routineId,
-          Day: day.toLowerCase(),
-          room: room,
-          startTime: new Date(startTime),
-          endTime: new Date(endTime),
+          Day: formattedDay,
+          room: String(room),
+          startTime: parsedStartTime,
+          endTime: parsedEndTime,
         },
       });
 
       return newWeekday;
     });
 
-    res.send({ message: 'Weekday added successfully', newWeekday: transaction });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: 'Internal server error' });
+    return res.status(200).json({ message: 'Weekday added successfully', newWeekday: transaction });
+  } catch (error: any) {
+    console.error('❌ Error adding weekday:', error);
+    return res.status(500).json({ message: error.message || 'Internal server error' });
   }
 };
 

@@ -337,6 +337,7 @@ exports.Day = exports.$Enums.Day = {
   sun: 'sun',
   mon: 'mon',
   tue: 'tue',
+  wed: 'wed',
   thu: 'thu',
   fri: 'fri'
 };

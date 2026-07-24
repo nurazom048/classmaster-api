@@ -3,11 +3,13 @@ import prisma from '../../../prisma/schema/prisma.clint';
 import { Day } from '@prisma/client';
 
 
+const VALID_DAYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
+
 export const classValidation = (req: Request, res: Response, next: NextFunction) => {
     console.log(req.body);
 
     try {
-        const { name, instructorName, subjectCode, room, weekday, startTime, endTime } = req.body; // Added `startTime` and `endTime`
+        const { name, instructorName, subjectCode, room, weekday, startTime, endTime } = req.body;
         const routineId = req.params.routineId || req.params.routineID;
 
         // Validation for required fields
@@ -20,9 +22,10 @@ export const classValidation = (req: Request, res: Response, next: NextFunction)
         if (!subjectCode) {
             return res.status(400).json({ message: "Validation failed: 'subjectCode' is required" });
         }
-        if (!weekday || typeof weekday !== "string" || !Object.keys(Day).some((key) => key.toUpperCase() === weekday.toUpperCase())) {
+        const normalizedWeekday = String(weekday || '').toLowerCase().trim();
+        if (!weekday || typeof weekday !== "string" || !VALID_DAYS.includes(normalizedWeekday)) {
             return res.status(400).json({
-                message: `Validation failed: 'weekday' must be one of the following: ${Object.keys(Day).join(", ")}`,
+                message: `Validation failed: 'weekday' must be one of: ${VALID_DAYS.join(", ")}`,
             });
         }
         if (!room) {
@@ -35,15 +38,14 @@ export const classValidation = (req: Request, res: Response, next: NextFunction)
             return res.status(400).json({ message: "Validation failed: 'endTime' is required" });
         }
         if (!routineId) {
-            return res.status(400).json({ message: `Validation failed: 'routineId'${routineId} is required` });
+            return res.status(400).json({ message: "Validation failed: 'routineId' is required" });
         }
 
         // Proceed to the next middleware/controller if all validations pass
         next();
-    } catch (error) {
-        // Handle unexpected errors during validation
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+    } catch (error: any) {
+        console.error("❌ Error in classValidation:", error);
+        res.status(500).json({ message: "Internal server error in validation", error: error.message });
     }
 };
 
@@ -122,42 +124,41 @@ export const weekdayValidation = (req: Request, res: Response, next: NextFunctio
         const { startTime, endTime, room, day } = req.body;
         const { classID } = req.params;
 
-        // Parse the start and end times
-        const startTimeMills: number = new Date(startTime).getTime();
-        const endTimeMills: number = new Date(endTime).getTime();
-
-        // Validation for classID, room, and day
         if (!classID) {
-            return res.status(400).send({ message: 'Validation failed: classId is required' });
+            return res.status(400).json({ message: 'Validation failed: classId is required' });
         }
 
         if (!room) {
-            return res.status(400).send({ message: 'Validation failed: room is required' });
+            return res.status(400).json({ message: 'Validation failed: room is required' });
         }
 
-        if (!day || typeof day !== 'string' || !Object.values(Day).includes(day.toLowerCase() as Day)) {
+        const validDays = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
+        const normalizedDay = String(day || '').toLowerCase().trim();
+
+        if (!day || !validDays.includes(normalizedDay)) {
             return res.status(400).json({
-                message: `Validation failed: 'day' must be one of the following: ${Object.values(Day).join(", ")}`,
+                message: `Validation failed: 'day' must be one of: ${validDays.join(", ")}`,
             });
         }
 
-        // Validation for start and end time
-        if (!startTimeMills) {
-            return res.status(400).send({ message: 'Validation failed: Start time is required' });
+        const startTimeMills: number = new Date(startTime).getTime();
+        const endTimeMills: number = new Date(endTime).getTime();
+
+        if (isNaN(startTimeMills)) {
+            return res.status(400).json({ message: 'Validation failed: Start time is invalid' });
         }
 
-        if (!endTimeMills) {
-            return res.status(400).send({ message: 'Validation failed: End time is required' });
+        if (isNaN(endTimeMills)) {
+            return res.status(400).json({ message: 'Validation failed: End time is invalid' });
         }
 
         if (endTimeMills <= startTimeMills) {
-            return res.status(400).send({ message: 'Validation failed: End time should be greater than start time' });
+            return res.status(400).json({ message: 'Validation failed: End time should be greater than start time' });
         }
 
-        // If all validations pass, proceed to the next middleware/controller
         next();
-    } catch (error) {
-        // Handle any errors that occur during validation
-        res.status(500).send({ message: 'Internal server error' });
+    } catch (error: any) {
+        console.error('❌ Error in weekdayValidation:', error);
+        return res.status(500).json({ message: error.message || 'Internal server error in validation' });
     }
 };

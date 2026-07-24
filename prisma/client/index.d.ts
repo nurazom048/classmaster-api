@@ -113,6 +113,7 @@ export const Day: {
   sun: 'sun',
   mon: 'mon',
   tue: 'tue',
+  wed: 'wed',
   thu: 'thu',
   fri: 'fri'
 };

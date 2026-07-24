@@ -2,7 +2,7 @@ tunnel: 1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf
 credentials-file: /etc/cloudflared/1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf.json
 
 ingress:
-  - hostname: dev.classmaster.top
+  - hostname: api.classmaster.top
     service: http://api:4000
 
   - hostname: pg.classmaster.top
