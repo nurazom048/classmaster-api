@@ -125,9 +125,9 @@ app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {
     let fileData;
     try {
       fileData = await getFile(bucket, key);
-    } catch (error) {
-      if (bucket !== BUCKET_NAME) {
-        console.warn(`⚠️ Bucket mismatch or failed: ${bucket}. Retrying getFile with configured BUCKET_NAME: ${BUCKET_NAME}`);
+    } catch (error: any) {
+      const isNotFound = error?.Code === 'NoSuchKey' || error?.name === 'NoSuchKey' || error?.$metadata?.httpStatusCode === 404;
+      if (!isNotFound && bucket !== BUCKET_NAME) {
         fileData = await getFile(BUCKET_NAME, key);
       } else {
         throw error;
@@ -145,9 +145,13 @@ app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {
     } else {
       res.status(404).json({ message: "File content is empty" });
     }
-  } catch (error) {
+  } catch (error: any) {
+    const isNotFound = error?.Code === 'NoSuchKey' || error?.name === 'NoSuchKey' || error?.$metadata?.httpStatusCode === 404;
+    if (isNotFound) {
+      return res.status(404).json({ message: "File not found" });
+    }
     console.error("❌ Storage File Error:", error);
-    res.status(404).json({ message: "File not found or access denied" });
+    res.status(500).json({ message: "Storage service error" });
   }
 });
 // Base Checkers
