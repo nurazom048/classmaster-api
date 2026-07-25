@@ -93,8 +93,30 @@ export const createRoutine = async (req: any, res: Response) => {
 
   if (!name || !ownerId) return res.status(400).json({ message: "Routine name and ownerId are required" });
 
+  if (typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ message: "Routine name must be a valid non-empty string" });
+  }
+
+  if (name.trim().length > 150) {
+    return res.status(400).json({ message: "Routine name cannot exceed 150 characters" });
+  }
+
   try {
     const formattedType = String(routineType).toUpperCase() === 'EXAM' ? 'EXAM' : 'CLASS';
+
+    // 🔒 Double-Protection: Only ACADEMY account type can create EXAM routine
+    if (formattedType === 'EXAM') {
+      const userAccount = await prisma.account.findUnique({
+        where: { id: ownerId },
+        select: { accountType: true },
+      });
+
+      if (!userAccount || String(userAccount.accountType).toLowerCase() !== 'academy') {
+        return res.status(403).json({
+          message: "Only Academy accounts are authorized to create Exam routines."
+        });
+      }
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const existingRoutine = await tx.routine.findFirst({
