@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { getAutoNoticeFilePath } from '../storage/stroage.path';
+import { getAutoNoticeFilePath } from '../storage/storage.path';
 import { uploadFile, BUCKET_NAME } from '../storage/storage';
 import prisma from '../../prisma/schema/prisma.clint';
 // হেল্পার ফাইল থেকে ইমপোর্ট করা হলো (পাথ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী সেট করবেন)

@@ -3,7 +3,7 @@ import { Response } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
 import { uploadFile, deleteFile, BUCKET_NAME, storage } from '../../../services/storage/storage';
 import { StorageProvider } from '../../../utils/enums';
-import { getAccountImagePath } from '../../../services/storage/stroage.path';
+import { getAccountImagePath } from '../../../services/storage/storage.path';
 
 // Admin initialized as required for other authentication actions
 const admin = require('firebase-admin');

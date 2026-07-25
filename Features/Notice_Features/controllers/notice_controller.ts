@@ -3,7 +3,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../../../prisma/schema/prisma.clint';
 
-import { getNoticeFilePath } from '../../../services/storage/stroage.path';
+import { getNoticeFilePath } from '../../../services/storage/storage.path';
 import { uploadFile, deleteFile, BUCKET_NAME } from '../../../services/storage/storage';
 
 // ============================================================================

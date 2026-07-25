@@ -15,7 +15,6 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
-import jwt, { Secret } from "jsonwebtoken";
 
 // Routes
 import auth_route from "./Features/Account/routes/auth_route";
@@ -31,11 +30,7 @@ import { verifyToken } from "./services/Authentication/helper/Authentication";
 // DB Connections
 import { connectPostgres } from "./prisma/schema/prisma.clint";
 
-// Helpers
-import { isTokenExpired } from "./services/Authentication/helper/Jwt.helper";
-
 // s3 imports
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { startBackupScheduler } from "./services/backup/backup.service";
 import { autoSeedInitialize } from "./services/auto task/seed.notice";
 import { startPolytechnicNoticeFetcher } from "./services/auto task/politechnic_notice/polytechnic.notice";
@@ -43,7 +38,8 @@ import { startSummaryCleanerCron } from "./services/cron/summary_cleaner.cron";
 import { connectMinIO } from "./services/storage/config/minio.storage";
 import { connectR2 } from "./services/storage/config/cloudflare.r2.storage";
 import { connectAppwrite } from "./services/storage/config/appwrite.storage";
-import { storage, getFile, BUCKET_NAME } from "./services/storage/storage";
+import { autoDeleteCacheCron } from "./services/storage/config/cache.appwrite";
+import { storage } from "./services/storage/storage";
 import { StorageProvider } from "./utils/enums";
 
 
@@ -72,30 +68,46 @@ const allowedOrigins = [
   "http://localhost:5000",
   "http://localhost:5001",
   "http://localhost:4000",
+  "http://localhost:3000",
+  "http://localhost:8080",
+  "http://localhost:8000",
   "https://classmaster.top",
   "https://www.classmaster.top",
   "https://api.classmaster.top",
   "https://c.api.classmaster.top",
+  "https://dev.classmaster.top",
 ];
 
-app.use(
-  cors({
-    credentials: true,
-    origin: true,
-    // origin: (origin, callback) => {
-    //   if (!origin || allowedOrigins.includes(origin)) {
-    //     callback(null, true);
-    //   } else {
-    //     callback(new Error("❌ Not allowed by CORS"));
-    //   }
-    // },
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Authorization", "x-refresh-token", "Content-Type", "X-Guest", "X-App-Client"],
-    exposedHeaders: ['Authorization', 'x-refresh-token'],
-  })
-);
+const corsOptions: cors.CorsOptions = {
+  credentials: true,
+  origin: (origin, callback) => {
+    // 1. Allow non-browser requests (Native Flutter Android/iOS, Mobile Apps, Postman, server calls)
+    if (!origin) {
+      return callback(null, true);
+    }
+    // 2. Allow whitelisted production and staging domains
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // 3. Allow local Flutter Web debug instances (dynamic localhost ports & local IPs)
+    if (
+      origin.startsWith("http://localhost:") ||
+      origin.startsWith("http://127.0.0.1:") ||
+      origin.startsWith("http://192.168.") ||
+      origin.startsWith("http://10.0.2.2:")
+    ) {
+      return callback(null, true);
+    }
+    // 4. Block unauthorized web scrapers
+    callback(new Error("❌ Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Authorization", "x-refresh-token", "Content-Type", "X-Guest", "X-App-Client"],
+  exposedHeaders: ['Authorization', 'x-refresh-token'],
+};
 
-app.options("*", cors());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 
 // Attach Socket.io instance to Express request
@@ -103,6 +115,8 @@ app.use((req: any, res, next) => {
   req.io = io;
   next();
 });
+
+import storage_route from "./services/storage/storage.route";
 
 // ===============================
 // 📌 ROUTES
@@ -115,45 +129,7 @@ app.use("/summary", summary);
 app.use("/notice", notice);
 app.use("/notification", notification);
 app.post("/class/notification", verifyToken, classNotification);
-
-// storage route
-app.get('/storage/:bucket/:key(*)', async (req: Request, res: Response) => {
-  try {
-    const bucket = req.params.bucket as string;
-    const key = req.params.key as string;
-
-    let fileData;
-    try {
-      fileData = await getFile(bucket, key);
-    } catch (error: any) {
-      const isNotFound = error?.Code === 'NoSuchKey' || error?.name === 'NoSuchKey' || error?.$metadata?.httpStatusCode === 404;
-      if (!isNotFound && bucket !== BUCKET_NAME) {
-        fileData = await getFile(BUCKET_NAME, key);
-      } else {
-        throw error;
-      }
-    }
-
-    res.setHeader('Content-Type', fileData.contentType);
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Content-Disposition', 'inline');
-
-    if (Buffer.isBuffer(fileData.body)) {
-      res.send(fileData.body);
-    } else if (fileData.body && typeof fileData.body.pipe === "function") {
-      fileData.body.pipe(res);
-    } else {
-      res.status(404).json({ message: "File content is empty" });
-    }
-  } catch (error: any) {
-    const isNotFound = error?.Code === 'NoSuchKey' || error?.name === 'NoSuchKey' || error?.$metadata?.httpStatusCode === 404;
-    if (isNotFound) {
-      return res.status(404).json({ message: "File not found" });
-    }
-    console.error("❌ Storage File Error:", error);
-    res.status(500).json({ message: "Storage service error" });
-  }
-});
+app.use("/storage", storage_route);
 // Base Checkers
 app.get("/", (req, res) => res.status(200).json({ status: "online", message: "✅ ClassMaster API is Now online ready" }));
 app.use((req, res) => res.status(404).json({ message: "❌ 404: Route Not Found" }));
@@ -189,6 +165,8 @@ const startServer = async () => {
     startBackupScheduler();
     // Start Summary Cleaner Cron
     startSummaryCleanerCron();
+    // Start Appwrite 30-Day Cache Cleaner Cron
+    autoDeleteCacheCron();
     // Fire and forget: Kick off the background loops
     autoSeedInitialize();
     startPolytechnicNoticeFetcher();

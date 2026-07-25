@@ -6,7 +6,7 @@ import { StorageProvider } from "../../utils/enums";
 
 // Determine which active storage provider to use from environment
 export const storage = (process.env.STORAGE_PROVIDER || StorageProvider.R2) as StorageProvider;
-export const BUCKET_NAME = process.env.BUCKET_NAME || 'stroageforclassmaster';
+export const BUCKET_NAME = process.env.BUCKET_NAME || 'classmaster-storage';
 
 // Get the active S3 client based on StorageProvider enum and environment settings
 export const getActiveClient = (provider?: StorageProvider) => {

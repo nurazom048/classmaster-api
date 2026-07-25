@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getNotificationImagePath } from '../../../services/storage/stroage.path';
+import { getNotificationImagePath } from '../../../services/storage/storage.path';
 import { uploadFile, deleteFile, BUCKET_NAME } from '../../../services/storage/storage';
 import prisma from '../../../prisma/schema/prisma.clint';
 

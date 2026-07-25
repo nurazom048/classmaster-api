@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Resolve root directory relative to .note/cpanel_guide/
+// Resolve root directory relative to .notes/cpanel_guide/
 const rootDir = path.resolve(__dirname, '../..');
 
 console.log('🚀 Starting cPanel Build & Packaging Process...\n');
@@ -35,8 +35,8 @@ try {
     console.log('   ✅ Copied prisma/client to build/prisma/');
   }
 
-  // 4. Create ZIP Archive for cPanel
-  console.log('\n🗜️ [4/4] Creating ZIP archives for cPanel File Manager...');
+  // 4. Create Ultra-Lightweight ZIP Archive for cPanel
+  console.log('\n🗜️ [4/4] Creating ultra-lightweight ZIP archives for cPanel File Manager...');
   const zipName = 'cpanel-deploy.zip';
   const zipPath = path.join(rootDir, zipName);
   const secondaryZipPath = path.join(rootDir, 'cPanel.zip');
@@ -50,7 +50,6 @@ try {
     'build',
     'prisma',
     'config',
-    'node_modules',
     'package.json',
     'package-lock.json',
     'app.js',
@@ -60,7 +59,8 @@ try {
     filesToZip.push('.env');
   }
 
-  const zipCommand = `zip -rq ${zipName} ${filesToZip.join(' ')} -x "*.git*" "*/.DS_Store" "*.log"`;
+  // Exclude node_modules, heavy query engine binaries, sourcemaps, git files to keep zip tiny
+  const zipCommand = `zip -9 -rq ${zipName} ${filesToZip.join(' ')} -x "*.git*" "*/.DS_Store" "*.log" "*query_engine*" "*.so.node" "*.map"`;
   execSync(zipCommand, { cwd: rootDir, stdio: 'ignore', maxBuffer: 1024 * 1024 * 50 });
 
   // Create a copy named cPanel.zip so both names work
@@ -70,12 +70,12 @@ try {
   const fileSizeMB = (stats.size / (1024 * 1024)).toFixed(2);
 
   console.log('\n==================================================');
-  console.log(`🎉 SUCCESS! cPanel Deployment Package Created!`);
+  console.log(`🎉 SUCCESS! Ultra-Lightweight cPanel Package Created!`);
   console.log(`📦 Output File: ${zipName} (${fileSizeMB} MB)`);
   console.log(`📦 Output File: cPanel.zip (${fileSizeMB} MB)`);
   console.log(`📍 Location: ${zipPath}`);
   console.log('==================================================\n');
-  console.log('💡 You can now upload cpanel-deploy.zip or cPanel.zip directly into cPanel File Manager and extract it!');
+  console.log('💡 Upload cpanel-deploy.zip or cPanel.zip to cPanel, extract it, and click "Run NPM Install" in cPanel Setup Node.js App!');
 
 } catch (error) {
   console.error('\n❌ Build/Packaging Failed:', error.message);

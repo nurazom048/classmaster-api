@@ -3,7 +3,7 @@ import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
 const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || "http://localhost:9000";
 const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || "admin";
 const MINIO_ACCESS_PASSWORD = process.env.MINIO_SECRET_KEY || "password123";
-const BUCKET_NAME = process.env.BUCKET_NAME || 'storageforclassmaster';
+const BUCKET_NAME = process.env.BUCKET_NAME || 'classmaster-storage';
 
 export const minioClient = new S3Client({
     region: "us-east-1",

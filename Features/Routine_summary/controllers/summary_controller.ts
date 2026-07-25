@@ -1,7 +1,7 @@
 import { Response } from 'express';
 // Prisma & AWS
 import prisma from '../../../prisma/schema/prisma.clint';
-import { summaryFilePath } from '../../../services/storage/stroage.path';
+import { summaryFilePath } from '../../../services/storage/storage.path';
 import { uploadFile, deleteFile, BUCKET_NAME, storage } from '../../../services/storage/storage';
 import { StorageProvider } from '../../../utils/enums';
 import { SummaryType } from '@prisma/client';

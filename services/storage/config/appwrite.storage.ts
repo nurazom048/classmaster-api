@@ -1,5 +1,8 @@
 import { Client, Storage } from "node-appwrite";
 import crypto from "crypto";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const APPWRITE_ENDPOINT = process.env.APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1";
 const APPWRITE_PROJECT_ID = process.env.APPWRITE_PROJECT_ID || "";
@@ -21,17 +24,18 @@ export const getKeyFileId = (key: string): string => {
     return crypto.createHash("md5").update(key).digest("hex");
 };
 
-export const connectAppwrite = async () => {
+/**
+ * Verifies Appwrite connection on startup.
+ */
+export const connectAppwrite = async (): Promise<void> => {
     try {
         if (!APPWRITE_BUCKET_ID) {
-            throw new Error("APPWRITE_BUCKET_ID is not configured in environment variables.");
+            console.warn("⚠️ APPWRITE_BUCKET_ID is not configured in environment variables.");
+            return;
         }
-        await appwriteStorage.listFiles({
-            bucketId: APPWRITE_BUCKET_ID,
-        });
+        await appwriteStorage.listFiles(APPWRITE_BUCKET_ID);
         console.log("✅ Appwrite Storage connected successfully!");
     } catch (error: any) {
         console.error("❌ Appwrite connection failed:", error.message);
-        throw error;
     }
 };

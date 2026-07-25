@@ -3,7 +3,7 @@ import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
 const R2_ENDPOINT = process.env.R2_ENDPOINT || "";
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || "";
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || "";
-const BUCKET_NAME = process.env.BUCKET_NAME || 'storageforclassmaster';
+const BUCKET_NAME = process.env.BUCKET_NAME || 'classmaster-storage';
 
 export const r2Client = new S3Client({
     region: "auto",
