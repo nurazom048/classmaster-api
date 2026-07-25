@@ -373,7 +373,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/top/api.classmaster/classmaster-api-master/prisma/client",
+      "value": "/app/prisma/client",
       "fromEnvVar": null
     },
     "config": {
@@ -409,7 +409,7 @@ const config = {
     "previewFeatures": [
       "prismaSchemaFolder"
     ],
-    "sourceFilePath": "/home/top/api.classmaster/classmaster-api-master/prisma/schema/schema.prisma",
+    "sourceFilePath": "/app/prisma/schema/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -423,7 +423,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
