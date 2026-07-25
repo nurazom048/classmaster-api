@@ -14,10 +14,12 @@ const admin = require('firebase-admin');
 
 export const edit_account = async (req: any, res: Response) => {
   const { name, username, about, accountType, district, upazila, streetAddress, latitude, longitude } = req.body;
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ message: 'Unauthorized access' });
 
   try {
     // Step 1: Fetch the current account details
-    const account = await prisma.account.findUnique({ where: { id: req.user.id } });
+    const account = await prisma.account.findUnique({ where: { id: userId } });
     if (!account) return res.status(404).json({ message: 'Account not found' });
 
     // Step 2: Handle the cover image update
@@ -74,7 +76,7 @@ export const edit_account = async (req: any, res: Response) => {
 
     // Step 4: Update account details in the database (only storing paths as keys)
     const updatedAccount = await prisma.account.update({
-      where: { id: req.user.id },
+      where: { id: userId },
       data: {
         name,
         username,
@@ -175,9 +177,12 @@ export const searchAccounts = async (req: any, res: Response) => {
 
 //........ View my account ...//
 export const view_my_account = async (req: any, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ message: "Unauthorized access" });
+
   try {
     const user = await prisma.account.findUnique({
-      where: { id: req.user.id },
+      where: { id: userId },
       select: {
         id: true,
         username: true,
@@ -252,7 +257,8 @@ export const viewOthersAccount = async (req: any, res: Response) => {
 // ---------------------    changePassword   --------------------------------/
 //************************************************************************** */
 export const changePassword = async (req: any, res: Response) => {
-  const { id } = req.user;
+  const id = req.user?.id;
+  if (!id) return res.status(401).json({ message: "Unauthorized access" });
   const { oldPassword, newPassword } = req.body;
 
   try {

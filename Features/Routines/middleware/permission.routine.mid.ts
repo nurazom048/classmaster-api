@@ -91,7 +91,8 @@ export const summaryModificationPermission = async (req: any, res: Response, nex
 //@ RoutineModificationPermission
 export const routineModificationPermission = async (req: any, res: Response, next: NextFunction) => {
     const { routineID } = req.params;
-    const { id } = req.user;
+    const id = req.user?.id;
+    if (!id) return res.status(401).json({ message: 'Unauthorized access' });
 
     try {
 

@@ -3,7 +3,8 @@ import prisma from '../../../prisma/schema/prisma.clint';
 
 export const checkClassAndPermission = async (req: any, res: Response, next: NextFunction) => {
     const { classID } = req.params;
-    const { id } = req.user;
+    const id = req.user?.id;
+    if (!id) return res.status(401).json({ message: 'Unauthorized access' });
 
     try {
         // Step 1: Check if class exists

@@ -194,8 +194,8 @@ export const recentNotice = async (req: any, res: Response) => {
     try {
         let academyIDs: string[] = [];
 
-        if (!req.isGuest) {
-            const { id } = req.user;
+        if (!req.isGuest && req.user?.id) {
+            const id = req.user.id;
             // Step 1: Fetch all noticeboards the user has joined
             const allJoinedNoticeBoard = await prisma.noticeBoardMember.findMany({
                 where: { memberId: id },
@@ -391,7 +391,8 @@ export const current_user_status = async (req: any, res: Response) => {
     try {
         const { academyID } = req.params;
 
-        if (req.isGuest) {
+        const id = req.user?.id;
+        if (req.isGuest || !id) {
             return res.status(200).json({
                 message: "Check noticeboard status",
                 isOwner: false,
@@ -400,8 +401,6 @@ export const current_user_status = async (req: any, res: Response) => {
                 notificationOn: false,
             });
         }
-
-        const { id } = req.user;
         let isOwner = false;
         let activeStatus = "not_joined";
         let isSave = false;

@@ -156,7 +156,13 @@ export const current_user_status = async (req: any, res: Response) => {
       });
     }
 
-    const { id } = req.user;
+    const id = req.user?.id;
+    if (!id) {
+      return res.status(200).json({
+        isOwner: false, isCaptain: false, activeStatus: 'not_joined',
+        isSaved: false, memberCount: 0, notificationOn: false,
+      });
+    }
 
     // Process updates if body contains payload (POST requests for save/unsave or notification toggle)
     if (req.body) {
@@ -533,7 +539,10 @@ export const remove_class = async (req: any, res: Response) => {
 };
 
 export const classNotification = async (req: any, res: Response) => {
-  const { id } = req.user;
+  const id = req.user?.id;
+  if (!id) {
+    return res.status(200).json({ message: 'Guest mode or unauthenticated', notificationOn: false });
+  }
   const { routineId, routineID, status } = req.body || {};
   const targetRoutineId = routineId || routineID;
 

@@ -13,7 +13,8 @@ import { SummaryType } from '@prisma/client';
 export const addSummary = async (req: any, res: Response) => {
   const { message, pollOptions, type } = req.body;
   const { classID } = req.params;
-  const { id: userID } = req.user;
+  const userID = req.user?.id;
+  if (!userID) return res.status(401).json({ message: 'Unauthorized access' });
   const routineID = req.routineID; // Passed from middleware
 
   // ✅ Validate required fields
@@ -174,7 +175,8 @@ export const removeSummary = async (req: any, res: Response) => {
 // ==========================================
 export const get_summary_list = async (req: any, res: Response) => {
   const { classId, type, page = 1, limit = 10 } = req.query;
-  const userID = req.user.id;
+  const userID = req.user?.id;
+  if (!userID && type === 'saved') return res.status(401).json({ message: 'Unauthorized access' });
   const skip = (Number(page) - 1) * Number(limit);
   const take = Number(limit);
   console.log("Fetching summaries with params:", { classId, type, page, limit, userID });
@@ -253,7 +255,10 @@ export const get_summary_list = async (req: any, res: Response) => {
 export const summary_status = async (req: any, res: Response) => {
   try {
     const { summaryID } = req.params;
-    const { id: userId } = req.user;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(200).json({ summaryOwner: false, isOwner: false, isCaptain: false, isSummarySaved: false });
+    }
 
     const foundSummary = await prisma.summary.findUnique({
       where: { id: summaryID },
@@ -292,7 +297,8 @@ export const summary_status = async (req: any, res: Response) => {
 export const saveUnsaveSummary = async (req: any, res: Response) => {
   try {
     const { save, summaryId } = req.body;
-    const { id: userId } = req.user;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Unauthorized access" });
 
     const foundSummary = await prisma.summary.findUnique({ where: { id: summaryId } });
 
@@ -340,7 +346,8 @@ export const saveUnsaveSummary = async (req: any, res: Response) => {
 export const votePoll = async (req: any, res: Response) => {
   const { summaryID } = req.params;
   const { optionIndex } = req.body; // Zero-based index of option chosen
-  const { id: userID } = req.user;
+  const userID = req.user?.id;
+  if (!userID) return res.status(401).json({ message: "Unauthorized access" });
 
   if (optionIndex === undefined || optionIndex === null) {
     return res.status(400).json({ message: "optionIndex is required." });
