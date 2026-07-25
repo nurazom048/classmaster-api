@@ -278,6 +278,18 @@ model Exam {
   Summary     Summary[] @relation("examSummary")
 }
 
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+  output          = "../client"
+  binaryTargets   = ["native", "rhel-openssl-1.0.x", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
 model Summary {
   id                   String           @id @default(uuid())
   ownerId              String
@@ -302,16 +314,4 @@ model Summary {
   exam           Exam?    @relation("examSummary", fields: [examId], references: [id], onDelete: Cascade)
   Account        Account? @relation("savedSummary", fields: [savedAccountId], references: [id])
   savedAccountId String?
-}
-
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["prismaSchemaFolder"]
-  output          = "../client"
-  binaryTargets   = ["native", "rhel-openssl-1.0.x", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
-}
-
-datasource db {
-  provider = "postgres"
-  url      = env("DATABASE_URL")
 }
