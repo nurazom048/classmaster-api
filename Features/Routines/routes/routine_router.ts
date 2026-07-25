@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // Import your middlewares and controllers here...
 import { classValidation, cakedPermission, classEditValidation, weekdayValidation } from '../validation/routine.validation';
-import { listRoutines, createRoutine, current_user_status, deleteRoutineById, allClass, create_class, findClass, editClass, remove_class, classNotification, allWeekdayInClass, addWeekday, deleteWeekdayById, superUpdateClass } from '../controllers/routine.controllers';
+import { listRoutines, createRoutine, current_user_status, deleteRoutineById, allClass, create_class, findClass, editClass, remove_class, classNotification, allWeekdayInClass, addWeekday, deleteWeekdayById, superUpdateClass, create_exam, allExams, edit_exam, remove_exam } from '../controllers/routine.controllers';
 import { verifyToken } from '../../../services/Authentication/helper/Authentication';
 import { checkClassAndPermission, checkDuplicateClass } from '../middleware/class.middleware';
 import { routineModificationPermission } from '../middleware/permission.routine.mid';
@@ -42,6 +42,18 @@ router.route('/classes/:classID/weekdays')
 
 router.route('/weekdays/:weekdayID')
     .delete(deleteWeekdayById);
+
+// ==========================================
+// 📝 ROUTINE EXAMS
+// ==========================================
+
+router.route('/:routineID/exams')
+    .get(allExams)
+    .post(verifyToken, routineModificationPermission, create_exam);
+
+router.route('/exams/:examId')
+    .put(verifyToken, routineModificationPermission, edit_exam)
+    .delete(verifyToken, routineModificationPermission, remove_exam);
 
 // ==========================================
 // 🎯 SPECIFIC ROUTINE ACTIONS

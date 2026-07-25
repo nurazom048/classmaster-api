@@ -43,10 +43,12 @@ model RoutineMember {
 model Routine {
     id             String          @id @default(uuid()) // Unique identifier for the routine
     routineName    String // Name of the routine
+    routineType    RoutineType     @default(CLASS) // Polymorphic routine type: CLASS or EXAM
     routineOwner   Account         @relation("AccountCreatedRoutines", fields: [ownerAccountId], references: [id]) // Relation to the account who created the routine
     ownerAccountId String // ID of the account that created the routine
     routineMembers RoutineMember[] @relation("RoutineMembers") // Members of the routine
     classes        Class[]         @relation("RoutineClasses") // Classes associated with the routine
+    exams          Exam[]          @relation("RoutineExams") // Exams associated with the routine
     weekdays       Weekday[]       @relation("RoutineWeekdays") // Weekdays associated with the routine
     createdAt      DateTime        @default(now()) // Timestamp when the routine was created
     updatedAt      DateTime        @updatedAt // Timestamp when the routine was last updated
@@ -70,6 +72,21 @@ model Class {
     Summary        Summary[] @relation("classSummary")
 }
 
+model Exam {
+    id          String    @id @default(uuid()) // Primary key
+    name        String    // Exam / Subject Name (e.g. Bangla, English)
+    subjectCode String?   // Optional subject code
+    date        DateTime  // Date of exam
+    startTime   DateTime  // Start time
+    endTime     DateTime  // End time
+    room        String    // Room number e.g. "205"
+    routineId   String    // Foreign key to Routine
+    routine     Routine   @relation("RoutineExams", fields: [routineId], references: [id], onDelete: Cascade)
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    Summary     Summary[] @relation("examSummary")
+}
+
 model Summary {
     id                   String                @id @default(uuid())
     ownerId              String
@@ -77,7 +94,8 @@ model Summary {
     imageLinks           String[]
     imageStorageProvider StorageProvider?
     routineId            String
-    classId              String
+    classId              String?
+    examId               String?
     autoDeleteAt         DateTime
     createdAt            DateTime              @default(now())
     updatedAt            DateTime              @updatedAt
@@ -90,7 +108,8 @@ model Summary {
     // Relations
     owner          Account  @relation("createdSummary", fields: [ownerId], references: [id], onDelete: Cascade)
     routine        Routine  @relation("RoutinesSummary", fields: [routineId], references: [id], onDelete: Cascade)
-    class          Class    @relation("classSummary", fields: [classId], references: [id], onDelete: Cascade)
+    class          Class?   @relation("classSummary", fields: [classId], references: [id], onDelete: Cascade)
+    exam           Exam?    @relation("examSummary", fields: [examId], references: [id], onDelete: Cascade)
     Account        Account? @relation("savedSummary", fields: [savedAccountId], references: [id])
     savedAccountId String?
 }

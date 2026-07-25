@@ -79,6 +79,11 @@ export type Routine = $Result.DefaultSelection<Prisma.$RoutinePayload>
  */
 export type Class = $Result.DefaultSelection<Prisma.$ClassPayload>
 /**
+ * Model Exam
+ * 
+ */
+export type Exam = $Result.DefaultSelection<Prisma.$ExamPayload>
+/**
  * Model Summary
  * 
  */
@@ -108,6 +113,14 @@ export const StorageProvider: {
 export type StorageProvider = (typeof StorageProvider)[keyof typeof StorageProvider]
 
 
+export const RoutineType: {
+  CLASS: 'CLASS',
+  EXAM: 'EXAM'
+};
+
+export type RoutineType = (typeof RoutineType)[keyof typeof RoutineType]
+
+
 export const Day: {
   sat: 'sat',
   sun: 'sun',
@@ -133,6 +146,10 @@ export type NoticeCategory = (typeof NoticeCategory)[keyof typeof NoticeCategory
 
 export const SummaryType: {
   TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  AUDIO: 'AUDIO',
+  DOCUMENT: 'DOCUMENT',
   MEDIA: 'MEDIA',
   POLL: 'POLL',
   SYSTEM: 'SYSTEM'
@@ -157,6 +174,10 @@ export const AccountType: typeof $Enums.AccountType
 export type StorageProvider = $Enums.StorageProvider
 
 export const StorageProvider: typeof $Enums.StorageProvider
+
+export type RoutineType = $Enums.RoutineType
+
+export const RoutineType: typeof $Enums.RoutineType
 
 export type Day = $Enums.Day
 
@@ -426,6 +447,16 @@ export class PrismaClient<
     * ```
     */
   get class(): Prisma.ClassDelegate<ExtArgs>;
+
+  /**
+   * `prisma.exam`: Exposes CRUD operations for the **Exam** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Exams
+    * const exams = await prisma.exam.findMany()
+    * ```
+    */
+  get exam(): Prisma.ExamDelegate<ExtArgs>;
 
   /**
    * `prisma.summary`: Exposes CRUD operations for the **Summary** model.
@@ -889,6 +920,7 @@ export namespace Prisma {
     RoutineMember: 'RoutineMember',
     Routine: 'Routine',
     Class: 'Class',
+    Exam: 'Exam',
     Summary: 'Summary'
   };
 
@@ -905,7 +937,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "accountData" | "account" | "address" | "noticeBoardMember" | "notice" | "rePublish" | "notification" | "pendingAccount" | "routinesJoinRequest" | "weekday" | "routineMember" | "routine" | "class" | "summary"
+      modelProps: "accountData" | "account" | "address" | "noticeBoardMember" | "notice" | "rePublish" | "notification" | "pendingAccount" | "routinesJoinRequest" | "weekday" | "routineMember" | "routine" | "class" | "exam" | "summary"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1819,6 +1851,76 @@ export namespace Prisma {
           }
         }
       }
+      Exam: {
+        payload: Prisma.$ExamPayload<ExtArgs>
+        fields: Prisma.ExamFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ExamFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ExamFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>
+          }
+          findFirst: {
+            args: Prisma.ExamFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ExamFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>
+          }
+          findMany: {
+            args: Prisma.ExamFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>[]
+          }
+          create: {
+            args: Prisma.ExamCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>
+          }
+          createMany: {
+            args: Prisma.ExamCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ExamCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>[]
+          }
+          delete: {
+            args: Prisma.ExamDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>
+          }
+          update: {
+            args: Prisma.ExamUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>
+          }
+          deleteMany: {
+            args: Prisma.ExamDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ExamUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ExamUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExamPayload>
+          }
+          aggregate: {
+            args: Prisma.ExamAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateExam>
+          }
+          groupBy: {
+            args: Prisma.ExamGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ExamGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ExamCountArgs<ExtArgs>
+            result: $Utils.Optional<ExamCountAggregateOutputType> | number
+          }
+        }
+      }
       Summary: {
         payload: Prisma.$SummaryPayload<ExtArgs>
         fields: Prisma.SummaryFieldRefs
@@ -2186,6 +2288,7 @@ export namespace Prisma {
   export type RoutineCountOutputType = {
     routineMembers: number
     classes: number
+    exams: number
     weekdays: number
     savedBy: number
     RoutinesJoinRequest: number
@@ -2195,6 +2298,7 @@ export namespace Prisma {
   export type RoutineCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     routineMembers?: boolean | RoutineCountOutputTypeCountRoutineMembersArgs
     classes?: boolean | RoutineCountOutputTypeCountClassesArgs
+    exams?: boolean | RoutineCountOutputTypeCountExamsArgs
     weekdays?: boolean | RoutineCountOutputTypeCountWeekdaysArgs
     savedBy?: boolean | RoutineCountOutputTypeCountSavedByArgs
     RoutinesJoinRequest?: boolean | RoutineCountOutputTypeCountRoutinesJoinRequestArgs
@@ -2224,6 +2328,13 @@ export namespace Prisma {
    */
   export type RoutineCountOutputTypeCountClassesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ClassWhereInput
+  }
+
+  /**
+   * RoutineCountOutputType without action
+   */
+  export type RoutineCountOutputTypeCountExamsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ExamWhereInput
   }
 
   /**
@@ -2291,6 +2402,37 @@ export namespace Prisma {
    * ClassCountOutputType without action
    */
   export type ClassCountOutputTypeCountSummaryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SummaryWhereInput
+  }
+
+
+  /**
+   * Count Type ExamCountOutputType
+   */
+
+  export type ExamCountOutputType = {
+    Summary: number
+  }
+
+  export type ExamCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    Summary?: boolean | ExamCountOutputTypeCountSummaryArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ExamCountOutputType without action
+   */
+  export type ExamCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ExamCountOutputType
+     */
+    select?: ExamCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ExamCountOutputType without action
+   */
+  export type ExamCountOutputTypeCountSummaryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SummaryWhereInput
   }
 
@@ -13316,6 +13458,7 @@ export namespace Prisma {
   export type RoutineMinAggregateOutputType = {
     id: string | null
     routineName: string | null
+    routineType: $Enums.RoutineType | null
     ownerAccountId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -13324,6 +13467,7 @@ export namespace Prisma {
   export type RoutineMaxAggregateOutputType = {
     id: string | null
     routineName: string | null
+    routineType: $Enums.RoutineType | null
     ownerAccountId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -13332,6 +13476,7 @@ export namespace Prisma {
   export type RoutineCountAggregateOutputType = {
     id: number
     routineName: number
+    routineType: number
     ownerAccountId: number
     createdAt: number
     updatedAt: number
@@ -13342,6 +13487,7 @@ export namespace Prisma {
   export type RoutineMinAggregateInputType = {
     id?: true
     routineName?: true
+    routineType?: true
     ownerAccountId?: true
     createdAt?: true
     updatedAt?: true
@@ -13350,6 +13496,7 @@ export namespace Prisma {
   export type RoutineMaxAggregateInputType = {
     id?: true
     routineName?: true
+    routineType?: true
     ownerAccountId?: true
     createdAt?: true
     updatedAt?: true
@@ -13358,6 +13505,7 @@ export namespace Prisma {
   export type RoutineCountAggregateInputType = {
     id?: true
     routineName?: true
+    routineType?: true
     ownerAccountId?: true
     createdAt?: true
     updatedAt?: true
@@ -13439,6 +13587,7 @@ export namespace Prisma {
   export type RoutineGroupByOutputType = {
     id: string
     routineName: string
+    routineType: $Enums.RoutineType
     ownerAccountId: string
     createdAt: Date
     updatedAt: Date
@@ -13464,12 +13613,14 @@ export namespace Prisma {
   export type RoutineSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     routineName?: boolean
+    routineType?: boolean
     ownerAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     routineOwner?: boolean | AccountDefaultArgs<ExtArgs>
     routineMembers?: boolean | Routine$routineMembersArgs<ExtArgs>
     classes?: boolean | Routine$classesArgs<ExtArgs>
+    exams?: boolean | Routine$examsArgs<ExtArgs>
     weekdays?: boolean | Routine$weekdaysArgs<ExtArgs>
     savedBy?: boolean | Routine$savedByArgs<ExtArgs>
     RoutinesJoinRequest?: boolean | Routine$RoutinesJoinRequestArgs<ExtArgs>
@@ -13480,6 +13631,7 @@ export namespace Prisma {
   export type RoutineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     routineName?: boolean
+    routineType?: boolean
     ownerAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -13489,6 +13641,7 @@ export namespace Prisma {
   export type RoutineSelectScalar = {
     id?: boolean
     routineName?: boolean
+    routineType?: boolean
     ownerAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -13498,6 +13651,7 @@ export namespace Prisma {
     routineOwner?: boolean | AccountDefaultArgs<ExtArgs>
     routineMembers?: boolean | Routine$routineMembersArgs<ExtArgs>
     classes?: boolean | Routine$classesArgs<ExtArgs>
+    exams?: boolean | Routine$examsArgs<ExtArgs>
     weekdays?: boolean | Routine$weekdaysArgs<ExtArgs>
     savedBy?: boolean | Routine$savedByArgs<ExtArgs>
     RoutinesJoinRequest?: boolean | Routine$RoutinesJoinRequestArgs<ExtArgs>
@@ -13514,6 +13668,7 @@ export namespace Prisma {
       routineOwner: Prisma.$AccountPayload<ExtArgs>
       routineMembers: Prisma.$RoutineMemberPayload<ExtArgs>[]
       classes: Prisma.$ClassPayload<ExtArgs>[]
+      exams: Prisma.$ExamPayload<ExtArgs>[]
       weekdays: Prisma.$WeekdayPayload<ExtArgs>[]
       savedBy: Prisma.$AccountPayload<ExtArgs>[]
       RoutinesJoinRequest: Prisma.$RoutinesJoinRequestPayload<ExtArgs>[]
@@ -13522,6 +13677,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       routineName: string
+      routineType: $Enums.RoutineType
       ownerAccountId: string
       createdAt: Date
       updatedAt: Date
@@ -13892,6 +14048,7 @@ export namespace Prisma {
     routineOwner<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     routineMembers<T extends Routine$routineMembersArgs<ExtArgs> = {}>(args?: Subset<T, Routine$routineMembersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoutineMemberPayload<ExtArgs>, T, "findMany"> | Null>
     classes<T extends Routine$classesArgs<ExtArgs> = {}>(args?: Subset<T, Routine$classesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClassPayload<ExtArgs>, T, "findMany"> | Null>
+    exams<T extends Routine$examsArgs<ExtArgs> = {}>(args?: Subset<T, Routine$examsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "findMany"> | Null>
     weekdays<T extends Routine$weekdaysArgs<ExtArgs> = {}>(args?: Subset<T, Routine$weekdaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WeekdayPayload<ExtArgs>, T, "findMany"> | Null>
     savedBy<T extends Routine$savedByArgs<ExtArgs> = {}>(args?: Subset<T, Routine$savedByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany"> | Null>
     RoutinesJoinRequest<T extends Routine$RoutinesJoinRequestArgs<ExtArgs> = {}>(args?: Subset<T, Routine$RoutinesJoinRequestArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoutinesJoinRequestPayload<ExtArgs>, T, "findMany"> | Null>
@@ -13927,6 +14084,7 @@ export namespace Prisma {
   interface RoutineFieldRefs {
     readonly id: FieldRef<"Routine", 'String'>
     readonly routineName: FieldRef<"Routine", 'String'>
+    readonly routineType: FieldRef<"Routine", 'RoutineType'>
     readonly ownerAccountId: FieldRef<"Routine", 'String'>
     readonly createdAt: FieldRef<"Routine", 'DateTime'>
     readonly updatedAt: FieldRef<"Routine", 'DateTime'>
@@ -14285,6 +14443,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ClassScalarFieldEnum | ClassScalarFieldEnum[]
+  }
+
+  /**
+   * Routine.exams
+   */
+  export type Routine$examsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    where?: ExamWhereInput
+    orderBy?: ExamOrderByWithRelationInput | ExamOrderByWithRelationInput[]
+    cursor?: ExamWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ExamScalarFieldEnum | ExamScalarFieldEnum[]
   }
 
   /**
@@ -15390,6 +15568,1025 @@ export namespace Prisma {
 
 
   /**
+   * Model Exam
+   */
+
+  export type AggregateExam = {
+    _count: ExamCountAggregateOutputType | null
+    _min: ExamMinAggregateOutputType | null
+    _max: ExamMaxAggregateOutputType | null
+  }
+
+  export type ExamMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    subjectCode: string | null
+    date: Date | null
+    startTime: Date | null
+    endTime: Date | null
+    room: string | null
+    routineId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ExamMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    subjectCode: string | null
+    date: Date | null
+    startTime: Date | null
+    endTime: Date | null
+    room: string | null
+    routineId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ExamCountAggregateOutputType = {
+    id: number
+    name: number
+    subjectCode: number
+    date: number
+    startTime: number
+    endTime: number
+    room: number
+    routineId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ExamMinAggregateInputType = {
+    id?: true
+    name?: true
+    subjectCode?: true
+    date?: true
+    startTime?: true
+    endTime?: true
+    room?: true
+    routineId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ExamMaxAggregateInputType = {
+    id?: true
+    name?: true
+    subjectCode?: true
+    date?: true
+    startTime?: true
+    endTime?: true
+    room?: true
+    routineId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ExamCountAggregateInputType = {
+    id?: true
+    name?: true
+    subjectCode?: true
+    date?: true
+    startTime?: true
+    endTime?: true
+    room?: true
+    routineId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ExamAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Exam to aggregate.
+     */
+    where?: ExamWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Exams to fetch.
+     */
+    orderBy?: ExamOrderByWithRelationInput | ExamOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ExamWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Exams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Exams.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Exams
+    **/
+    _count?: true | ExamCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ExamMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ExamMaxAggregateInputType
+  }
+
+  export type GetExamAggregateType<T extends ExamAggregateArgs> = {
+        [P in keyof T & keyof AggregateExam]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateExam[P]>
+      : GetScalarType<T[P], AggregateExam[P]>
+  }
+
+
+
+
+  export type ExamGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ExamWhereInput
+    orderBy?: ExamOrderByWithAggregationInput | ExamOrderByWithAggregationInput[]
+    by: ExamScalarFieldEnum[] | ExamScalarFieldEnum
+    having?: ExamScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ExamCountAggregateInputType | true
+    _min?: ExamMinAggregateInputType
+    _max?: ExamMaxAggregateInputType
+  }
+
+  export type ExamGroupByOutputType = {
+    id: string
+    name: string
+    subjectCode: string | null
+    date: Date
+    startTime: Date
+    endTime: Date
+    room: string
+    routineId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: ExamCountAggregateOutputType | null
+    _min: ExamMinAggregateOutputType | null
+    _max: ExamMaxAggregateOutputType | null
+  }
+
+  type GetExamGroupByPayload<T extends ExamGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ExamGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ExamGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ExamGroupByOutputType[P]>
+            : GetScalarType<T[P], ExamGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ExamSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    subjectCode?: boolean
+    date?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    room?: boolean
+    routineId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    routine?: boolean | RoutineDefaultArgs<ExtArgs>
+    Summary?: boolean | Exam$SummaryArgs<ExtArgs>
+    _count?: boolean | ExamCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["exam"]>
+
+  export type ExamSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    subjectCode?: boolean
+    date?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    room?: boolean
+    routineId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    routine?: boolean | RoutineDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["exam"]>
+
+  export type ExamSelectScalar = {
+    id?: boolean
+    name?: boolean
+    subjectCode?: boolean
+    date?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    room?: boolean
+    routineId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ExamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    routine?: boolean | RoutineDefaultArgs<ExtArgs>
+    Summary?: boolean | Exam$SummaryArgs<ExtArgs>
+    _count?: boolean | ExamCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ExamIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    routine?: boolean | RoutineDefaultArgs<ExtArgs>
+  }
+
+  export type $ExamPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Exam"
+    objects: {
+      routine: Prisma.$RoutinePayload<ExtArgs>
+      Summary: Prisma.$SummaryPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      subjectCode: string | null
+      date: Date
+      startTime: Date
+      endTime: Date
+      room: string
+      routineId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["exam"]>
+    composites: {}
+  }
+
+  type ExamGetPayload<S extends boolean | null | undefined | ExamDefaultArgs> = $Result.GetResult<Prisma.$ExamPayload, S>
+
+  type ExamCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ExamFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ExamCountAggregateInputType | true
+    }
+
+  export interface ExamDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Exam'], meta: { name: 'Exam' } }
+    /**
+     * Find zero or one Exam that matches the filter.
+     * @param {ExamFindUniqueArgs} args - Arguments to find a Exam
+     * @example
+     * // Get one Exam
+     * const exam = await prisma.exam.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ExamFindUniqueArgs>(args: SelectSubset<T, ExamFindUniqueArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Exam that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ExamFindUniqueOrThrowArgs} args - Arguments to find a Exam
+     * @example
+     * // Get one Exam
+     * const exam = await prisma.exam.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ExamFindUniqueOrThrowArgs>(args: SelectSubset<T, ExamFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Exam that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ExamFindFirstArgs} args - Arguments to find a Exam
+     * @example
+     * // Get one Exam
+     * const exam = await prisma.exam.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ExamFindFirstArgs>(args?: SelectSubset<T, ExamFindFirstArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Exam that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ExamFindFirstOrThrowArgs} args - Arguments to find a Exam
+     * @example
+     * // Get one Exam
+     * const exam = await prisma.exam.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ExamFindFirstOrThrowArgs>(args?: SelectSubset<T, ExamFindFirstOrThrowArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Exams that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ExamFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Exams
+     * const exams = await prisma.exam.findMany()
+     * 
+     * // Get first 10 Exams
+     * const exams = await prisma.exam.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const examWithIdOnly = await prisma.exam.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ExamFindManyArgs>(args?: SelectSubset<T, ExamFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Exam.
+     * @param {ExamCreateArgs} args - Arguments to create a Exam.
+     * @example
+     * // Create one Exam
+     * const Exam = await prisma.exam.create({
+     *   data: {
+     *     // ... data to create a Exam
+     *   }
+     * })
+     * 
+     */
+    create<T extends ExamCreateArgs>(args: SelectSubset<T, ExamCreateArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Exams.
+     * @param {ExamCreateManyArgs} args - Arguments to create many Exams.
+     * @example
+     * // Create many Exams
+     * const exam = await prisma.exam.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ExamCreateManyArgs>(args?: SelectSubset<T, ExamCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Exams and returns the data saved in the database.
+     * @param {ExamCreateManyAndReturnArgs} args - Arguments to create many Exams.
+     * @example
+     * // Create many Exams
+     * const exam = await prisma.exam.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Exams and only return the `id`
+     * const examWithIdOnly = await prisma.exam.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ExamCreateManyAndReturnArgs>(args?: SelectSubset<T, ExamCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Exam.
+     * @param {ExamDeleteArgs} args - Arguments to delete one Exam.
+     * @example
+     * // Delete one Exam
+     * const Exam = await prisma.exam.delete({
+     *   where: {
+     *     // ... filter to delete one Exam
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ExamDeleteArgs>(args: SelectSubset<T, ExamDeleteArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Exam.
+     * @param {ExamUpdateArgs} args - Arguments to update one Exam.
+     * @example
+     * // Update one Exam
+     * const exam = await prisma.exam.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ExamUpdateArgs>(args: SelectSubset<T, ExamUpdateArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Exams.
+     * @param {ExamDeleteManyArgs} args - Arguments to filter Exams to delete.
+     * @example
+     * // Delete a few Exams
+     * const { count } = await prisma.exam.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ExamDeleteManyArgs>(args?: SelectSubset<T, ExamDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Exams.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ExamUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Exams
+     * const exam = await prisma.exam.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ExamUpdateManyArgs>(args: SelectSubset<T, ExamUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Exam.
+     * @param {ExamUpsertArgs} args - Arguments to update or create a Exam.
+     * @example
+     * // Update or create a Exam
+     * const exam = await prisma.exam.upsert({
+     *   create: {
+     *     // ... data to create a Exam
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Exam we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ExamUpsertArgs>(args: SelectSubset<T, ExamUpsertArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Exams.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ExamCountArgs} args - Arguments to filter Exams to count.
+     * @example
+     * // Count the number of Exams
+     * const count = await prisma.exam.count({
+     *   where: {
+     *     // ... the filter for the Exams we want to count
+     *   }
+     * })
+    **/
+    count<T extends ExamCountArgs>(
+      args?: Subset<T, ExamCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ExamCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Exam.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ExamAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ExamAggregateArgs>(args: Subset<T, ExamAggregateArgs>): Prisma.PrismaPromise<GetExamAggregateType<T>>
+
+    /**
+     * Group by Exam.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ExamGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ExamGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ExamGroupByArgs['orderBy'] }
+        : { orderBy?: ExamGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ExamGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetExamGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Exam model
+   */
+  readonly fields: ExamFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Exam.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ExamClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    routine<T extends RoutineDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RoutineDefaultArgs<ExtArgs>>): Prisma__RoutineClient<$Result.GetResult<Prisma.$RoutinePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    Summary<T extends Exam$SummaryArgs<ExtArgs> = {}>(args?: Subset<T, Exam$SummaryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SummaryPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Exam model
+   */ 
+  interface ExamFieldRefs {
+    readonly id: FieldRef<"Exam", 'String'>
+    readonly name: FieldRef<"Exam", 'String'>
+    readonly subjectCode: FieldRef<"Exam", 'String'>
+    readonly date: FieldRef<"Exam", 'DateTime'>
+    readonly startTime: FieldRef<"Exam", 'DateTime'>
+    readonly endTime: FieldRef<"Exam", 'DateTime'>
+    readonly room: FieldRef<"Exam", 'String'>
+    readonly routineId: FieldRef<"Exam", 'String'>
+    readonly createdAt: FieldRef<"Exam", 'DateTime'>
+    readonly updatedAt: FieldRef<"Exam", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Exam findUnique
+   */
+  export type ExamFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * Filter, which Exam to fetch.
+     */
+    where: ExamWhereUniqueInput
+  }
+
+  /**
+   * Exam findUniqueOrThrow
+   */
+  export type ExamFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * Filter, which Exam to fetch.
+     */
+    where: ExamWhereUniqueInput
+  }
+
+  /**
+   * Exam findFirst
+   */
+  export type ExamFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * Filter, which Exam to fetch.
+     */
+    where?: ExamWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Exams to fetch.
+     */
+    orderBy?: ExamOrderByWithRelationInput | ExamOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Exams.
+     */
+    cursor?: ExamWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Exams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Exams.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Exams.
+     */
+    distinct?: ExamScalarFieldEnum | ExamScalarFieldEnum[]
+  }
+
+  /**
+   * Exam findFirstOrThrow
+   */
+  export type ExamFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * Filter, which Exam to fetch.
+     */
+    where?: ExamWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Exams to fetch.
+     */
+    orderBy?: ExamOrderByWithRelationInput | ExamOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Exams.
+     */
+    cursor?: ExamWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Exams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Exams.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Exams.
+     */
+    distinct?: ExamScalarFieldEnum | ExamScalarFieldEnum[]
+  }
+
+  /**
+   * Exam findMany
+   */
+  export type ExamFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * Filter, which Exams to fetch.
+     */
+    where?: ExamWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Exams to fetch.
+     */
+    orderBy?: ExamOrderByWithRelationInput | ExamOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Exams.
+     */
+    cursor?: ExamWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Exams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Exams.
+     */
+    skip?: number
+    distinct?: ExamScalarFieldEnum | ExamScalarFieldEnum[]
+  }
+
+  /**
+   * Exam create
+   */
+  export type ExamCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Exam.
+     */
+    data: XOR<ExamCreateInput, ExamUncheckedCreateInput>
+  }
+
+  /**
+   * Exam createMany
+   */
+  export type ExamCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Exams.
+     */
+    data: ExamCreateManyInput | ExamCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Exam createManyAndReturn
+   */
+  export type ExamCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Exams.
+     */
+    data: ExamCreateManyInput | ExamCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Exam update
+   */
+  export type ExamUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Exam.
+     */
+    data: XOR<ExamUpdateInput, ExamUncheckedUpdateInput>
+    /**
+     * Choose, which Exam to update.
+     */
+    where: ExamWhereUniqueInput
+  }
+
+  /**
+   * Exam updateMany
+   */
+  export type ExamUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Exams.
+     */
+    data: XOR<ExamUpdateManyMutationInput, ExamUncheckedUpdateManyInput>
+    /**
+     * Filter which Exams to update
+     */
+    where?: ExamWhereInput
+  }
+
+  /**
+   * Exam upsert
+   */
+  export type ExamUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Exam to update in case it exists.
+     */
+    where: ExamWhereUniqueInput
+    /**
+     * In case the Exam found by the `where` argument doesn't exist, create a new Exam with this data.
+     */
+    create: XOR<ExamCreateInput, ExamUncheckedCreateInput>
+    /**
+     * In case the Exam was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ExamUpdateInput, ExamUncheckedUpdateInput>
+  }
+
+  /**
+   * Exam delete
+   */
+  export type ExamDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    /**
+     * Filter which Exam to delete.
+     */
+    where: ExamWhereUniqueInput
+  }
+
+  /**
+   * Exam deleteMany
+   */
+  export type ExamDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Exams to delete
+     */
+    where?: ExamWhereInput
+  }
+
+  /**
+   * Exam.Summary
+   */
+  export type Exam$SummaryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Summary
+     */
+    select?: SummarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SummaryInclude<ExtArgs> | null
+    where?: SummaryWhereInput
+    orderBy?: SummaryOrderByWithRelationInput | SummaryOrderByWithRelationInput[]
+    cursor?: SummaryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SummaryScalarFieldEnum | SummaryScalarFieldEnum[]
+  }
+
+  /**
+   * Exam without action
+   */
+  export type ExamDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Summary
    */
 
@@ -15406,6 +16603,7 @@ export namespace Prisma {
     imageStorageProvider: $Enums.StorageProvider | null
     routineId: string | null
     classId: string | null
+    examId: string | null
     autoDeleteAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -15421,6 +16619,7 @@ export namespace Prisma {
     imageStorageProvider: $Enums.StorageProvider | null
     routineId: string | null
     classId: string | null
+    examId: string | null
     autoDeleteAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -15437,6 +16636,7 @@ export namespace Prisma {
     imageStorageProvider: number
     routineId: number
     classId: number
+    examId: number
     autoDeleteAt: number
     createdAt: number
     updatedAt: number
@@ -15455,6 +16655,7 @@ export namespace Prisma {
     imageStorageProvider?: true
     routineId?: true
     classId?: true
+    examId?: true
     autoDeleteAt?: true
     createdAt?: true
     updatedAt?: true
@@ -15470,6 +16671,7 @@ export namespace Prisma {
     imageStorageProvider?: true
     routineId?: true
     classId?: true
+    examId?: true
     autoDeleteAt?: true
     createdAt?: true
     updatedAt?: true
@@ -15486,6 +16688,7 @@ export namespace Prisma {
     imageStorageProvider?: true
     routineId?: true
     classId?: true
+    examId?: true
     autoDeleteAt?: true
     createdAt?: true
     updatedAt?: true
@@ -15575,7 +16778,8 @@ export namespace Prisma {
     imageLinks: string[]
     imageStorageProvider: $Enums.StorageProvider | null
     routineId: string
-    classId: string
+    classId: string | null
+    examId: string | null
     autoDeleteAt: Date
     createdAt: Date
     updatedAt: Date
@@ -15610,6 +16814,7 @@ export namespace Prisma {
     imageStorageProvider?: boolean
     routineId?: boolean
     classId?: boolean
+    examId?: boolean
     autoDeleteAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -15619,7 +16824,8 @@ export namespace Prisma {
     savedAccountId?: boolean
     owner?: boolean | AccountDefaultArgs<ExtArgs>
     routine?: boolean | RoutineDefaultArgs<ExtArgs>
-    class?: boolean | ClassDefaultArgs<ExtArgs>
+    class?: boolean | Summary$classArgs<ExtArgs>
+    exam?: boolean | Summary$examArgs<ExtArgs>
     Account?: boolean | Summary$AccountArgs<ExtArgs>
   }, ExtArgs["result"]["summary"]>
 
@@ -15631,6 +16837,7 @@ export namespace Prisma {
     imageStorageProvider?: boolean
     routineId?: boolean
     classId?: boolean
+    examId?: boolean
     autoDeleteAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -15640,7 +16847,8 @@ export namespace Prisma {
     savedAccountId?: boolean
     owner?: boolean | AccountDefaultArgs<ExtArgs>
     routine?: boolean | RoutineDefaultArgs<ExtArgs>
-    class?: boolean | ClassDefaultArgs<ExtArgs>
+    class?: boolean | Summary$classArgs<ExtArgs>
+    exam?: boolean | Summary$examArgs<ExtArgs>
     Account?: boolean | Summary$AccountArgs<ExtArgs>
   }, ExtArgs["result"]["summary"]>
 
@@ -15652,6 +16860,7 @@ export namespace Prisma {
     imageStorageProvider?: boolean
     routineId?: boolean
     classId?: boolean
+    examId?: boolean
     autoDeleteAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -15664,13 +16873,15 @@ export namespace Prisma {
   export type SummaryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | AccountDefaultArgs<ExtArgs>
     routine?: boolean | RoutineDefaultArgs<ExtArgs>
-    class?: boolean | ClassDefaultArgs<ExtArgs>
+    class?: boolean | Summary$classArgs<ExtArgs>
+    exam?: boolean | Summary$examArgs<ExtArgs>
     Account?: boolean | Summary$AccountArgs<ExtArgs>
   }
   export type SummaryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | AccountDefaultArgs<ExtArgs>
     routine?: boolean | RoutineDefaultArgs<ExtArgs>
-    class?: boolean | ClassDefaultArgs<ExtArgs>
+    class?: boolean | Summary$classArgs<ExtArgs>
+    exam?: boolean | Summary$examArgs<ExtArgs>
     Account?: boolean | Summary$AccountArgs<ExtArgs>
   }
 
@@ -15679,7 +16890,8 @@ export namespace Prisma {
     objects: {
       owner: Prisma.$AccountPayload<ExtArgs>
       routine: Prisma.$RoutinePayload<ExtArgs>
-      class: Prisma.$ClassPayload<ExtArgs>
+      class: Prisma.$ClassPayload<ExtArgs> | null
+      exam: Prisma.$ExamPayload<ExtArgs> | null
       Account: Prisma.$AccountPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -15689,7 +16901,8 @@ export namespace Prisma {
       imageLinks: string[]
       imageStorageProvider: $Enums.StorageProvider | null
       routineId: string
-      classId: string
+      classId: string | null
+      examId: string | null
       autoDeleteAt: Date
       createdAt: Date
       updatedAt: Date
@@ -16063,7 +17276,8 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     owner<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     routine<T extends RoutineDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RoutineDefaultArgs<ExtArgs>>): Prisma__RoutineClient<$Result.GetResult<Prisma.$RoutinePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    class<T extends ClassDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ClassDefaultArgs<ExtArgs>>): Prisma__ClassClient<$Result.GetResult<Prisma.$ClassPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    class<T extends Summary$classArgs<ExtArgs> = {}>(args?: Subset<T, Summary$classArgs<ExtArgs>>): Prisma__ClassClient<$Result.GetResult<Prisma.$ClassPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    exam<T extends Summary$examArgs<ExtArgs> = {}>(args?: Subset<T, Summary$examArgs<ExtArgs>>): Prisma__ExamClient<$Result.GetResult<Prisma.$ExamPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     Account<T extends Summary$AccountArgs<ExtArgs> = {}>(args?: Subset<T, Summary$AccountArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -16101,6 +17315,7 @@ export namespace Prisma {
     readonly imageStorageProvider: FieldRef<"Summary", 'StorageProvider'>
     readonly routineId: FieldRef<"Summary", 'String'>
     readonly classId: FieldRef<"Summary", 'String'>
+    readonly examId: FieldRef<"Summary", 'String'>
     readonly autoDeleteAt: FieldRef<"Summary", 'DateTime'>
     readonly createdAt: FieldRef<"Summary", 'DateTime'>
     readonly updatedAt: FieldRef<"Summary", 'DateTime'>
@@ -16426,6 +17641,36 @@ export namespace Prisma {
   }
 
   /**
+   * Summary.class
+   */
+  export type Summary$classArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Class
+     */
+    select?: ClassSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ClassInclude<ExtArgs> | null
+    where?: ClassWhereInput
+  }
+
+  /**
+   * Summary.exam
+   */
+  export type Summary$examArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Exam
+     */
+    select?: ExamSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExamInclude<ExtArgs> | null
+    where?: ExamWhereInput
+  }
+
+  /**
    * Summary.Account
    */
   export type Summary$AccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -16634,6 +17879,7 @@ export namespace Prisma {
   export const RoutineScalarFieldEnum: {
     id: 'id',
     routineName: 'routineName',
+    routineType: 'routineType',
     ownerAccountId: 'ownerAccountId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -16655,6 +17901,22 @@ export namespace Prisma {
   export type ClassScalarFieldEnum = (typeof ClassScalarFieldEnum)[keyof typeof ClassScalarFieldEnum]
 
 
+  export const ExamScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    subjectCode: 'subjectCode',
+    date: 'date',
+    startTime: 'startTime',
+    endTime: 'endTime',
+    room: 'room',
+    routineId: 'routineId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ExamScalarFieldEnum = (typeof ExamScalarFieldEnum)[keyof typeof ExamScalarFieldEnum]
+
+
   export const SummaryScalarFieldEnum: {
     id: 'id',
     ownerId: 'ownerId',
@@ -16663,6 +17925,7 @@ export namespace Prisma {
     imageStorageProvider: 'imageStorageProvider',
     routineId: 'routineId',
     classId: 'classId',
+    examId: 'examId',
     autoDeleteAt: 'autoDeleteAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
@@ -16837,6 +18100,20 @@ export namespace Prisma {
    * Reference to a field of type 'Day[]'
    */
   export type ListEnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'RoutineType'
+   */
+  export type EnumRoutineTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoutineType'>
+    
+
+
+  /**
+   * Reference to a field of type 'RoutineType[]'
+   */
+  export type ListEnumRoutineTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoutineType[]'>
     
 
 
@@ -17735,12 +19012,14 @@ export namespace Prisma {
     NOT?: RoutineWhereInput | RoutineWhereInput[]
     id?: StringFilter<"Routine"> | string
     routineName?: StringFilter<"Routine"> | string
+    routineType?: EnumRoutineTypeFilter<"Routine"> | $Enums.RoutineType
     ownerAccountId?: StringFilter<"Routine"> | string
     createdAt?: DateTimeFilter<"Routine"> | Date | string
     updatedAt?: DateTimeFilter<"Routine"> | Date | string
     routineOwner?: XOR<AccountScalarRelationFilter, AccountWhereInput>
     routineMembers?: RoutineMemberListRelationFilter
     classes?: ClassListRelationFilter
+    exams?: ExamListRelationFilter
     weekdays?: WeekdayListRelationFilter
     savedBy?: AccountListRelationFilter
     RoutinesJoinRequest?: RoutinesJoinRequestListRelationFilter
@@ -17750,12 +19029,14 @@ export namespace Prisma {
   export type RoutineOrderByWithRelationInput = {
     id?: SortOrder
     routineName?: SortOrder
+    routineType?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     routineOwner?: AccountOrderByWithRelationInput
     routineMembers?: RoutineMemberOrderByRelationAggregateInput
     classes?: ClassOrderByRelationAggregateInput
+    exams?: ExamOrderByRelationAggregateInput
     weekdays?: WeekdayOrderByRelationAggregateInput
     savedBy?: AccountOrderByRelationAggregateInput
     RoutinesJoinRequest?: RoutinesJoinRequestOrderByRelationAggregateInput
@@ -17768,12 +19049,14 @@ export namespace Prisma {
     OR?: RoutineWhereInput[]
     NOT?: RoutineWhereInput | RoutineWhereInput[]
     routineName?: StringFilter<"Routine"> | string
+    routineType?: EnumRoutineTypeFilter<"Routine"> | $Enums.RoutineType
     ownerAccountId?: StringFilter<"Routine"> | string
     createdAt?: DateTimeFilter<"Routine"> | Date | string
     updatedAt?: DateTimeFilter<"Routine"> | Date | string
     routineOwner?: XOR<AccountScalarRelationFilter, AccountWhereInput>
     routineMembers?: RoutineMemberListRelationFilter
     classes?: ClassListRelationFilter
+    exams?: ExamListRelationFilter
     weekdays?: WeekdayListRelationFilter
     savedBy?: AccountListRelationFilter
     RoutinesJoinRequest?: RoutinesJoinRequestListRelationFilter
@@ -17783,6 +19066,7 @@ export namespace Prisma {
   export type RoutineOrderByWithAggregationInput = {
     id?: SortOrder
     routineName?: SortOrder
+    routineType?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -17797,6 +19081,7 @@ export namespace Prisma {
     NOT?: RoutineScalarWhereWithAggregatesInput | RoutineScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Routine"> | string
     routineName?: StringWithAggregatesFilter<"Routine"> | string
+    routineType?: EnumRoutineTypeWithAggregatesFilter<"Routine"> | $Enums.RoutineType
     ownerAccountId?: StringWithAggregatesFilter<"Routine"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Routine"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Routine"> | Date | string
@@ -17873,6 +19158,89 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Class"> | Date | string
   }
 
+  export type ExamWhereInput = {
+    AND?: ExamWhereInput | ExamWhereInput[]
+    OR?: ExamWhereInput[]
+    NOT?: ExamWhereInput | ExamWhereInput[]
+    id?: StringFilter<"Exam"> | string
+    name?: StringFilter<"Exam"> | string
+    subjectCode?: StringNullableFilter<"Exam"> | string | null
+    date?: DateTimeFilter<"Exam"> | Date | string
+    startTime?: DateTimeFilter<"Exam"> | Date | string
+    endTime?: DateTimeFilter<"Exam"> | Date | string
+    room?: StringFilter<"Exam"> | string
+    routineId?: StringFilter<"Exam"> | string
+    createdAt?: DateTimeFilter<"Exam"> | Date | string
+    updatedAt?: DateTimeFilter<"Exam"> | Date | string
+    routine?: XOR<RoutineScalarRelationFilter, RoutineWhereInput>
+    Summary?: SummaryListRelationFilter
+  }
+
+  export type ExamOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    subjectCode?: SortOrderInput | SortOrder
+    date?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    room?: SortOrder
+    routineId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    routine?: RoutineOrderByWithRelationInput
+    Summary?: SummaryOrderByRelationAggregateInput
+  }
+
+  export type ExamWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ExamWhereInput | ExamWhereInput[]
+    OR?: ExamWhereInput[]
+    NOT?: ExamWhereInput | ExamWhereInput[]
+    name?: StringFilter<"Exam"> | string
+    subjectCode?: StringNullableFilter<"Exam"> | string | null
+    date?: DateTimeFilter<"Exam"> | Date | string
+    startTime?: DateTimeFilter<"Exam"> | Date | string
+    endTime?: DateTimeFilter<"Exam"> | Date | string
+    room?: StringFilter<"Exam"> | string
+    routineId?: StringFilter<"Exam"> | string
+    createdAt?: DateTimeFilter<"Exam"> | Date | string
+    updatedAt?: DateTimeFilter<"Exam"> | Date | string
+    routine?: XOR<RoutineScalarRelationFilter, RoutineWhereInput>
+    Summary?: SummaryListRelationFilter
+  }, "id">
+
+  export type ExamOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    subjectCode?: SortOrderInput | SortOrder
+    date?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    room?: SortOrder
+    routineId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ExamCountOrderByAggregateInput
+    _max?: ExamMaxOrderByAggregateInput
+    _min?: ExamMinOrderByAggregateInput
+  }
+
+  export type ExamScalarWhereWithAggregatesInput = {
+    AND?: ExamScalarWhereWithAggregatesInput | ExamScalarWhereWithAggregatesInput[]
+    OR?: ExamScalarWhereWithAggregatesInput[]
+    NOT?: ExamScalarWhereWithAggregatesInput | ExamScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Exam"> | string
+    name?: StringWithAggregatesFilter<"Exam"> | string
+    subjectCode?: StringNullableWithAggregatesFilter<"Exam"> | string | null
+    date?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
+    startTime?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
+    endTime?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
+    room?: StringWithAggregatesFilter<"Exam"> | string
+    routineId?: StringWithAggregatesFilter<"Exam"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
+  }
+
   export type SummaryWhereInput = {
     AND?: SummaryWhereInput | SummaryWhereInput[]
     OR?: SummaryWhereInput[]
@@ -17883,7 +19251,8 @@ export namespace Prisma {
     imageLinks?: StringNullableListFilter<"Summary">
     imageStorageProvider?: EnumStorageProviderNullableFilter<"Summary"> | $Enums.StorageProvider | null
     routineId?: StringFilter<"Summary"> | string
-    classId?: StringFilter<"Summary"> | string
+    classId?: StringNullableFilter<"Summary"> | string | null
+    examId?: StringNullableFilter<"Summary"> | string | null
     autoDeleteAt?: DateTimeFilter<"Summary"> | Date | string
     createdAt?: DateTimeFilter<"Summary"> | Date | string
     updatedAt?: DateTimeFilter<"Summary"> | Date | string
@@ -17893,7 +19262,8 @@ export namespace Prisma {
     savedAccountId?: StringNullableFilter<"Summary"> | string | null
     owner?: XOR<AccountScalarRelationFilter, AccountWhereInput>
     routine?: XOR<RoutineScalarRelationFilter, RoutineWhereInput>
-    class?: XOR<ClassScalarRelationFilter, ClassWhereInput>
+    class?: XOR<ClassNullableScalarRelationFilter, ClassWhereInput> | null
+    exam?: XOR<ExamNullableScalarRelationFilter, ExamWhereInput> | null
     Account?: XOR<AccountNullableScalarRelationFilter, AccountWhereInput> | null
   }
 
@@ -17904,7 +19274,8 @@ export namespace Prisma {
     imageLinks?: SortOrder
     imageStorageProvider?: SortOrderInput | SortOrder
     routineId?: SortOrder
-    classId?: SortOrder
+    classId?: SortOrderInput | SortOrder
+    examId?: SortOrderInput | SortOrder
     autoDeleteAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -17915,6 +19286,7 @@ export namespace Prisma {
     owner?: AccountOrderByWithRelationInput
     routine?: RoutineOrderByWithRelationInput
     class?: ClassOrderByWithRelationInput
+    exam?: ExamOrderByWithRelationInput
     Account?: AccountOrderByWithRelationInput
   }
 
@@ -17928,7 +19300,8 @@ export namespace Prisma {
     imageLinks?: StringNullableListFilter<"Summary">
     imageStorageProvider?: EnumStorageProviderNullableFilter<"Summary"> | $Enums.StorageProvider | null
     routineId?: StringFilter<"Summary"> | string
-    classId?: StringFilter<"Summary"> | string
+    classId?: StringNullableFilter<"Summary"> | string | null
+    examId?: StringNullableFilter<"Summary"> | string | null
     autoDeleteAt?: DateTimeFilter<"Summary"> | Date | string
     createdAt?: DateTimeFilter<"Summary"> | Date | string
     updatedAt?: DateTimeFilter<"Summary"> | Date | string
@@ -17938,7 +19311,8 @@ export namespace Prisma {
     savedAccountId?: StringNullableFilter<"Summary"> | string | null
     owner?: XOR<AccountScalarRelationFilter, AccountWhereInput>
     routine?: XOR<RoutineScalarRelationFilter, RoutineWhereInput>
-    class?: XOR<ClassScalarRelationFilter, ClassWhereInput>
+    class?: XOR<ClassNullableScalarRelationFilter, ClassWhereInput> | null
+    exam?: XOR<ExamNullableScalarRelationFilter, ExamWhereInput> | null
     Account?: XOR<AccountNullableScalarRelationFilter, AccountWhereInput> | null
   }, "id">
 
@@ -17949,7 +19323,8 @@ export namespace Prisma {
     imageLinks?: SortOrder
     imageStorageProvider?: SortOrderInput | SortOrder
     routineId?: SortOrder
-    classId?: SortOrder
+    classId?: SortOrderInput | SortOrder
+    examId?: SortOrderInput | SortOrder
     autoDeleteAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -17972,7 +19347,8 @@ export namespace Prisma {
     imageLinks?: StringNullableListFilter<"Summary">
     imageStorageProvider?: EnumStorageProviderNullableWithAggregatesFilter<"Summary"> | $Enums.StorageProvider | null
     routineId?: StringWithAggregatesFilter<"Summary"> | string
-    classId?: StringWithAggregatesFilter<"Summary"> | string
+    classId?: StringNullableWithAggregatesFilter<"Summary"> | string | null
+    examId?: StringNullableWithAggregatesFilter<"Summary"> | string | null
     autoDeleteAt?: DateTimeWithAggregatesFilter<"Summary"> | Date | string
     createdAt?: DateTimeWithAggregatesFilter<"Summary"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Summary"> | Date | string
@@ -18924,11 +20300,13 @@ export namespace Prisma {
   export type RoutineCreateInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
     classes?: ClassCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
     savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
@@ -18938,11 +20316,13 @@ export namespace Prisma {
   export type RoutineUncheckedCreateInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
     classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
     savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
@@ -18952,11 +20332,13 @@ export namespace Prisma {
   export type RoutineUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
     classes?: ClassUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
@@ -18966,11 +20348,13 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
     classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
@@ -18980,6 +20364,7 @@ export namespace Prisma {
   export type RoutineCreateManyInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -18988,6 +20373,7 @@ export namespace Prisma {
   export type RoutineUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -18995,6 +20381,7 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19077,6 +20464,100 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ExamCreateInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    routine: RoutineCreateNestedOneWithoutExamsInput
+    Summary?: SummaryCreateNestedManyWithoutExamInput
+  }
+
+  export type ExamUncheckedCreateInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    routineId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    Summary?: SummaryUncheckedCreateNestedManyWithoutExamInput
+  }
+
+  export type ExamUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    routine?: RoutineUpdateOneRequiredWithoutExamsNestedInput
+    Summary?: SummaryUpdateManyWithoutExamNestedInput
+  }
+
+  export type ExamUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    routineId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Summary?: SummaryUncheckedUpdateManyWithoutExamNestedInput
+  }
+
+  export type ExamCreateManyInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    routineId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ExamUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ExamUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    routineId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type SummaryCreateInput = {
     id?: string
     text: string
@@ -19090,7 +20571,8 @@ export namespace Prisma {
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner: AccountCreateNestedOneWithoutSummaryInput
     routine: RoutineCreateNestedOneWithoutSummaryInput
-    class: ClassCreateNestedOneWithoutSummaryInput
+    class?: ClassCreateNestedOneWithoutSummaryInput
+    exam?: ExamCreateNestedOneWithoutSummaryInput
     Account?: AccountCreateNestedOneWithoutSaveSummaryInput
   }
 
@@ -19101,7 +20583,8 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -19124,7 +20607,8 @@ export namespace Prisma {
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner?: AccountUpdateOneRequiredWithoutSummaryNestedInput
     routine?: RoutineUpdateOneRequiredWithoutSummaryNestedInput
-    class?: ClassUpdateOneRequiredWithoutSummaryNestedInput
+    class?: ClassUpdateOneWithoutSummaryNestedInput
+    exam?: ExamUpdateOneWithoutSummaryNestedInput
     Account?: AccountUpdateOneWithoutSaveSummaryNestedInput
   }
 
@@ -19135,7 +20619,8 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19152,7 +20637,8 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -19182,7 +20668,8 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19946,10 +21433,23 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type EnumRoutineTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RoutineType | EnumRoutineTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoutineTypeFilter<$PrismaModel> | $Enums.RoutineType
+  }
+
   export type ClassListRelationFilter = {
     every?: ClassWhereInput
     some?: ClassWhereInput
     none?: ClassWhereInput
+  }
+
+  export type ExamListRelationFilter = {
+    every?: ExamWhereInput
+    some?: ExamWhereInput
+    none?: ExamWhereInput
   }
 
   export type WeekdayListRelationFilter = {
@@ -19968,6 +21468,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type ExamOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type WeekdayOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -19979,6 +21483,7 @@ export namespace Prisma {
   export type RoutineCountOrderByAggregateInput = {
     id?: SortOrder
     routineName?: SortOrder
+    routineType?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -19987,6 +21492,7 @@ export namespace Prisma {
   export type RoutineMaxOrderByAggregateInput = {
     id?: SortOrder
     routineName?: SortOrder
+    routineType?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -19995,9 +21501,20 @@ export namespace Prisma {
   export type RoutineMinOrderByAggregateInput = {
     id?: SortOrder
     routineName?: SortOrder
+    routineType?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type EnumRoutineTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RoutineType | EnumRoutineTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoutineTypeWithAggregatesFilter<$PrismaModel> | $Enums.RoutineType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoutineTypeFilter<$PrismaModel>
+    _max?: NestedEnumRoutineTypeFilter<$PrismaModel>
   }
 
   export type ClassCountOrderByAggregateInput = {
@@ -20025,6 +21542,45 @@ export namespace Prisma {
     name?: SortOrder
     instructorName?: SortOrder
     subjectCode?: SortOrder
+    routineId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ExamCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    subjectCode?: SortOrder
+    date?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    room?: SortOrder
+    routineId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ExamMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    subjectCode?: SortOrder
+    date?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    room?: SortOrder
+    routineId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ExamMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    subjectCode?: SortOrder
+    date?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    room?: SortOrder
     routineId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -20059,6 +21615,16 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type ClassNullableScalarRelationFilter = {
+    is?: ClassWhereInput | null
+    isNot?: ClassWhereInput | null
+  }
+
+  export type ExamNullableScalarRelationFilter = {
+    is?: ExamWhereInput | null
+    isNot?: ExamWhereInput | null
+  }
+
   export type SummaryCountOrderByAggregateInput = {
     id?: SortOrder
     ownerId?: SortOrder
@@ -20067,6 +21633,7 @@ export namespace Prisma {
     imageStorageProvider?: SortOrder
     routineId?: SortOrder
     classId?: SortOrder
+    examId?: SortOrder
     autoDeleteAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -20083,6 +21650,7 @@ export namespace Prisma {
     imageStorageProvider?: SortOrder
     routineId?: SortOrder
     classId?: SortOrder
+    examId?: SortOrder
     autoDeleteAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -20098,6 +21666,7 @@ export namespace Prisma {
     imageStorageProvider?: SortOrder
     routineId?: SortOrder
     classId?: SortOrder
+    examId?: SortOrder
     autoDeleteAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -20870,6 +22439,13 @@ export namespace Prisma {
     connect?: ClassWhereUniqueInput | ClassWhereUniqueInput[]
   }
 
+  export type ExamCreateNestedManyWithoutRoutineInput = {
+    create?: XOR<ExamCreateWithoutRoutineInput, ExamUncheckedCreateWithoutRoutineInput> | ExamCreateWithoutRoutineInput[] | ExamUncheckedCreateWithoutRoutineInput[]
+    connectOrCreate?: ExamCreateOrConnectWithoutRoutineInput | ExamCreateOrConnectWithoutRoutineInput[]
+    createMany?: ExamCreateManyRoutineInputEnvelope
+    connect?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+  }
+
   export type WeekdayCreateNestedManyWithoutRoutineInput = {
     create?: XOR<WeekdayCreateWithoutRoutineInput, WeekdayUncheckedCreateWithoutRoutineInput> | WeekdayCreateWithoutRoutineInput[] | WeekdayUncheckedCreateWithoutRoutineInput[]
     connectOrCreate?: WeekdayCreateOrConnectWithoutRoutineInput | WeekdayCreateOrConnectWithoutRoutineInput[]
@@ -20911,6 +22487,13 @@ export namespace Prisma {
     connect?: ClassWhereUniqueInput | ClassWhereUniqueInput[]
   }
 
+  export type ExamUncheckedCreateNestedManyWithoutRoutineInput = {
+    create?: XOR<ExamCreateWithoutRoutineInput, ExamUncheckedCreateWithoutRoutineInput> | ExamCreateWithoutRoutineInput[] | ExamUncheckedCreateWithoutRoutineInput[]
+    connectOrCreate?: ExamCreateOrConnectWithoutRoutineInput | ExamCreateOrConnectWithoutRoutineInput[]
+    createMany?: ExamCreateManyRoutineInputEnvelope
+    connect?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+  }
+
   export type WeekdayUncheckedCreateNestedManyWithoutRoutineInput = {
     create?: XOR<WeekdayCreateWithoutRoutineInput, WeekdayUncheckedCreateWithoutRoutineInput> | WeekdayCreateWithoutRoutineInput[] | WeekdayUncheckedCreateWithoutRoutineInput[]
     connectOrCreate?: WeekdayCreateOrConnectWithoutRoutineInput | WeekdayCreateOrConnectWithoutRoutineInput[]
@@ -20936,6 +22519,10 @@ export namespace Prisma {
     connectOrCreate?: SummaryCreateOrConnectWithoutRoutineInput | SummaryCreateOrConnectWithoutRoutineInput[]
     createMany?: SummaryCreateManyRoutineInputEnvelope
     connect?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+  }
+
+  export type EnumRoutineTypeFieldUpdateOperationsInput = {
+    set?: $Enums.RoutineType
   }
 
   export type AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput = {
@@ -20972,6 +22559,20 @@ export namespace Prisma {
     update?: ClassUpdateWithWhereUniqueWithoutRoutineInput | ClassUpdateWithWhereUniqueWithoutRoutineInput[]
     updateMany?: ClassUpdateManyWithWhereWithoutRoutineInput | ClassUpdateManyWithWhereWithoutRoutineInput[]
     deleteMany?: ClassScalarWhereInput | ClassScalarWhereInput[]
+  }
+
+  export type ExamUpdateManyWithoutRoutineNestedInput = {
+    create?: XOR<ExamCreateWithoutRoutineInput, ExamUncheckedCreateWithoutRoutineInput> | ExamCreateWithoutRoutineInput[] | ExamUncheckedCreateWithoutRoutineInput[]
+    connectOrCreate?: ExamCreateOrConnectWithoutRoutineInput | ExamCreateOrConnectWithoutRoutineInput[]
+    upsert?: ExamUpsertWithWhereUniqueWithoutRoutineInput | ExamUpsertWithWhereUniqueWithoutRoutineInput[]
+    createMany?: ExamCreateManyRoutineInputEnvelope
+    set?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    disconnect?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    delete?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    connect?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    update?: ExamUpdateWithWhereUniqueWithoutRoutineInput | ExamUpdateWithWhereUniqueWithoutRoutineInput[]
+    updateMany?: ExamUpdateManyWithWhereWithoutRoutineInput | ExamUpdateManyWithWhereWithoutRoutineInput[]
+    deleteMany?: ExamScalarWhereInput | ExamScalarWhereInput[]
   }
 
   export type WeekdayUpdateManyWithoutRoutineNestedInput = {
@@ -21055,6 +22656,20 @@ export namespace Prisma {
     update?: ClassUpdateWithWhereUniqueWithoutRoutineInput | ClassUpdateWithWhereUniqueWithoutRoutineInput[]
     updateMany?: ClassUpdateManyWithWhereWithoutRoutineInput | ClassUpdateManyWithWhereWithoutRoutineInput[]
     deleteMany?: ClassScalarWhereInput | ClassScalarWhereInput[]
+  }
+
+  export type ExamUncheckedUpdateManyWithoutRoutineNestedInput = {
+    create?: XOR<ExamCreateWithoutRoutineInput, ExamUncheckedCreateWithoutRoutineInput> | ExamCreateWithoutRoutineInput[] | ExamUncheckedCreateWithoutRoutineInput[]
+    connectOrCreate?: ExamCreateOrConnectWithoutRoutineInput | ExamCreateOrConnectWithoutRoutineInput[]
+    upsert?: ExamUpsertWithWhereUniqueWithoutRoutineInput | ExamUpsertWithWhereUniqueWithoutRoutineInput[]
+    createMany?: ExamCreateManyRoutineInputEnvelope
+    set?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    disconnect?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    delete?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    connect?: ExamWhereUniqueInput | ExamWhereUniqueInput[]
+    update?: ExamUpdateWithWhereUniqueWithoutRoutineInput | ExamUpdateWithWhereUniqueWithoutRoutineInput[]
+    updateMany?: ExamUpdateManyWithWhereWithoutRoutineInput | ExamUpdateManyWithWhereWithoutRoutineInput[]
+    deleteMany?: ExamScalarWhereInput | ExamScalarWhereInput[]
   }
 
   export type WeekdayUncheckedUpdateManyWithoutRoutineNestedInput = {
@@ -21210,6 +22825,62 @@ export namespace Prisma {
     deleteMany?: SummaryScalarWhereInput | SummaryScalarWhereInput[]
   }
 
+  export type RoutineCreateNestedOneWithoutExamsInput = {
+    create?: XOR<RoutineCreateWithoutExamsInput, RoutineUncheckedCreateWithoutExamsInput>
+    connectOrCreate?: RoutineCreateOrConnectWithoutExamsInput
+    connect?: RoutineWhereUniqueInput
+  }
+
+  export type SummaryCreateNestedManyWithoutExamInput = {
+    create?: XOR<SummaryCreateWithoutExamInput, SummaryUncheckedCreateWithoutExamInput> | SummaryCreateWithoutExamInput[] | SummaryUncheckedCreateWithoutExamInput[]
+    connectOrCreate?: SummaryCreateOrConnectWithoutExamInput | SummaryCreateOrConnectWithoutExamInput[]
+    createMany?: SummaryCreateManyExamInputEnvelope
+    connect?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+  }
+
+  export type SummaryUncheckedCreateNestedManyWithoutExamInput = {
+    create?: XOR<SummaryCreateWithoutExamInput, SummaryUncheckedCreateWithoutExamInput> | SummaryCreateWithoutExamInput[] | SummaryUncheckedCreateWithoutExamInput[]
+    connectOrCreate?: SummaryCreateOrConnectWithoutExamInput | SummaryCreateOrConnectWithoutExamInput[]
+    createMany?: SummaryCreateManyExamInputEnvelope
+    connect?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+  }
+
+  export type RoutineUpdateOneRequiredWithoutExamsNestedInput = {
+    create?: XOR<RoutineCreateWithoutExamsInput, RoutineUncheckedCreateWithoutExamsInput>
+    connectOrCreate?: RoutineCreateOrConnectWithoutExamsInput
+    upsert?: RoutineUpsertWithoutExamsInput
+    connect?: RoutineWhereUniqueInput
+    update?: XOR<XOR<RoutineUpdateToOneWithWhereWithoutExamsInput, RoutineUpdateWithoutExamsInput>, RoutineUncheckedUpdateWithoutExamsInput>
+  }
+
+  export type SummaryUpdateManyWithoutExamNestedInput = {
+    create?: XOR<SummaryCreateWithoutExamInput, SummaryUncheckedCreateWithoutExamInput> | SummaryCreateWithoutExamInput[] | SummaryUncheckedCreateWithoutExamInput[]
+    connectOrCreate?: SummaryCreateOrConnectWithoutExamInput | SummaryCreateOrConnectWithoutExamInput[]
+    upsert?: SummaryUpsertWithWhereUniqueWithoutExamInput | SummaryUpsertWithWhereUniqueWithoutExamInput[]
+    createMany?: SummaryCreateManyExamInputEnvelope
+    set?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    disconnect?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    delete?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    connect?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    update?: SummaryUpdateWithWhereUniqueWithoutExamInput | SummaryUpdateWithWhereUniqueWithoutExamInput[]
+    updateMany?: SummaryUpdateManyWithWhereWithoutExamInput | SummaryUpdateManyWithWhereWithoutExamInput[]
+    deleteMany?: SummaryScalarWhereInput | SummaryScalarWhereInput[]
+  }
+
+  export type SummaryUncheckedUpdateManyWithoutExamNestedInput = {
+    create?: XOR<SummaryCreateWithoutExamInput, SummaryUncheckedCreateWithoutExamInput> | SummaryCreateWithoutExamInput[] | SummaryUncheckedCreateWithoutExamInput[]
+    connectOrCreate?: SummaryCreateOrConnectWithoutExamInput | SummaryCreateOrConnectWithoutExamInput[]
+    upsert?: SummaryUpsertWithWhereUniqueWithoutExamInput | SummaryUpsertWithWhereUniqueWithoutExamInput[]
+    createMany?: SummaryCreateManyExamInputEnvelope
+    set?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    disconnect?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    delete?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    connect?: SummaryWhereUniqueInput | SummaryWhereUniqueInput[]
+    update?: SummaryUpdateWithWhereUniqueWithoutExamInput | SummaryUpdateWithWhereUniqueWithoutExamInput[]
+    updateMany?: SummaryUpdateManyWithWhereWithoutExamInput | SummaryUpdateManyWithWhereWithoutExamInput[]
+    deleteMany?: SummaryScalarWhereInput | SummaryScalarWhereInput[]
+  }
+
   export type SummaryCreateimageLinksInput = {
     set: string[]
   }
@@ -21230,6 +22901,12 @@ export namespace Prisma {
     create?: XOR<ClassCreateWithoutSummaryInput, ClassUncheckedCreateWithoutSummaryInput>
     connectOrCreate?: ClassCreateOrConnectWithoutSummaryInput
     connect?: ClassWhereUniqueInput
+  }
+
+  export type ExamCreateNestedOneWithoutSummaryInput = {
+    create?: XOR<ExamCreateWithoutSummaryInput, ExamUncheckedCreateWithoutSummaryInput>
+    connectOrCreate?: ExamCreateOrConnectWithoutSummaryInput
+    connect?: ExamWhereUniqueInput
   }
 
   export type AccountCreateNestedOneWithoutSaveSummaryInput = {
@@ -21263,12 +22940,24 @@ export namespace Prisma {
     update?: XOR<XOR<RoutineUpdateToOneWithWhereWithoutSummaryInput, RoutineUpdateWithoutSummaryInput>, RoutineUncheckedUpdateWithoutSummaryInput>
   }
 
-  export type ClassUpdateOneRequiredWithoutSummaryNestedInput = {
+  export type ClassUpdateOneWithoutSummaryNestedInput = {
     create?: XOR<ClassCreateWithoutSummaryInput, ClassUncheckedCreateWithoutSummaryInput>
     connectOrCreate?: ClassCreateOrConnectWithoutSummaryInput
     upsert?: ClassUpsertWithoutSummaryInput
+    disconnect?: ClassWhereInput | boolean
+    delete?: ClassWhereInput | boolean
     connect?: ClassWhereUniqueInput
     update?: XOR<XOR<ClassUpdateToOneWithWhereWithoutSummaryInput, ClassUpdateWithoutSummaryInput>, ClassUncheckedUpdateWithoutSummaryInput>
+  }
+
+  export type ExamUpdateOneWithoutSummaryNestedInput = {
+    create?: XOR<ExamCreateWithoutSummaryInput, ExamUncheckedCreateWithoutSummaryInput>
+    connectOrCreate?: ExamCreateOrConnectWithoutSummaryInput
+    upsert?: ExamUpsertWithoutSummaryInput
+    disconnect?: ExamWhereInput | boolean
+    delete?: ExamWhereInput | boolean
+    connect?: ExamWhereUniqueInput
+    update?: XOR<XOR<ExamUpdateToOneWithWhereWithoutSummaryInput, ExamUpdateWithoutSummaryInput>, ExamUncheckedUpdateWithoutSummaryInput>
   }
 
   export type AccountUpdateOneWithoutSaveSummaryNestedInput = {
@@ -21540,6 +23229,23 @@ export namespace Prisma {
     _max?: NestedEnumDayFilter<$PrismaModel>
   }
 
+  export type NestedEnumRoutineTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RoutineType | EnumRoutineTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoutineTypeFilter<$PrismaModel> | $Enums.RoutineType
+  }
+
+  export type NestedEnumRoutineTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RoutineType | EnumRoutineTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoutineTypeWithAggregatesFilter<$PrismaModel> | $Enums.RoutineType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoutineTypeFilter<$PrismaModel>
+    _max?: NestedEnumRoutineTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumSummaryTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.SummaryType | EnumSummaryTypeFieldRefInput<$PrismaModel>
     in?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
@@ -21754,10 +23460,12 @@ export namespace Prisma {
   export type RoutineCreateWithoutRoutineOwnerInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
     classes?: ClassCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
     savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
@@ -21767,10 +23475,12 @@ export namespace Prisma {
   export type RoutineUncheckedCreateWithoutRoutineOwnerInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
     classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
     savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
@@ -21824,11 +23534,13 @@ export namespace Prisma {
   export type RoutineCreateWithoutSavedByInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
     classes?: ClassCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
     Summary?: SummaryCreateNestedManyWithoutRoutineInput
@@ -21837,11 +23549,13 @@ export namespace Prisma {
   export type RoutineUncheckedCreateWithoutSavedByInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
     classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
     Summary?: SummaryUncheckedCreateNestedManyWithoutRoutineInput
@@ -21888,7 +23602,8 @@ export namespace Prisma {
     fileType?: string | null
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     routine: RoutineCreateNestedOneWithoutSummaryInput
-    class: ClassCreateNestedOneWithoutSummaryInput
+    class?: ClassCreateNestedOneWithoutSummaryInput
+    exam?: ExamCreateNestedOneWithoutSummaryInput
     Account?: AccountCreateNestedOneWithoutSaveSummaryInput
   }
 
@@ -21898,7 +23613,8 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -21931,7 +23647,8 @@ export namespace Prisma {
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner: AccountCreateNestedOneWithoutSummaryInput
     routine: RoutineCreateNestedOneWithoutSummaryInput
-    class: ClassCreateNestedOneWithoutSummaryInput
+    class?: ClassCreateNestedOneWithoutSummaryInput
+    exam?: ExamCreateNestedOneWithoutSummaryInput
   }
 
   export type SummaryUncheckedCreateWithoutAccountInput = {
@@ -21941,7 +23658,8 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -22126,6 +23844,7 @@ export namespace Prisma {
     NOT?: RoutineScalarWhereInput | RoutineScalarWhereInput[]
     id?: StringFilter<"Routine"> | string
     routineName?: StringFilter<"Routine"> | string
+    routineType?: EnumRoutineTypeFilter<"Routine"> | $Enums.RoutineType
     ownerAccountId?: StringFilter<"Routine"> | string
     createdAt?: DateTimeFilter<"Routine"> | Date | string
     updatedAt?: DateTimeFilter<"Routine"> | Date | string
@@ -22232,7 +23951,8 @@ export namespace Prisma {
     imageLinks?: StringNullableListFilter<"Summary">
     imageStorageProvider?: EnumStorageProviderNullableFilter<"Summary"> | $Enums.StorageProvider | null
     routineId?: StringFilter<"Summary"> | string
-    classId?: StringFilter<"Summary"> | string
+    classId?: StringNullableFilter<"Summary"> | string | null
+    examId?: StringNullableFilter<"Summary"> | string | null
     autoDeleteAt?: DateTimeFilter<"Summary"> | Date | string
     createdAt?: DateTimeFilter<"Summary"> | Date | string
     updatedAt?: DateTimeFilter<"Summary"> | Date | string
@@ -22984,11 +24704,13 @@ export namespace Prisma {
   export type RoutineCreateWithoutRoutinesJoinRequestInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
     classes?: ClassCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
     savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
     Summary?: SummaryCreateNestedManyWithoutRoutineInput
@@ -22997,11 +24719,13 @@ export namespace Prisma {
   export type RoutineUncheckedCreateWithoutRoutinesJoinRequestInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
     classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
     savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
     Summary?: SummaryUncheckedCreateNestedManyWithoutRoutineInput
@@ -23089,11 +24813,13 @@ export namespace Prisma {
   export type RoutineUpdateWithoutRoutinesJoinRequestInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
     classes?: ClassUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
     Summary?: SummaryUpdateManyWithoutRoutineNestedInput
@@ -23102,11 +24828,13 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateWithoutRoutinesJoinRequestInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
     classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
     Summary?: SummaryUncheckedUpdateManyWithoutRoutineNestedInput
@@ -23115,11 +24843,13 @@ export namespace Prisma {
   export type RoutineCreateWithoutWeekdaysInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
     classes?: ClassCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
     Summary?: SummaryCreateNestedManyWithoutRoutineInput
@@ -23128,11 +24858,13 @@ export namespace Prisma {
   export type RoutineUncheckedCreateWithoutWeekdaysInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
     classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
     Summary?: SummaryUncheckedCreateNestedManyWithoutRoutineInput
@@ -23184,11 +24916,13 @@ export namespace Prisma {
   export type RoutineUpdateWithoutWeekdaysInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
     classes?: ClassUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
     Summary?: SummaryUpdateManyWithoutRoutineNestedInput
@@ -23197,11 +24931,13 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateWithoutWeekdaysInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
     classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
     Summary?: SummaryUncheckedUpdateManyWithoutRoutineNestedInput
@@ -23300,10 +25036,12 @@ export namespace Prisma {
   export type RoutineCreateWithoutRoutineMembersInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
     classes?: ClassCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
     savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
@@ -23313,10 +25051,12 @@ export namespace Prisma {
   export type RoutineUncheckedCreateWithoutRoutineMembersInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
     savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
@@ -23405,10 +25145,12 @@ export namespace Prisma {
   export type RoutineUpdateWithoutRoutineMembersInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
     classes?: ClassUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
@@ -23418,10 +25160,12 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateWithoutRoutineMembersInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
@@ -23551,6 +25295,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ExamCreateWithoutRoutineInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    Summary?: SummaryCreateNestedManyWithoutExamInput
+  }
+
+  export type ExamUncheckedCreateWithoutRoutineInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    Summary?: SummaryUncheckedCreateNestedManyWithoutExamInput
+  }
+
+  export type ExamCreateOrConnectWithoutRoutineInput = {
+    where: ExamWhereUniqueInput
+    create: XOR<ExamCreateWithoutRoutineInput, ExamUncheckedCreateWithoutRoutineInput>
+  }
+
+  export type ExamCreateManyRoutineInputEnvelope = {
+    data: ExamCreateManyRoutineInput | ExamCreateManyRoutineInput[]
+    skipDuplicates?: boolean
+  }
+
   export type WeekdayCreateWithoutRoutineInput = {
     id?: string
     room: string
@@ -23676,7 +25456,8 @@ export namespace Prisma {
     fileType?: string | null
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner: AccountCreateNestedOneWithoutSummaryInput
-    class: ClassCreateNestedOneWithoutSummaryInput
+    class?: ClassCreateNestedOneWithoutSummaryInput
+    exam?: ExamCreateNestedOneWithoutSummaryInput
     Account?: AccountCreateNestedOneWithoutSaveSummaryInput
   }
 
@@ -23686,7 +25467,8 @@ export namespace Prisma {
     text: string
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -23814,6 +25596,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Class"> | Date | string
   }
 
+  export type ExamUpsertWithWhereUniqueWithoutRoutineInput = {
+    where: ExamWhereUniqueInput
+    update: XOR<ExamUpdateWithoutRoutineInput, ExamUncheckedUpdateWithoutRoutineInput>
+    create: XOR<ExamCreateWithoutRoutineInput, ExamUncheckedCreateWithoutRoutineInput>
+  }
+
+  export type ExamUpdateWithWhereUniqueWithoutRoutineInput = {
+    where: ExamWhereUniqueInput
+    data: XOR<ExamUpdateWithoutRoutineInput, ExamUncheckedUpdateWithoutRoutineInput>
+  }
+
+  export type ExamUpdateManyWithWhereWithoutRoutineInput = {
+    where: ExamScalarWhereInput
+    data: XOR<ExamUpdateManyMutationInput, ExamUncheckedUpdateManyWithoutRoutineInput>
+  }
+
+  export type ExamScalarWhereInput = {
+    AND?: ExamScalarWhereInput | ExamScalarWhereInput[]
+    OR?: ExamScalarWhereInput[]
+    NOT?: ExamScalarWhereInput | ExamScalarWhereInput[]
+    id?: StringFilter<"Exam"> | string
+    name?: StringFilter<"Exam"> | string
+    subjectCode?: StringNullableFilter<"Exam"> | string | null
+    date?: DateTimeFilter<"Exam"> | Date | string
+    startTime?: DateTimeFilter<"Exam"> | Date | string
+    endTime?: DateTimeFilter<"Exam"> | Date | string
+    room?: StringFilter<"Exam"> | string
+    routineId?: StringFilter<"Exam"> | string
+    createdAt?: DateTimeFilter<"Exam"> | Date | string
+    updatedAt?: DateTimeFilter<"Exam"> | Date | string
+  }
+
   export type WeekdayUpsertWithWhereUniqueWithoutRoutineInput = {
     where: WeekdayWhereUniqueInput
     update: XOR<WeekdayUpdateWithoutRoutineInput, WeekdayUncheckedUpdateWithoutRoutineInput>
@@ -23915,10 +25729,12 @@ export namespace Prisma {
   export type RoutineCreateWithoutClassesInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
     savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
@@ -23928,10 +25744,12 @@ export namespace Prisma {
   export type RoutineUncheckedCreateWithoutClassesInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
     savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
@@ -23988,6 +25806,7 @@ export namespace Prisma {
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner: AccountCreateNestedOneWithoutSummaryInput
     routine: RoutineCreateNestedOneWithoutSummaryInput
+    exam?: ExamCreateNestedOneWithoutSummaryInput
     Account?: AccountCreateNestedOneWithoutSaveSummaryInput
   }
 
@@ -23998,6 +25817,7 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -24031,10 +25851,12 @@ export namespace Prisma {
   export type RoutineUpdateWithoutClassesInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
@@ -24044,10 +25866,12 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateWithoutClassesInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
@@ -24084,6 +25908,142 @@ export namespace Prisma {
   export type SummaryUpdateManyWithWhereWithoutClassInput = {
     where: SummaryScalarWhereInput
     data: XOR<SummaryUpdateManyMutationInput, SummaryUncheckedUpdateManyWithoutClassInput>
+  }
+
+  export type RoutineCreateWithoutExamsInput = {
+    id?: string
+    routineName: string
+    routineType?: $Enums.RoutineType
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
+    routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
+    classes?: ClassCreateNestedManyWithoutRoutineInput
+    weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
+    savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
+    RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
+    Summary?: SummaryCreateNestedManyWithoutRoutineInput
+  }
+
+  export type RoutineUncheckedCreateWithoutExamsInput = {
+    id?: string
+    routineName: string
+    routineType?: $Enums.RoutineType
+    ownerAccountId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
+    classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
+    savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
+    RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
+    Summary?: SummaryUncheckedCreateNestedManyWithoutRoutineInput
+  }
+
+  export type RoutineCreateOrConnectWithoutExamsInput = {
+    where: RoutineWhereUniqueInput
+    create: XOR<RoutineCreateWithoutExamsInput, RoutineUncheckedCreateWithoutExamsInput>
+  }
+
+  export type SummaryCreateWithoutExamInput = {
+    id?: string
+    text: string
+    imageLinks?: SummaryCreateimageLinksInput | string[]
+    imageStorageProvider?: $Enums.StorageProvider | null
+    autoDeleteAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    type?: $Enums.SummaryType
+    fileType?: string | null
+    pollOptions?: NullableJsonNullValueInput | InputJsonValue
+    owner: AccountCreateNestedOneWithoutSummaryInput
+    routine: RoutineCreateNestedOneWithoutSummaryInput
+    class?: ClassCreateNestedOneWithoutSummaryInput
+    Account?: AccountCreateNestedOneWithoutSaveSummaryInput
+  }
+
+  export type SummaryUncheckedCreateWithoutExamInput = {
+    id?: string
+    ownerId: string
+    text: string
+    imageLinks?: SummaryCreateimageLinksInput | string[]
+    imageStorageProvider?: $Enums.StorageProvider | null
+    routineId: string
+    classId?: string | null
+    autoDeleteAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    type?: $Enums.SummaryType
+    fileType?: string | null
+    pollOptions?: NullableJsonNullValueInput | InputJsonValue
+    savedAccountId?: string | null
+  }
+
+  export type SummaryCreateOrConnectWithoutExamInput = {
+    where: SummaryWhereUniqueInput
+    create: XOR<SummaryCreateWithoutExamInput, SummaryUncheckedCreateWithoutExamInput>
+  }
+
+  export type SummaryCreateManyExamInputEnvelope = {
+    data: SummaryCreateManyExamInput | SummaryCreateManyExamInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type RoutineUpsertWithoutExamsInput = {
+    update: XOR<RoutineUpdateWithoutExamsInput, RoutineUncheckedUpdateWithoutExamsInput>
+    create: XOR<RoutineCreateWithoutExamsInput, RoutineUncheckedCreateWithoutExamsInput>
+    where?: RoutineWhereInput
+  }
+
+  export type RoutineUpdateToOneWithWhereWithoutExamsInput = {
+    where?: RoutineWhereInput
+    data: XOR<RoutineUpdateWithoutExamsInput, RoutineUncheckedUpdateWithoutExamsInput>
+  }
+
+  export type RoutineUpdateWithoutExamsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
+    routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
+    classes?: ClassUpdateManyWithoutRoutineNestedInput
+    weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
+    savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
+    RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
+    Summary?: SummaryUpdateManyWithoutRoutineNestedInput
+  }
+
+  export type RoutineUncheckedUpdateWithoutExamsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    ownerAccountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
+    classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
+    savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
+    RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
+    Summary?: SummaryUncheckedUpdateManyWithoutRoutineNestedInput
+  }
+
+  export type SummaryUpsertWithWhereUniqueWithoutExamInput = {
+    where: SummaryWhereUniqueInput
+    update: XOR<SummaryUpdateWithoutExamInput, SummaryUncheckedUpdateWithoutExamInput>
+    create: XOR<SummaryCreateWithoutExamInput, SummaryUncheckedCreateWithoutExamInput>
+  }
+
+  export type SummaryUpdateWithWhereUniqueWithoutExamInput = {
+    where: SummaryWhereUniqueInput
+    data: XOR<SummaryUpdateWithoutExamInput, SummaryUncheckedUpdateWithoutExamInput>
+  }
+
+  export type SummaryUpdateManyWithWhereWithoutExamInput = {
+    where: SummaryScalarWhereInput
+    data: XOR<SummaryUpdateManyMutationInput, SummaryUncheckedUpdateManyWithoutExamInput>
   }
 
   export type AccountCreateWithoutSummaryInput = {
@@ -24146,11 +26106,13 @@ export namespace Prisma {
   export type RoutineCreateWithoutSummaryInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
     classes?: ClassCreateNestedManyWithoutRoutineInput
+    exams?: ExamCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayCreateNestedManyWithoutRoutineInput
     savedBy?: AccountCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRoutineInput
@@ -24159,11 +26121,13 @@ export namespace Prisma {
   export type RoutineUncheckedCreateWithoutSummaryInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
     classes?: ClassUncheckedCreateNestedManyWithoutRoutineInput
+    exams?: ExamUncheckedCreateNestedManyWithoutRoutineInput
     weekdays?: WeekdayUncheckedCreateNestedManyWithoutRoutineInput
     savedBy?: AccountUncheckedCreateNestedManyWithoutSavedRoutinesInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRoutineInput
@@ -24199,6 +26163,37 @@ export namespace Prisma {
   export type ClassCreateOrConnectWithoutSummaryInput = {
     where: ClassWhereUniqueInput
     create: XOR<ClassCreateWithoutSummaryInput, ClassUncheckedCreateWithoutSummaryInput>
+  }
+
+  export type ExamCreateWithoutSummaryInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    routine: RoutineCreateNestedOneWithoutExamsInput
+  }
+
+  export type ExamUncheckedCreateWithoutSummaryInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    routineId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ExamCreateOrConnectWithoutSummaryInput = {
+    where: ExamWhereUniqueInput
+    create: XOR<ExamCreateWithoutSummaryInput, ExamUncheckedCreateWithoutSummaryInput>
   }
 
   export type AccountCreateWithoutSaveSummaryInput = {
@@ -24335,11 +26330,13 @@ export namespace Prisma {
   export type RoutineUpdateWithoutSummaryInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
     classes?: ClassUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
@@ -24348,11 +26345,13 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateWithoutSummaryInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
     classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
@@ -24389,6 +26388,43 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     weekdays?: WeekdayUncheckedUpdateManyWithoutClassNestedInput
+  }
+
+  export type ExamUpsertWithoutSummaryInput = {
+    update: XOR<ExamUpdateWithoutSummaryInput, ExamUncheckedUpdateWithoutSummaryInput>
+    create: XOR<ExamCreateWithoutSummaryInput, ExamUncheckedCreateWithoutSummaryInput>
+    where?: ExamWhereInput
+  }
+
+  export type ExamUpdateToOneWithWhereWithoutSummaryInput = {
+    where?: ExamWhereInput
+    data: XOR<ExamUpdateWithoutSummaryInput, ExamUncheckedUpdateWithoutSummaryInput>
+  }
+
+  export type ExamUpdateWithoutSummaryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    routine?: RoutineUpdateOneRequiredWithoutExamsNestedInput
+  }
+
+  export type ExamUncheckedUpdateWithoutSummaryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    routineId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AccountUpsertWithoutSaveSummaryInput = {
@@ -24457,6 +26493,7 @@ export namespace Prisma {
   export type RoutineCreateManyRoutineOwnerInput = {
     id?: string
     routineName: string
+    routineType?: $Enums.RoutineType
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -24486,7 +26523,8 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -24503,7 +26541,8 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -24539,10 +26578,12 @@ export namespace Prisma {
   export type RoutineUpdateWithoutRoutineOwnerInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
     classes?: ClassUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
@@ -24552,10 +26593,12 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateWithoutRoutineOwnerInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
     classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
     savedBy?: AccountUncheckedUpdateManyWithoutSavedRoutinesNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
@@ -24565,6 +26608,7 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateManyWithoutRoutineOwnerInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -24608,11 +26652,13 @@ export namespace Prisma {
   export type RoutineUpdateWithoutSavedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
     classes?: ClassUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUpdateManyWithoutRoutineNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRoutineNestedInput
     Summary?: SummaryUpdateManyWithoutRoutineNestedInput
@@ -24621,11 +26667,13 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateWithoutSavedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
     classes?: ClassUncheckedUpdateManyWithoutRoutineNestedInput
+    exams?: ExamUncheckedUpdateManyWithoutRoutineNestedInput
     weekdays?: WeekdayUncheckedUpdateManyWithoutRoutineNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRoutineNestedInput
     Summary?: SummaryUncheckedUpdateManyWithoutRoutineNestedInput
@@ -24634,6 +26682,7 @@ export namespace Prisma {
   export type RoutineUncheckedUpdateManyWithoutSavedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
+    routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24672,7 +26721,8 @@ export namespace Prisma {
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     routine?: RoutineUpdateOneRequiredWithoutSummaryNestedInput
-    class?: ClassUpdateOneRequiredWithoutSummaryNestedInput
+    class?: ClassUpdateOneWithoutSummaryNestedInput
+    exam?: ExamUpdateOneWithoutSummaryNestedInput
     Account?: AccountUpdateOneWithoutSaveSummaryNestedInput
   }
 
@@ -24682,7 +26732,8 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24698,7 +26749,8 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24721,7 +26773,8 @@ export namespace Prisma {
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner?: AccountUpdateOneRequiredWithoutSummaryNestedInput
     routine?: RoutineUpdateOneRequiredWithoutSummaryNestedInput
-    class?: ClassUpdateOneRequiredWithoutSummaryNestedInput
+    class?: ClassUpdateOneWithoutSummaryNestedInput
+    exam?: ExamUpdateOneWithoutSummaryNestedInput
   }
 
   export type SummaryUncheckedUpdateWithoutAccountInput = {
@@ -24731,7 +26784,8 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24747,7 +26801,8 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24883,6 +26938,18 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ExamCreateManyRoutineInput = {
+    id?: string
+    name: string
+    subjectCode?: string | null
+    date: Date | string
+    startTime: Date | string
+    endTime: Date | string
+    room: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type WeekdayCreateManyRoutineInput = {
     id?: string
     classId: string
@@ -24907,7 +26974,8 @@ export namespace Prisma {
     text: string
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
-    classId: string
+    classId?: string | null
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -24980,6 +27048,44 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     instructorName?: StringFieldUpdateOperationsInput | string
     subjectCode?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ExamUpdateWithoutRoutineInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Summary?: SummaryUpdateManyWithoutExamNestedInput
+  }
+
+  export type ExamUncheckedUpdateWithoutRoutineInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Summary?: SummaryUncheckedUpdateManyWithoutExamNestedInput
+  }
+
+  export type ExamUncheckedUpdateManyWithoutRoutineInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    room?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -25118,7 +27224,8 @@ export namespace Prisma {
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner?: AccountUpdateOneRequiredWithoutSummaryNestedInput
-    class?: ClassUpdateOneRequiredWithoutSummaryNestedInput
+    class?: ClassUpdateOneWithoutSummaryNestedInput
+    exam?: ExamUpdateOneWithoutSummaryNestedInput
     Account?: AccountUpdateOneWithoutSaveSummaryNestedInput
   }
 
@@ -25128,7 +27235,8 @@ export namespace Prisma {
     text?: StringFieldUpdateOperationsInput | string
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -25144,7 +27252,8 @@ export namespace Prisma {
     text?: StringFieldUpdateOperationsInput | string
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
-    classId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -25172,6 +27281,7 @@ export namespace Prisma {
     imageLinks?: SummaryCreateimageLinksInput | string[]
     imageStorageProvider?: $Enums.StorageProvider | null
     routineId: string
+    examId?: string | null
     autoDeleteAt: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -25227,6 +27337,7 @@ export namespace Prisma {
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     owner?: AccountUpdateOneRequiredWithoutSummaryNestedInput
     routine?: RoutineUpdateOneRequiredWithoutSummaryNestedInput
+    exam?: ExamUpdateOneWithoutSummaryNestedInput
     Account?: AccountUpdateOneWithoutSaveSummaryNestedInput
   }
 
@@ -25237,6 +27348,7 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -25253,6 +27365,75 @@ export namespace Prisma {
     imageLinks?: SummaryUpdateimageLinksInput | string[]
     imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
     routineId?: StringFieldUpdateOperationsInput | string
+    examId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumSummaryTypeFieldUpdateOperationsInput | $Enums.SummaryType
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    pollOptions?: NullableJsonNullValueInput | InputJsonValue
+    savedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type SummaryCreateManyExamInput = {
+    id?: string
+    ownerId: string
+    text: string
+    imageLinks?: SummaryCreateimageLinksInput | string[]
+    imageStorageProvider?: $Enums.StorageProvider | null
+    routineId: string
+    classId?: string | null
+    autoDeleteAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    type?: $Enums.SummaryType
+    fileType?: string | null
+    pollOptions?: NullableJsonNullValueInput | InputJsonValue
+    savedAccountId?: string | null
+  }
+
+  export type SummaryUpdateWithoutExamInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    imageLinks?: SummaryUpdateimageLinksInput | string[]
+    imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
+    autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumSummaryTypeFieldUpdateOperationsInput | $Enums.SummaryType
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    pollOptions?: NullableJsonNullValueInput | InputJsonValue
+    owner?: AccountUpdateOneRequiredWithoutSummaryNestedInput
+    routine?: RoutineUpdateOneRequiredWithoutSummaryNestedInput
+    class?: ClassUpdateOneWithoutSummaryNestedInput
+    Account?: AccountUpdateOneWithoutSaveSummaryNestedInput
+  }
+
+  export type SummaryUncheckedUpdateWithoutExamInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    imageLinks?: SummaryUpdateimageLinksInput | string[]
+    imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
+    routineId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
+    autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumSummaryTypeFieldUpdateOperationsInput | $Enums.SummaryType
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    pollOptions?: NullableJsonNullValueInput | InputJsonValue
+    savedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type SummaryUncheckedUpdateManyWithoutExamInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    imageLinks?: SummaryUpdateimageLinksInput | string[]
+    imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
+    routineId?: StringFieldUpdateOperationsInput | string
+    classId?: NullableStringFieldUpdateOperationsInput | string | null
     autoDeleteAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

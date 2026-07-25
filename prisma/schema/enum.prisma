@@ -12,6 +12,11 @@ enum StorageProvider {
     others
 }
 
+enum RoutineType {
+    CLASS
+    EXAM
+}
+
 enum Day {
     sat
     sun
@@ -31,7 +36,12 @@ enum NoticeCategory {
 
 enum SummaryType {
     TEXT
+    IMAGE
+    VIDEO
+    AUDIO
+    DOCUMENT
     MEDIA
     POLL
     SYSTEM
 }
+

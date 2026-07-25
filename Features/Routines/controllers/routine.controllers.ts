@@ -47,10 +47,10 @@ export const listRoutines = async (req: any, res: Response) => {
       orderBy: { createdAt: 'desc' },
       include: {
         routineOwner: {
-          select: { id: true, name: true, username: true, image: true }
+          select: { id: true, name: true, username: true, image: true, isVerified: true }
         },
         _count: {
-          select: { routineMembers: true, savedBy: true, classes: true }
+          select: { routineMembers: true, savedBy: true, classes: true, exams: true }
         }
       }
     });
@@ -60,6 +60,7 @@ export const listRoutines = async (req: any, res: Response) => {
     const formattedRoutines = routines.map(routine => ({
       id: routine.id,
       routineName: routine.routineName,
+      routineType: routine.routineType ?? 'CLASS',
       ownerAccountId: routine.ownerAccountId, // Explicitly pass the ID
       routineOwner: routine.routineOwner,     // Match the Dart model key
       isOwner: userId === routine.ownerAccountId, // Populated owner status indicator
@@ -68,6 +69,7 @@ export const listRoutines = async (req: any, res: Response) => {
         totalMembers: routine._count.routineMembers,
         totalSaved: routine._count.savedBy,
         totalClasses: routine._count.classes,
+        totalExams: routine._count.exams,
       }
     }));
 
@@ -86,12 +88,14 @@ export const listRoutines = async (req: any, res: Response) => {
 };
 
 export const createRoutine = async (req: any, res: Response) => {
-  const { name } = req.body;
+  const { name, routineType = 'CLASS' } = req.body;
   const ownerId = req.user?.id;
 
   if (!name || !ownerId) return res.status(400).json({ message: "Routine name and ownerId are required" });
 
   try {
+    const formattedType = String(routineType).toUpperCase() === 'EXAM' ? 'EXAM' : 'CLASS';
+
     const result = await prisma.$transaction(async (tx) => {
       const existingRoutine = await tx.routine.findFirst({
         where: { routineName: name, routineOwner: { id: ownerId } },
@@ -100,7 +104,11 @@ export const createRoutine = async (req: any, res: Response) => {
       if (existingRoutine) throw new Error("Routine already created with this name");
 
       const createdRoutine = await tx.routine.create({
-        data: { routineName: name, routineOwner: { connect: { id: ownerId } } },
+        data: {
+          routineName: name,
+          routineType: formattedType as any,
+          routineOwner: { connect: { id: ownerId } }
+        },
       });
 
       const routineMember = await tx.routineMember.create({
@@ -290,7 +298,7 @@ export const allClass = async (req: any, res: Response) => {
   try {
     const routine = await prisma.routine.findUnique({
       where: { id: routineID },
-      include: { routineOwner: { select: { id: true, name: true, username: true, image: true } } },
+      include: { routineOwner: { select: { id: true, name: true, username: true, image: true, isVerified: true } } },
     });
     if (!routine) return res.status(404).json({ message: 'Routine not found' });
 
@@ -320,7 +328,19 @@ export const allClass = async (req: any, res: Response) => {
       });
     });
 
-    res.status(200).json({ allClass: classes, weekdayClasses, owner: routine.routineOwner, routineName: routine.routineName });
+    const exams = await prisma.exam.findMany({
+      where: { routineId: routineID },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
+    });
+
+    res.status(200).json({
+      allClass: classes,
+      weekdayClasses,
+      exams,
+      routineType: routine.routineType ?? 'CLASS',
+      owner: routine.routineOwner,
+      routineName: routine.routineName
+    });
   } catch (error) {
     console.error('Error fetching classes:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -651,5 +671,91 @@ export const deleteWeekdayById = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error deleting weekday:', error);
     res.status(500).json({ message: error.message || 'Internal server error', weekdays: [] });
+  }
+};
+
+// ==========================================
+// 📝 EXAM ROUTINE ACTIONS
+// ==========================================
+
+export const create_exam = async (req: any, res: Response) => {
+  const routineId = req.params.routineId || req.params.routineID;
+  const { name, subjectCode, date, startTime, endTime, room } = req.body;
+
+  if (!routineId || !name || !date || !startTime || !endTime || !room) {
+    return res.status(400).json({ message: "routineId, name, date, startTime, endTime, and room are required" });
+  }
+
+  try {
+    const createdExam = await prisma.exam.create({
+      data: {
+        name,
+        subjectCode: subjectCode || null,
+        date: new Date(date),
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        room: String(room),
+        routineId
+      }
+    });
+
+    res.status(201).json({ message: "Exam created successfully", exam: createdExam });
+  } catch (error: any) {
+    console.error("Error creating exam:", error);
+    res.status(500).json({ message: "Failed to create exam", error: error.message });
+  }
+};
+
+export const allExams = async (req: any, res: Response) => {
+  const routineId = req.params.routineId || req.params.routineID;
+
+  if (!routineId) return res.status(400).json({ message: "Routine ID is required" });
+
+  try {
+    const exams = await prisma.exam.findMany({
+      where: { routineId },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
+    });
+
+    res.status(200).json({ message: "Exams fetched successfully", exams });
+  } catch (error: any) {
+    console.error("Error fetching exams:", error);
+    res.status(500).json({ message: "Failed to fetch exams", error: error.message });
+  }
+};
+
+export const edit_exam = async (req: any, res: Response) => {
+  const { examId } = req.params;
+  const { name, subjectCode, date, startTime, endTime, room } = req.body;
+
+  try {
+    const updatedExam = await prisma.exam.update({
+      where: { id: examId },
+      data: {
+        ...(name && { name }),
+        ...(subjectCode !== undefined && { subjectCode }),
+        ...(date && { date: new Date(date) }),
+        ...(startTime && { startTime: new Date(startTime) }),
+        ...(endTime && { endTime: new Date(endTime) }),
+        ...(room && { room: String(room) }),
+      }
+    });
+
+    res.status(200).json({ message: "Exam updated successfully", exam: updatedExam });
+  } catch (error: any) {
+    console.error("Error updating exam:", error);
+    res.status(500).json({ message: "Failed to update exam", error: error.message });
+  }
+};
+
+export const remove_exam = async (req: any, res: Response) => {
+  const { examId } = req.params;
+
+  try {
+    await prisma.exam.delete({ where: { id: examId } });
+    res.status(200).json({ message: "Exam deleted successfully" });
+  } catch (error: any) {
+    console.error("Error deleting exam:", error);
+    res.status(500).json({ message: "Failed to delete exam", error: error.message });
   }
 };

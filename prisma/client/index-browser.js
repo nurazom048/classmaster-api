@@ -249,6 +249,7 @@ exports.Prisma.RoutineMemberScalarFieldEnum = {
 exports.Prisma.RoutineScalarFieldEnum = {
   id: 'id',
   routineName: 'routineName',
+  routineType: 'routineType',
   ownerAccountId: 'ownerAccountId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -264,6 +265,19 @@ exports.Prisma.ClassScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ExamScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  subjectCode: 'subjectCode',
+  date: 'date',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  room: 'room',
+  routineId: 'routineId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SummaryScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
@@ -272,6 +286,7 @@ exports.Prisma.SummaryScalarFieldEnum = {
   imageStorageProvider: 'imageStorageProvider',
   routineId: 'routineId',
   classId: 'classId',
+  examId: 'examId',
   autoDeleteAt: 'autoDeleteAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -342,8 +357,17 @@ exports.Day = exports.$Enums.Day = {
   fri: 'fri'
 };
 
+exports.RoutineType = exports.$Enums.RoutineType = {
+  CLASS: 'CLASS',
+  EXAM: 'EXAM'
+};
+
 exports.SummaryType = exports.$Enums.SummaryType = {
   TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  AUDIO: 'AUDIO',
+  DOCUMENT: 'DOCUMENT',
   MEDIA: 'MEDIA',
   POLL: 'POLL',
   SYSTEM: 'SYSTEM'
@@ -363,6 +387,7 @@ exports.Prisma.ModelName = {
   RoutineMember: 'RoutineMember',
   Routine: 'Routine',
   Class: 'Class',
+  Exam: 'Exam',
   Summary: 'Summary'
 };
 
