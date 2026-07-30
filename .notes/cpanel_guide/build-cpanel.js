@@ -49,6 +49,7 @@ try {
   const filesToZip = [
     'build',
     'prisma',
+    'prisma.config.ts',
     'config',
     'package.json',
     'package-lock.json',

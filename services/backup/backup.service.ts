@@ -5,7 +5,6 @@ import fs from 'fs';
 import { Telegraf } from 'telegraf';
 import dotenv from 'dotenv';
 import { generateBackupFileName } from '../../.notes/database_restore_helper/backup.helper';
-import prisma from '../../prisma/schema/prisma.clint';
 
 dotenv.config();
 
@@ -44,7 +43,6 @@ const cleanupOldBackups = async () => {
             }
         }
 
-        // Jodi kono file delete hoy, tobe Telegram-e notify koro
         if (deletedFiles.length > 0) {
             const message = `🧹 *Local Storage Cleanup*\n\n` +
                 `🗑️ Deleted *${deletedFiles.length}* old backup(s) older than 5 days.\n` +
@@ -60,182 +58,127 @@ const cleanupOldBackups = async () => {
     }
 };
 
+//***************************************************************************/
+//** ⚙️ Execute pg_dump with fallback **************************************/
+//***************************************************************************/
+
+const executePgDump = async (dbUrl: string, filePath: string): Promise<void> => {
+    const cleanUrl = dbUrl.split("?")[0];
+    
+    const hasHostPgDump = await new Promise<boolean>((resolve) => {
+        exec('which pg_dump', (err) => resolve(!err));
+    });
+
+    const cmd = hasHostPgDump
+        ? `pg_dump "${cleanUrl}" -F c -f "${filePath}"`
+        : `docker exec -i postgres-db pg_dump "${cleanUrl}" -F c > "${filePath}"`;
+
+    return new Promise((resolve, reject) => {
+        exec(cmd, (error) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
+    });
+};
 
 //***************************************************************************/
-//***************** Take Scheduled Backup ***********************************/
+//***************** Perform Postgres Backup *********************************/
+//***************************************************************************/
+
+export const performBackup = async () => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const activeDbUrl = (isProduction
+        ? process.env.PROD_DATABASE_URL
+        : process.env.DEV_DATABASE_URL || process.env.DATABASE_URL) || "";
+
+    if (!activeDbUrl) {
+        console.error(`[LOG] ❌ Backup failed: No database URL configured.`);
+        return;
+    }
+
+    // Step 1: Cleanup old backups in development mode
+    if (!isProduction) {
+        await cleanupOldBackups();
+    }
+
+    // Step 2: Postgres pg_dump Backup
+    const fileName = generateBackupFileName();
+    const filePath = path.join(BACKUP_DIR, fileName);
+
+    console.log(`[LOG] 🚀 Starting Postgres backup process: ${fileName}`);
+
+    try {
+        await executePgDump(activeDbUrl, filePath);
+
+        const stats = fs.statSync(filePath);
+        const fileSizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+
+        if (stats.size === 0) throw new Error("Backup file is empty.");
+
+        console.log(`[LOG] ✅ Backup success: ${fileName} (${fileSizeMB} MB)`);
+
+        // Send Telegram document notification for DB Backup success
+        const stamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
+        try {
+            await bot.telegram.sendDocument(
+                CHAT_ID,
+                { source: filePath },
+                {
+                    caption: `💾 *Postgres Backup Success (SQL Dump)*\n\n` +
+                        `📊 *Size:* \`${fileSizeMB} MB\`\n` +
+                        `🕒 *Stamp:* \`${stamp}\`\n` +
+                        `🌍 *Mode:* \`${isProduction ? 'Production (Telegram Only)' : 'Development'}\``,
+                    parse_mode: 'Markdown'
+                }
+            );
+            console.log(`[LOG] 🚀 Telegram backup document sent successfully.`);
+        } catch (telegramError: any) {
+            console.error('[LOG] ⚠️ Telegram sendDocument failed, trying text fallback:', telegramError.message);
+
+            await bot.telegram.sendMessage(
+                CHAT_ID,
+                `💾 *Postgres Backup Success* (Text Only)\n\n` +
+                `📊 *Size:* \`${fileSizeMB} MB\`\n` +
+                `🕒 *Stamp:* \`${stamp}\`\n` +
+                `📄 *File:* \`${fileName}\`\n` +
+                `⚠️ *Notice:* Document attachment failed (likely network issue).`,
+                { parse_mode: 'Markdown' }
+            ).catch((err: any) => {
+                console.error('[LOG] ❌ Telegram fallback message failed:', err.message);
+            });
+        }
+
+    } catch (error: any) {
+        console.error('[LOG] ❌ Backup Failed:', error.message);
+        await bot.telegram.sendMessage(
+            CHAT_ID,
+            `🚨 CRITICAL: Postgres Backup Failed\nError: ${error.message}`
+        ).catch((err: any) => {
+            console.error('[LOG] ❌ Failed to send critical Telegram message:', err.message);
+        });
+    } finally {
+        // In production mode, remove the local file immediately after sending
+        if (isProduction && fs.existsSync(filePath)) {
+            try {
+                fs.unlinkSync(filePath);
+                console.log(`[LOG] 🧹 Production mode: deleted local backup file ${fileName}`);
+            } catch (unlinkErr: any) {
+                console.error(`[LOG] ⚠️ Failed to delete local backup file in production:`, unlinkErr.message);
+            }
+        }
+    }
+};
+
+//***************************************************************************/
+//***************** Backup Scheduler ****************************************/
 //***************************************************************************/
 
 export const startBackupScheduler = async () => {
-    // Production: Every 1 hour
-    console.log(`[LOG] 🕒 Backup Scheduler Initialized: Running every 1 HOUR.`);
-
-    // // 🔴 Every 1 hour (at minute 0)
-    // cron.schedule('0 * * * *', async () => {
-
-    //🟢 8 Minute Logic((take backup every 8 minutes : for testing)
-    cron.schedule('*/8 * * * *', async () => {
-
-        // Step 1: Purono file cleanup kora
-        await cleanupOldBackups();
-
-        // Step 2: Notun backup setup
-        const fileName = generateBackupFileName();
-        const filePath = path.join(BACKUP_DIR, fileName);
-
-        let finalFilePath = filePath;
-        let finalFileName = fileName;
-        let isJsonBackup = false;
-
-        console.log(`[LOG] 🚀 Starting backup process: ${fileName}`);
-
-        const activeDbUrl = (process.env.NODE_ENV === 'production'
-            ? process.env.PROD_DATABASE_URL
-            : process.env.DEV_DATABASE_URL || process.env.DATABASE_URL) || "";
-
-        const isPrismaPostgres = activeDbUrl.startsWith("prisma+postgres://") || activeDbUrl.includes("accelerate.prisma-data.net");
-
-        if (isPrismaPostgres) {
-            // --- PRISMA POSTGRES / ACCELERATE MODE ---
-            // Direct Prisma-based JSON database backup with BigInt serialization fix
-            try {
-                // Change extension to .json
-                finalFileName = fileName.replace(".dump", ".json");
-                finalFilePath = path.join(BACKUP_DIR, finalFileName);
-                isJsonBackup = true;
-
-                console.log(`[LOG] 🔄 Running Prisma-based JSON database backup for Prisma Postgres...`);
-
-                // Fetch tables list from public schema
-                const tablesRes = await prisma.$queryRawUnsafe<{ table_name: string }[]>(`
-                    SELECT table_name 
-                    FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                      AND table_name NOT LIKE '_prisma_migrations'
-                      AND table_name NOT LIKE '_Prisma_migrations'
-                `);
-
-                const backupData: Record<string, any[]> = {};
-                for (const t of tablesRes) {
-                    const tableName = t.table_name;
-                    const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "${tableName}"`);
-                    backupData[tableName] = rows;
-                }
-
-                // Fix BigInt serialization: convert all BigInt to string in replacer
-                fs.writeFileSync(finalFilePath, JSON.stringify(backupData, (key, value) =>
-                    typeof value === 'bigint' ? value.toString() : value,
-                    2
-                ));
-            } catch (prodError: any) {
-                console.error("[LOG] ❌ Prisma Postgres backup failed:", prodError.message);
-                throw prodError;
-            }
-        } else {
-            // --- STANDARD POSTGRES MODE ---
-            // Try pg_dump with a fallback to JSON backup
-            try {
-                const dbUrl = activeDbUrl.split("?")[0];
-                const cmd = `pg_dump "${dbUrl}" -F c -f "${filePath}"`;
-
-                await new Promise((resolve, reject) => {
-                    exec(cmd, (error, stdout, stderr) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(stdout);
-                        }
-                    });
-                });
-            } catch (error: any) {
-                console.log(`[LOG] ⚠️ pg_dump failed or is not available: ${error.message}`);
-                console.log(`[LOG] 🔄 Falling back to Prisma-based JSON database backup...`);
-
-                try {
-                    // Change extension to .json
-                    finalFileName = fileName.replace(".dump", ".json");
-                    finalFilePath = path.join(BACKUP_DIR, finalFileName);
-                    isJsonBackup = true;
-
-                    // Fetch tables list from public schema
-                    const tablesRes = await prisma.$queryRawUnsafe<{ table_name: string }[]>(`
-                        SELECT table_name 
-                        FROM information_schema.tables 
-                        WHERE table_schema = 'public' 
-                          AND table_name NOT LIKE '_prisma_migrations'
-                          AND table_name NOT LIKE '_Prisma_migrations'
-                    `);
-
-                    const backupData: Record<string, any[]> = {};
-                    for (const t of tablesRes) {
-                        const tableName = t.table_name;
-                        const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "${tableName}"`);
-                        backupData[tableName] = rows;
-                    }
-
-                    // Fix BigInt serialization: convert all BigInt to string in replacer
-                    fs.writeFileSync(finalFilePath, JSON.stringify(backupData, (key, value) =>
-                        typeof value === 'bigint' ? value.toString() : value,
-                        2
-                    ));
-                } catch (fallbackError: any) {
-                    console.error("[LOG] ❌ Fallback Prisma backup also failed:", fallbackError.message);
-                    throw fallbackError;
-                }
-            }
-        }
-
-        try {
-            const stats = fs.statSync(finalFilePath);
-            const fileSizeMB = (stats.size / (1024 * 1024)).toFixed(2);
-
-            if (stats.size === 0) throw new Error("Backup file is empty.");
-
-            console.log(`[LOG] ✅ Backup success: ${finalFileName} (${fileSizeMB} MB)`);
-
-            // Success Telegram Message
-            const stamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
-            try {
-                await bot.telegram.sendDocument(
-                    CHAT_ID,
-                    { source: finalFilePath }, // File path provided
-                    {
-                        caption: `💾 *Postgres Backup Success (${isJsonBackup ? "JSON Format" : "SQL Dump"})*\n\n` +
-                            `📊 *Size:* \`${fileSizeMB} MB\`\n` +
-                            `🕒 *Stamp:* \`${stamp}\`\n\n` +
-                            `🧹 _Cleanup: Old local files (>5 days) removed._\n` +
-                            `☁️ _Rclone auto-sync will upload this shortly._`,
-                        parse_mode: 'Markdown'
-                    }
-                );
-                console.log(`[LOG] 🚀 Telegram backup document sent successfully.`);
-            } catch (telegramError: any) {
-                console.error('[LOG] ⚠️ Telegram sendDocument failed, trying text fallback:', telegramError.message);
-                
-                // If sendDocument fails (e.g. too large), send text-only notification
-                await bot.telegram.sendMessage(
-                    CHAT_ID,
-                    `💾 *Postgres Backup Success* (Text Only)\n\n` +
-                    `📊 *Size:* \`${fileSizeMB} MB\`\n` +
-                    `🕒 *Stamp:* \`${stamp}\`\n` +
-                    `📄 *File:* \`${finalFileName}\`\n` +
-                    `⚠️ *Notice:* Document attachment failed (likely too large or network issue).\n\n` +
-                    `🧹 _Cleanup: Old local files (>5 days) removed._\n` +
-                    `☁️ _Rclone auto-sync will upload this shortly._`,
-                    { parse_mode: 'Markdown' }
-                ).catch((err: any) => {
-                    console.error('[LOG] ❌ Telegram fallback message failed:', err.message);
-                });
-            }
-
-        } catch (error: any) {
-            console.error('[LOG] ❌ Backup Failed:', error.message);
-            // Send plain text to avoid markdown parsing crashes on error content
-            await bot.telegram.sendMessage(
-                CHAT_ID,
-                `🚨 CRITICAL: Backup Failed\nError: ${error.message}`
-            ).catch((err: any) => {
-                console.error('[LOG] ❌ Failed to send critical Telegram message:', err.message);
-            });
-        }
+    console.log(`[LOG] ⏰ Backup Scheduler initialized for Postgres (Every 10 minutes).`);
+    cron.schedule('*/10 * * * *', async () => {
+        await performBackup();
     });
 };
