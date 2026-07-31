@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../../../prisma/schema/prisma.clint';
-import { Day } from '@prisma/client';
+import { Day } from '../../../prisma/client';
 
 
 const VALID_DAYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];

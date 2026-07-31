@@ -12,7 +12,7 @@ import { generateUniqUsername, } from './auth.methods';
 import { generateAuthToken, generateRefreshToken, } from '../helper/Jwt.helper';
 import { generateAndSetTokens } from '../helper/Authentication';
 import nodemailer from 'nodemailer';
-import { AccountType } from '@prisma/client';
+import { AccountType } from '../../../prisma/client';
 import { sendTelegramMessage } from '../../../utils/telegram';
 
 

@@ -30,7 +30,7 @@ import express, { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { generateAuthToken, generateRefreshToken } from '../helper/Jwt.helper';
 import prisma from '../../../prisma/schema/prisma.clint';
-import { AccountType } from '@prisma/client';
+import { AccountType } from '../../../prisma/client';
 import { handleLoginError } from '../helper/handel.err';
 import { randomUUID } from 'crypto';
 import { sendTelegramMessage } from '../../../utils/telegram';

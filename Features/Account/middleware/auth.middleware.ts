@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import { AccountType } from "@prisma/client";
+import { AccountType } from "../../../prisma/client";
 interface DecodedToken {
 
     user_id: string;

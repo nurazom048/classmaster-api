@@ -33,6 +33,13 @@ try {
   if (fs.existsSync(prismaClientSource)) {
     fs.cpSync(prismaClientSource, path.join(prismaTarget, 'client'), { recursive: true });
     console.log('   ✅ Copied prisma/client to build/prisma/');
+    
+    const nodeModulesPrismaTarget = path.join(rootDir, 'node_modules/.prisma/client');
+    if (fs.existsSync(path.join(rootDir, 'node_modules'))) {
+      fs.mkdirSync(path.dirname(nodeModulesPrismaTarget), { recursive: true });
+      fs.cpSync(prismaClientSource, nodeModulesPrismaTarget, { recursive: true });
+      console.log('   ✅ Copied prisma/client to node_modules/.prisma/client');
+    }
   }
 
   // 4. Create Ultra-Lightweight ZIP Archive for cPanel

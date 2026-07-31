@@ -1,5 +1,5 @@
 import prisma from '../../../prisma/schema/prisma.clint';
-import { SummaryType } from '@prisma/client';
+import { SummaryType } from '../../../prisma/client';
 
 /**
  * 🤖 Auto Summary Generator
