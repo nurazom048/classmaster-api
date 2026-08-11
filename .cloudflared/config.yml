@@ -2,25 +2,30 @@ tunnel: 1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf
 credentials-file: /etc/cloudflared/1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf.json
 
 ingress:
+  # 🚀 Live Production API (Runs inside Server Docker Container)
   - hostname: api.classmaster.top
     service: http://api:4000
+    originRequest:
+      httpHostHeader: localhost:4000
+      noTLSVerify: true
 
   - hostname: pg.classmaster.top
     service: http://pgadmin:80
 
-  - hostname: minio.classmaster.top
-    service: http://minio:9001
-
-  - hostname: s3.classmaster.top
-    service: http://minio:9000
-
   - hostname: files.classmaster.top
     service: http://dufs:5000
 
+  # 💻 Development API (Points to your Laptop's Local Machine Dev Server)
+  - hostname: dev.api.classmaster.top
+    service: http://host.docker.internal:4000
+    originRequest:
+      httpHostHeader: localhost:4000
+      noTLSVerify: true
+
+  - hostname: dev.pg.classmaster.top
+    service: http://pgadmin:80
+
+  - hostname: dev.files.classmaster.top
+    service: http://dufs:5000
+
   - service: http_status:404
-
-
-
-
-
-  # cloudflared tunnel --config config.yml run my-pc-tunnel

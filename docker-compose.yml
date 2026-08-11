@@ -39,18 +39,18 @@ services:
       - ./classmaster_data:/var/lib/pgadmin/storage/admin_admin.com/backups
 
   # ৩. MinIO (S3 Object Storage)
-  minio:
-    image: quay.io/minio/minio:latest
-    container_name: local-minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - ./classmaster_data/s3_storage:/data
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
-    command: server /data --console-address ":9001"
+#  minio:
+#    image: quay.io/minio/minio:latest
+#    container_name: local-minio
+#    ports:
+#      - "9000:9000"
+#      - "9001:9001"
+#    volumes:
+#      - ./classmaster_data/s3_storage:/data
+#    environment:
+#      MINIO_ROOT_USER: admin
+#      MINIO_ROOT_PASSWORD: password123
+#    command: server /data --console-address ":9001"
 
   dufs:
     image: sigoden/dufs:latest
@@ -71,7 +71,7 @@ services:
       - 8.8.8.8
 
     extra_hosts:
-      - "api:host-gateway"
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./.cloudflared:/etc/cloudflared
     command: tunnel --config /etc/cloudflared/config.yml run
@@ -85,6 +85,8 @@ services:
       - .env
     ports:
       - "4000:4000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -97,8 +99,7 @@ services:
     environment:
       - TZ=Asia/Dhaka
       - NODE_OPTIONS=--dns-result-order=ipv4first
-      # এখানে postgres-db এর বদলে db দেওয়া হলো
-      - DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster?schema=public
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster?sslmode=disable
       - MINIO_ENDPOINT=http://local-minio:9000
       - MINIO_ACCESS_KEY=admin
       - MINIO_SECRET_KEY=password123
@@ -124,4 +125,6 @@ services:
 # Named Volume ডিক্লেয়ার করা হলো
 volumes:
   pgdata:
+
+
 

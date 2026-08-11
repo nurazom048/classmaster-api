@@ -22,7 +22,7 @@ RUN npm install
 
 # Prisma
 COPY prisma ./prisma/
-RUN npx prisma generate
+RUN npx prisma generate --schema=prisma/schema
 
 # App Copy
 COPY . .
@@ -33,4 +33,4 @@ EXPOSE 4000
 # 1. prisma generate
 # 2. migrate deploy
 # 3. app start
-CMD sh -c "npx prisma generate && npx prisma db push && npm run dev"
+CMD sh -c "npx prisma generate --schema=prisma/schema && npx prisma db push --schema=prisma/schema && npm run dev"

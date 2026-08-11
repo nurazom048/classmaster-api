@@ -177,19 +177,19 @@ const startServer = async () => {
       console.log(`🚀 Server now running on port ${PORT}`);
       console.log(`🌐 URL: ${baseURL}`);
 
-      // Auto-start Cloudflare Tunnel in Production
-      if (process.env.NODE_ENV === 'production') {
-        console.log('Starting Cloudflare Tunnel for Production...');
-        const { exec } = require('child_process');
-        const fs = require('fs');
-        const path = require('path');
-        const localCloudflared = path.join(process.cwd(), 'cloudflared');
-        const bin = fs.existsSync(localCloudflared) ? './cloudflared' : 'cloudflared';
-        const tunnelProcess = exec(`${bin} tunnel --config .cloudflared/config.prod.yml run`);
-
-        tunnelProcess.stdout?.on('data', (data: string) => console.log(`[Tunnel Info] ${data}`));
-        tunnelProcess.stderr?.on('data', (data: string) => console.error(`[Tunnel Error] ${data}`));
-      }
+      // Auto-start Cloudflare Tunnel in Production (Handled via Docker Compose service)
+      // if (process.env.NODE_ENV === 'production') {
+      //   console.log('Starting Cloudflare Tunnel for Production...');
+      //   const { exec } = require('child_process');
+      //   const fs = require('fs');
+      //   const path = require('path');
+      //   const localCloudflared = path.join(process.cwd(), 'cloudflared');
+      //   const bin = fs.existsSync(localCloudflared) ? './cloudflared' : 'cloudflared';
+      //   const tunnelProcess = exec(`${bin} tunnel --config .cloudflared/config.prod.yml run`);
+      // 
+      //   tunnelProcess.stdout?.on('data', (data: string) => console.log(`[Tunnel Info] ${data}`));
+      //   tunnelProcess.stderr?.on('data', (data: string) => console.error(`[Tunnel Error] ${data}`));
+      // }
     });
 
   } catch (error) {
