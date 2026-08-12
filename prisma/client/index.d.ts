@@ -88,6 +88,11 @@ export type Exam = $Result.DefaultSelection<Prisma.$ExamPayload>
  * 
  */
 export type Summary = $Result.DefaultSelection<Prisma.$SummaryPayload>
+/**
+ * Model UserExperience
+ * 
+ */
+export type UserExperience = $Result.DefaultSelection<Prisma.$UserExperiencePayload>
 
 /**
  * Enums
@@ -465,6 +470,16 @@ export class PrismaClient<
     * ```
     */
   get summary(): Prisma.SummaryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userExperience`: Exposes CRUD operations for the **UserExperience** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserExperiences
+    * const userExperiences = await prisma.userExperience.findMany()
+    * ```
+    */
+  get userExperience(): Prisma.UserExperienceDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -926,7 +941,8 @@ export namespace Prisma {
     Routine: 'Routine',
     Class: 'Class',
     Exam: 'Exam',
-    Summary: 'Summary'
+    Summary: 'Summary',
+    UserExperience: 'UserExperience'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -942,7 +958,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "accountData" | "account" | "address" | "noticeBoardMember" | "notice" | "rePublish" | "notification" | "pendingAccount" | "routinesJoinRequest" | "weekday" | "routineMember" | "routine" | "class" | "exam" | "summary"
+      modelProps: "accountData" | "account" | "address" | "noticeBoardMember" | "notice" | "rePublish" | "notification" | "pendingAccount" | "routinesJoinRequest" | "weekday" | "routineMember" | "routine" | "class" | "exam" | "summary" | "userExperience"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2056,6 +2072,80 @@ export namespace Prisma {
           }
         }
       }
+      UserExperience: {
+        payload: Prisma.$UserExperiencePayload<ExtArgs>
+        fields: Prisma.UserExperienceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserExperienceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserExperienceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>
+          }
+          findFirst: {
+            args: Prisma.UserExperienceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserExperienceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>
+          }
+          findMany: {
+            args: Prisma.UserExperienceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>[]
+          }
+          create: {
+            args: Prisma.UserExperienceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>
+          }
+          createMany: {
+            args: Prisma.UserExperienceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserExperienceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>[]
+          }
+          delete: {
+            args: Prisma.UserExperienceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>
+          }
+          update: {
+            args: Prisma.UserExperienceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>
+          }
+          deleteMany: {
+            args: Prisma.UserExperienceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserExperienceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserExperienceUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>[]
+          }
+          upsert: {
+            args: Prisma.UserExperienceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserExperiencePayload>
+          }
+          aggregate: {
+            args: Prisma.UserExperienceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserExperience>
+          }
+          groupBy: {
+            args: Prisma.UserExperienceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserExperienceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserExperienceCountArgs<ExtArgs>
+            result: $Utils.Optional<UserExperienceCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2194,6 +2284,7 @@ export namespace Prisma {
     class?: ClassOmit
     exam?: ExamOmit
     summary?: SummaryOmit
+    userExperience?: UserExperienceOmit
   }
 
   /* Types for Logging */
@@ -3891,6 +3982,7 @@ export namespace Prisma {
     updatedAt?: boolean
     accountData?: boolean | Account$accountDataArgs<ExtArgs>
     address?: boolean | Account$addressArgs<ExtArgs>
+    userExperience?: boolean | Account$userExperienceArgs<ExtArgs>
     createdRoutines?: boolean | Account$createdRoutinesArgs<ExtArgs>
     routineMemberships?: boolean | Account$routineMembershipsArgs<ExtArgs>
     savedRoutines?: boolean | Account$savedRoutinesArgs<ExtArgs>
@@ -3955,6 +4047,7 @@ export namespace Prisma {
   export type AccountInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accountData?: boolean | Account$accountDataArgs<ExtArgs>
     address?: boolean | Account$addressArgs<ExtArgs>
+    userExperience?: boolean | Account$userExperienceArgs<ExtArgs>
     createdRoutines?: boolean | Account$createdRoutinesArgs<ExtArgs>
     routineMemberships?: boolean | Account$routineMembershipsArgs<ExtArgs>
     savedRoutines?: boolean | Account$savedRoutinesArgs<ExtArgs>
@@ -3974,6 +4067,7 @@ export namespace Prisma {
     objects: {
       accountData: Prisma.$AccountDataPayload<ExtArgs> | null
       address: Prisma.$AddressPayload<ExtArgs> | null
+      userExperience: Prisma.$UserExperiencePayload<ExtArgs> | null
       createdRoutines: Prisma.$RoutinePayload<ExtArgs>[]
       routineMemberships: Prisma.$RoutineMemberPayload<ExtArgs>[]
       savedRoutines: Prisma.$RoutinePayload<ExtArgs>[]
@@ -4394,6 +4488,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     accountData<T extends Account$accountDataArgs<ExtArgs> = {}>(args?: Subset<T, Account$accountDataArgs<ExtArgs>>): Prisma__AccountDataClient<$Result.GetResult<Prisma.$AccountDataPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     address<T extends Account$addressArgs<ExtArgs> = {}>(args?: Subset<T, Account$addressArgs<ExtArgs>>): Prisma__AddressClient<$Result.GetResult<Prisma.$AddressPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    userExperience<T extends Account$userExperienceArgs<ExtArgs> = {}>(args?: Subset<T, Account$userExperienceArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     createdRoutines<T extends Account$createdRoutinesArgs<ExtArgs> = {}>(args?: Subset<T, Account$createdRoutinesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoutinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     routineMemberships<T extends Account$routineMembershipsArgs<ExtArgs> = {}>(args?: Subset<T, Account$routineMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoutineMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     savedRoutines<T extends Account$savedRoutinesArgs<ExtArgs> = {}>(args?: Subset<T, Account$savedRoutinesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoutinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4873,6 +4968,25 @@ export namespace Prisma {
      */
     include?: AddressInclude<ExtArgs> | null
     where?: AddressWhereInput
+  }
+
+  /**
+   * Account.userExperience
+   */
+  export type Account$userExperienceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    where?: UserExperienceWhereInput
   }
 
   /**
@@ -15111,6 +15225,8 @@ export namespace Prisma {
     id: number
     routineName: number
     routineType: number
+    about: number
+    departments: number
     ownerAccountId: number
     createdAt: number
     updatedAt: number
@@ -15140,6 +15256,8 @@ export namespace Prisma {
     id?: true
     routineName?: true
     routineType?: true
+    about?: true
+    departments?: true
     ownerAccountId?: true
     createdAt?: true
     updatedAt?: true
@@ -15222,6 +15340,8 @@ export namespace Prisma {
     id: string
     routineName: string
     routineType: $Enums.RoutineType
+    about: JsonValue | null
+    departments: string[]
     ownerAccountId: string
     createdAt: Date
     updatedAt: Date
@@ -15248,6 +15368,8 @@ export namespace Prisma {
     id?: boolean
     routineName?: boolean
     routineType?: boolean
+    about?: boolean
+    departments?: boolean
     ownerAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -15266,6 +15388,8 @@ export namespace Prisma {
     id?: boolean
     routineName?: boolean
     routineType?: boolean
+    about?: boolean
+    departments?: boolean
     ownerAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -15276,6 +15400,8 @@ export namespace Prisma {
     id?: boolean
     routineName?: boolean
     routineType?: boolean
+    about?: boolean
+    departments?: boolean
     ownerAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -15286,12 +15412,14 @@ export namespace Prisma {
     id?: boolean
     routineName?: boolean
     routineType?: boolean
+    about?: boolean
+    departments?: boolean
     ownerAccountId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type RoutineOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "routineName" | "routineType" | "ownerAccountId" | "createdAt" | "updatedAt", ExtArgs["result"]["routine"]>
+  export type RoutineOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "routineName" | "routineType" | "about" | "departments" | "ownerAccountId" | "createdAt" | "updatedAt", ExtArgs["result"]["routine"]>
   export type RoutineInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     routineOwner?: boolean | AccountDefaultArgs<ExtArgs>
     routineMembers?: boolean | Routine$routineMembersArgs<ExtArgs>
@@ -15326,6 +15454,8 @@ export namespace Prisma {
       id: string
       routineName: string
       routineType: $Enums.RoutineType
+      about: Prisma.JsonValue | null
+      departments: string[]
       ownerAccountId: string
       createdAt: Date
       updatedAt: Date
@@ -15763,6 +15893,8 @@ export namespace Prisma {
     readonly id: FieldRef<"Routine", 'String'>
     readonly routineName: FieldRef<"Routine", 'String'>
     readonly routineType: FieldRef<"Routine", 'RoutineType'>
+    readonly about: FieldRef<"Routine", 'Json'>
+    readonly departments: FieldRef<"Routine", 'String[]'>
     readonly ownerAccountId: FieldRef<"Routine", 'String'>
     readonly createdAt: FieldRef<"Routine", 'DateTime'>
     readonly updatedAt: FieldRef<"Routine", 'DateTime'>
@@ -17506,14 +17638,25 @@ export namespace Prisma {
 
   export type AggregateExam = {
     _count: ExamCountAggregateOutputType | null
+    _avg: ExamAvgAggregateOutputType | null
+    _sum: ExamSumAggregateOutputType | null
     _min: ExamMinAggregateOutputType | null
     _max: ExamMaxAggregateOutputType | null
+  }
+
+  export type ExamAvgAggregateOutputType = {
+    price: number | null
+  }
+
+  export type ExamSumAggregateOutputType = {
+    price: number | null
   }
 
   export type ExamMinAggregateOutputType = {
     id: string | null
     name: string | null
     subjectCode: string | null
+    price: number | null
     date: Date | null
     startTime: Date | null
     endTime: Date | null
@@ -17527,6 +17670,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     subjectCode: string | null
+    price: number | null
     date: Date | null
     startTime: Date | null
     endTime: Date | null
@@ -17540,6 +17684,8 @@ export namespace Prisma {
     id: number
     name: number
     subjectCode: number
+    price: number
+    syllabus: number
     date: number
     startTime: number
     endTime: number
@@ -17551,10 +17697,19 @@ export namespace Prisma {
   }
 
 
+  export type ExamAvgAggregateInputType = {
+    price?: true
+  }
+
+  export type ExamSumAggregateInputType = {
+    price?: true
+  }
+
   export type ExamMinAggregateInputType = {
     id?: true
     name?: true
     subjectCode?: true
+    price?: true
     date?: true
     startTime?: true
     endTime?: true
@@ -17568,6 +17723,7 @@ export namespace Prisma {
     id?: true
     name?: true
     subjectCode?: true
+    price?: true
     date?: true
     startTime?: true
     endTime?: true
@@ -17581,6 +17737,8 @@ export namespace Prisma {
     id?: true
     name?: true
     subjectCode?: true
+    price?: true
+    syllabus?: true
     date?: true
     startTime?: true
     endTime?: true
@@ -17629,6 +17787,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: ExamAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ExamSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ExamMinAggregateInputType
@@ -17659,6 +17829,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ExamCountAggregateInputType | true
+    _avg?: ExamAvgAggregateInputType
+    _sum?: ExamSumAggregateInputType
     _min?: ExamMinAggregateInputType
     _max?: ExamMaxAggregateInputType
   }
@@ -17667,6 +17839,8 @@ export namespace Prisma {
     id: string
     name: string
     subjectCode: string | null
+    price: number | null
+    syllabus: JsonValue | null
     date: Date
     startTime: Date
     endTime: Date
@@ -17675,6 +17849,8 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     _count: ExamCountAggregateOutputType | null
+    _avg: ExamAvgAggregateOutputType | null
+    _sum: ExamSumAggregateOutputType | null
     _min: ExamMinAggregateOutputType | null
     _max: ExamMaxAggregateOutputType | null
   }
@@ -17697,6 +17873,8 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     subjectCode?: boolean
+    price?: boolean
+    syllabus?: boolean
     date?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -17713,6 +17891,8 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     subjectCode?: boolean
+    price?: boolean
+    syllabus?: boolean
     date?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -17727,6 +17907,8 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     subjectCode?: boolean
+    price?: boolean
+    syllabus?: boolean
     date?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -17741,6 +17923,8 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     subjectCode?: boolean
+    price?: boolean
+    syllabus?: boolean
     date?: boolean
     startTime?: boolean
     endTime?: boolean
@@ -17750,7 +17934,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type ExamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "subjectCode" | "date" | "startTime" | "endTime" | "room" | "routineId" | "createdAt" | "updatedAt", ExtArgs["result"]["exam"]>
+  export type ExamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "subjectCode" | "price" | "syllabus" | "date" | "startTime" | "endTime" | "room" | "routineId" | "createdAt" | "updatedAt", ExtArgs["result"]["exam"]>
   export type ExamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     routine?: boolean | RoutineDefaultArgs<ExtArgs>
     Summary?: boolean | Exam$SummaryArgs<ExtArgs>
@@ -17773,6 +17957,8 @@ export namespace Prisma {
       id: string
       name: string
       subjectCode: string | null
+      price: number | null
+      syllabus: Prisma.JsonValue | null
       date: Date
       startTime: Date
       endTime: Date
@@ -18208,6 +18394,8 @@ export namespace Prisma {
     readonly id: FieldRef<"Exam", 'String'>
     readonly name: FieldRef<"Exam", 'String'>
     readonly subjectCode: FieldRef<"Exam", 'String'>
+    readonly price: FieldRef<"Exam", 'Float'>
+    readonly syllabus: FieldRef<"Exam", 'Json'>
     readonly date: FieldRef<"Exam", 'DateTime'>
     readonly startTime: FieldRef<"Exam", 'DateTime'>
     readonly endTime: FieldRef<"Exam", 'DateTime'>
@@ -19933,6 +20121,1065 @@ export namespace Prisma {
 
 
   /**
+   * Model UserExperience
+   */
+
+  export type AggregateUserExperience = {
+    _count: UserExperienceCountAggregateOutputType | null
+    _min: UserExperienceMinAggregateOutputType | null
+    _max: UserExperienceMaxAggregateOutputType | null
+  }
+
+  export type UserExperienceMinAggregateOutputType = {
+    id: string | null
+    accountId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserExperienceMaxAggregateOutputType = {
+    id: string | null
+    accountId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserExperienceCountAggregateOutputType = {
+    id: number
+    accountId: number
+    departments: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UserExperienceMinAggregateInputType = {
+    id?: true
+    accountId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UserExperienceMaxAggregateInputType = {
+    id?: true
+    accountId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UserExperienceCountAggregateInputType = {
+    id?: true
+    accountId?: true
+    departments?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UserExperienceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserExperience to aggregate.
+     */
+    where?: UserExperienceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserExperiences to fetch.
+     */
+    orderBy?: UserExperienceOrderByWithRelationInput | UserExperienceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserExperienceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserExperiences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserExperiences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserExperiences
+    **/
+    _count?: true | UserExperienceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserExperienceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserExperienceMaxAggregateInputType
+  }
+
+  export type GetUserExperienceAggregateType<T extends UserExperienceAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserExperience]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserExperience[P]>
+      : GetScalarType<T[P], AggregateUserExperience[P]>
+  }
+
+
+
+
+  export type UserExperienceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserExperienceWhereInput
+    orderBy?: UserExperienceOrderByWithAggregationInput | UserExperienceOrderByWithAggregationInput[]
+    by: UserExperienceScalarFieldEnum[] | UserExperienceScalarFieldEnum
+    having?: UserExperienceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserExperienceCountAggregateInputType | true
+    _min?: UserExperienceMinAggregateInputType
+    _max?: UserExperienceMaxAggregateInputType
+  }
+
+  export type UserExperienceGroupByOutputType = {
+    id: string
+    accountId: string
+    departments: string[]
+    createdAt: Date
+    updatedAt: Date
+    _count: UserExperienceCountAggregateOutputType | null
+    _min: UserExperienceMinAggregateOutputType | null
+    _max: UserExperienceMaxAggregateOutputType | null
+  }
+
+  type GetUserExperienceGroupByPayload<T extends UserExperienceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserExperienceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserExperienceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserExperienceGroupByOutputType[P]>
+            : GetScalarType<T[P], UserExperienceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserExperienceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    accountId?: boolean
+    departments?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userExperience"]>
+
+  export type UserExperienceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    accountId?: boolean
+    departments?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userExperience"]>
+
+  export type UserExperienceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    accountId?: boolean
+    departments?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userExperience"]>
+
+  export type UserExperienceSelectScalar = {
+    id?: boolean
+    accountId?: boolean
+    departments?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type UserExperienceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "accountId" | "departments" | "createdAt" | "updatedAt", ExtArgs["result"]["userExperience"]>
+  export type UserExperienceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }
+  export type UserExperienceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }
+  export type UserExperienceIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }
+
+  export type $UserExperiencePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserExperience"
+    objects: {
+      account: Prisma.$AccountPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      accountId: string
+      departments: string[]
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["userExperience"]>
+    composites: {}
+  }
+
+  type UserExperienceGetPayload<S extends boolean | null | undefined | UserExperienceDefaultArgs> = $Result.GetResult<Prisma.$UserExperiencePayload, S>
+
+  type UserExperienceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserExperienceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserExperienceCountAggregateInputType | true
+    }
+
+  export interface UserExperienceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserExperience'], meta: { name: 'UserExperience' } }
+    /**
+     * Find zero or one UserExperience that matches the filter.
+     * @param {UserExperienceFindUniqueArgs} args - Arguments to find a UserExperience
+     * @example
+     * // Get one UserExperience
+     * const userExperience = await prisma.userExperience.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserExperienceFindUniqueArgs>(args: SelectSubset<T, UserExperienceFindUniqueArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserExperience that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserExperienceFindUniqueOrThrowArgs} args - Arguments to find a UserExperience
+     * @example
+     * // Get one UserExperience
+     * const userExperience = await prisma.userExperience.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserExperienceFindUniqueOrThrowArgs>(args: SelectSubset<T, UserExperienceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserExperience that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserExperienceFindFirstArgs} args - Arguments to find a UserExperience
+     * @example
+     * // Get one UserExperience
+     * const userExperience = await prisma.userExperience.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserExperienceFindFirstArgs>(args?: SelectSubset<T, UserExperienceFindFirstArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserExperience that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserExperienceFindFirstOrThrowArgs} args - Arguments to find a UserExperience
+     * @example
+     * // Get one UserExperience
+     * const userExperience = await prisma.userExperience.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserExperienceFindFirstOrThrowArgs>(args?: SelectSubset<T, UserExperienceFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserExperiences that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserExperienceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserExperiences
+     * const userExperiences = await prisma.userExperience.findMany()
+     * 
+     * // Get first 10 UserExperiences
+     * const userExperiences = await prisma.userExperience.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userExperienceWithIdOnly = await prisma.userExperience.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserExperienceFindManyArgs>(args?: SelectSubset<T, UserExperienceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserExperience.
+     * @param {UserExperienceCreateArgs} args - Arguments to create a UserExperience.
+     * @example
+     * // Create one UserExperience
+     * const UserExperience = await prisma.userExperience.create({
+     *   data: {
+     *     // ... data to create a UserExperience
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserExperienceCreateArgs>(args: SelectSubset<T, UserExperienceCreateArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserExperiences.
+     * @param {UserExperienceCreateManyArgs} args - Arguments to create many UserExperiences.
+     * @example
+     * // Create many UserExperiences
+     * const userExperience = await prisma.userExperience.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserExperienceCreateManyArgs>(args?: SelectSubset<T, UserExperienceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserExperiences and returns the data saved in the database.
+     * @param {UserExperienceCreateManyAndReturnArgs} args - Arguments to create many UserExperiences.
+     * @example
+     * // Create many UserExperiences
+     * const userExperience = await prisma.userExperience.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserExperiences and only return the `id`
+     * const userExperienceWithIdOnly = await prisma.userExperience.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserExperienceCreateManyAndReturnArgs>(args?: SelectSubset<T, UserExperienceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserExperience.
+     * @param {UserExperienceDeleteArgs} args - Arguments to delete one UserExperience.
+     * @example
+     * // Delete one UserExperience
+     * const UserExperience = await prisma.userExperience.delete({
+     *   where: {
+     *     // ... filter to delete one UserExperience
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserExperienceDeleteArgs>(args: SelectSubset<T, UserExperienceDeleteArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserExperience.
+     * @param {UserExperienceUpdateArgs} args - Arguments to update one UserExperience.
+     * @example
+     * // Update one UserExperience
+     * const userExperience = await prisma.userExperience.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserExperienceUpdateArgs>(args: SelectSubset<T, UserExperienceUpdateArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserExperiences.
+     * @param {UserExperienceDeleteManyArgs} args - Arguments to filter UserExperiences to delete.
+     * @example
+     * // Delete a few UserExperiences
+     * const { count } = await prisma.userExperience.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserExperienceDeleteManyArgs>(args?: SelectSubset<T, UserExperienceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserExperiences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserExperienceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserExperiences
+     * const userExperience = await prisma.userExperience.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserExperienceUpdateManyArgs>(args: SelectSubset<T, UserExperienceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserExperiences and returns the data updated in the database.
+     * @param {UserExperienceUpdateManyAndReturnArgs} args - Arguments to update many UserExperiences.
+     * @example
+     * // Update many UserExperiences
+     * const userExperience = await prisma.userExperience.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserExperiences and only return the `id`
+     * const userExperienceWithIdOnly = await prisma.userExperience.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserExperienceUpdateManyAndReturnArgs>(args: SelectSubset<T, UserExperienceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserExperience.
+     * @param {UserExperienceUpsertArgs} args - Arguments to update or create a UserExperience.
+     * @example
+     * // Update or create a UserExperience
+     * const userExperience = await prisma.userExperience.upsert({
+     *   create: {
+     *     // ... data to create a UserExperience
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserExperience we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserExperienceUpsertArgs>(args: SelectSubset<T, UserExperienceUpsertArgs<ExtArgs>>): Prisma__UserExperienceClient<$Result.GetResult<Prisma.$UserExperiencePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserExperiences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserExperienceCountArgs} args - Arguments to filter UserExperiences to count.
+     * @example
+     * // Count the number of UserExperiences
+     * const count = await prisma.userExperience.count({
+     *   where: {
+     *     // ... the filter for the UserExperiences we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserExperienceCountArgs>(
+      args?: Subset<T, UserExperienceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserExperienceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserExperience.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserExperienceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserExperienceAggregateArgs>(args: Subset<T, UserExperienceAggregateArgs>): Prisma.PrismaPromise<GetUserExperienceAggregateType<T>>
+
+    /**
+     * Group by UserExperience.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserExperienceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserExperienceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserExperienceGroupByArgs['orderBy'] }
+        : { orderBy?: UserExperienceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserExperienceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserExperienceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserExperience model
+   */
+  readonly fields: UserExperienceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserExperience.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserExperienceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    account<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserExperience model
+   */
+  interface UserExperienceFieldRefs {
+    readonly id: FieldRef<"UserExperience", 'String'>
+    readonly accountId: FieldRef<"UserExperience", 'String'>
+    readonly departments: FieldRef<"UserExperience", 'String[]'>
+    readonly createdAt: FieldRef<"UserExperience", 'DateTime'>
+    readonly updatedAt: FieldRef<"UserExperience", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserExperience findUnique
+   */
+  export type UserExperienceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserExperience to fetch.
+     */
+    where: UserExperienceWhereUniqueInput
+  }
+
+  /**
+   * UserExperience findUniqueOrThrow
+   */
+  export type UserExperienceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserExperience to fetch.
+     */
+    where: UserExperienceWhereUniqueInput
+  }
+
+  /**
+   * UserExperience findFirst
+   */
+  export type UserExperienceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserExperience to fetch.
+     */
+    where?: UserExperienceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserExperiences to fetch.
+     */
+    orderBy?: UserExperienceOrderByWithRelationInput | UserExperienceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserExperiences.
+     */
+    cursor?: UserExperienceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserExperiences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserExperiences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserExperiences.
+     */
+    distinct?: UserExperienceScalarFieldEnum | UserExperienceScalarFieldEnum[]
+  }
+
+  /**
+   * UserExperience findFirstOrThrow
+   */
+  export type UserExperienceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserExperience to fetch.
+     */
+    where?: UserExperienceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserExperiences to fetch.
+     */
+    orderBy?: UserExperienceOrderByWithRelationInput | UserExperienceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserExperiences.
+     */
+    cursor?: UserExperienceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserExperiences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserExperiences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserExperiences.
+     */
+    distinct?: UserExperienceScalarFieldEnum | UserExperienceScalarFieldEnum[]
+  }
+
+  /**
+   * UserExperience findMany
+   */
+  export type UserExperienceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * Filter, which UserExperiences to fetch.
+     */
+    where?: UserExperienceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserExperiences to fetch.
+     */
+    orderBy?: UserExperienceOrderByWithRelationInput | UserExperienceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserExperiences.
+     */
+    cursor?: UserExperienceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserExperiences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserExperiences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserExperiences.
+     */
+    distinct?: UserExperienceScalarFieldEnum | UserExperienceScalarFieldEnum[]
+  }
+
+  /**
+   * UserExperience create
+   */
+  export type UserExperienceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserExperience.
+     */
+    data: XOR<UserExperienceCreateInput, UserExperienceUncheckedCreateInput>
+  }
+
+  /**
+   * UserExperience createMany
+   */
+  export type UserExperienceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserExperiences.
+     */
+    data: UserExperienceCreateManyInput | UserExperienceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserExperience createManyAndReturn
+   */
+  export type UserExperienceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserExperiences.
+     */
+    data: UserExperienceCreateManyInput | UserExperienceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserExperience update
+   */
+  export type UserExperienceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserExperience.
+     */
+    data: XOR<UserExperienceUpdateInput, UserExperienceUncheckedUpdateInput>
+    /**
+     * Choose, which UserExperience to update.
+     */
+    where: UserExperienceWhereUniqueInput
+  }
+
+  /**
+   * UserExperience updateMany
+   */
+  export type UserExperienceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserExperiences.
+     */
+    data: XOR<UserExperienceUpdateManyMutationInput, UserExperienceUncheckedUpdateManyInput>
+    /**
+     * Filter which UserExperiences to update
+     */
+    where?: UserExperienceWhereInput
+    /**
+     * Limit how many UserExperiences to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserExperience updateManyAndReturn
+   */
+  export type UserExperienceUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * The data used to update UserExperiences.
+     */
+    data: XOR<UserExperienceUpdateManyMutationInput, UserExperienceUncheckedUpdateManyInput>
+    /**
+     * Filter which UserExperiences to update
+     */
+    where?: UserExperienceWhereInput
+    /**
+     * Limit how many UserExperiences to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserExperience upsert
+   */
+  export type UserExperienceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserExperience to update in case it exists.
+     */
+    where: UserExperienceWhereUniqueInput
+    /**
+     * In case the UserExperience found by the `where` argument doesn't exist, create a new UserExperience with this data.
+     */
+    create: XOR<UserExperienceCreateInput, UserExperienceUncheckedCreateInput>
+    /**
+     * In case the UserExperience was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserExperienceUpdateInput, UserExperienceUncheckedUpdateInput>
+  }
+
+  /**
+   * UserExperience delete
+   */
+  export type UserExperienceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+    /**
+     * Filter which UserExperience to delete.
+     */
+    where: UserExperienceWhereUniqueInput
+  }
+
+  /**
+   * UserExperience deleteMany
+   */
+  export type UserExperienceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserExperiences to delete
+     */
+    where?: UserExperienceWhereInput
+    /**
+     * Limit how many UserExperiences to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserExperience without action
+   */
+  export type UserExperienceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserExperience
+     */
+    select?: UserExperienceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserExperience
+     */
+    omit?: UserExperienceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserExperienceInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -20112,6 +21359,8 @@ export namespace Prisma {
     id: 'id',
     routineName: 'routineName',
     routineType: 'routineType',
+    about: 'about',
+    departments: 'departments',
     ownerAccountId: 'ownerAccountId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -20137,6 +21386,8 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     subjectCode: 'subjectCode',
+    price: 'price',
+    syllabus: 'syllabus',
     date: 'date',
     startTime: 'startTime',
     endTime: 'endTime',
@@ -20168,6 +21419,17 @@ export namespace Prisma {
   };
 
   export type SummaryScalarFieldEnum = (typeof SummaryScalarFieldEnum)[keyof typeof SummaryScalarFieldEnum]
+
+
+  export const UserExperienceScalarFieldEnum: {
+    id: 'id',
+    accountId: 'accountId',
+    departments: 'departments',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UserExperienceScalarFieldEnum = (typeof UserExperienceScalarFieldEnum)[keyof typeof UserExperienceScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -20350,20 +21612,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'SummaryType'
-   */
-  export type EnumSummaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SummaryType'>
-    
-
-
-  /**
-   * Reference to a field of type 'SummaryType[]'
-   */
-  export type ListEnumSummaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SummaryType[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -20374,6 +21622,20 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'SummaryType'
+   */
+  export type EnumSummaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SummaryType'>
+    
+
+
+  /**
+   * Reference to a field of type 'SummaryType[]'
+   */
+  export type ListEnumSummaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SummaryType[]'>
     
 
 
@@ -20483,6 +21745,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Account"> | Date | string
     accountData?: XOR<AccountDataNullableScalarRelationFilter, AccountDataWhereInput> | null
     address?: XOR<AddressNullableScalarRelationFilter, AddressWhereInput> | null
+    userExperience?: XOR<UserExperienceNullableScalarRelationFilter, UserExperienceWhereInput> | null
     createdRoutines?: RoutineListRelationFilter
     routineMemberships?: RoutineMemberListRelationFilter
     savedRoutines?: RoutineListRelationFilter
@@ -20510,6 +21773,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     accountData?: AccountDataOrderByWithRelationInput
     address?: AddressOrderByWithRelationInput
+    userExperience?: UserExperienceOrderByWithRelationInput
     createdRoutines?: RoutineOrderByRelationAggregateInput
     routineMemberships?: RoutineMemberOrderByRelationAggregateInput
     savedRoutines?: RoutineOrderByRelationAggregateInput
@@ -20540,6 +21804,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Account"> | Date | string
     accountData?: XOR<AccountDataNullableScalarRelationFilter, AccountDataWhereInput> | null
     address?: XOR<AddressNullableScalarRelationFilter, AddressWhereInput> | null
+    userExperience?: XOR<UserExperienceNullableScalarRelationFilter, UserExperienceWhereInput> | null
     createdRoutines?: RoutineListRelationFilter
     routineMemberships?: RoutineMemberListRelationFilter
     savedRoutines?: RoutineListRelationFilter
@@ -21252,6 +22517,8 @@ export namespace Prisma {
     id?: StringFilter<"Routine"> | string
     routineName?: StringFilter<"Routine"> | string
     routineType?: EnumRoutineTypeFilter<"Routine"> | $Enums.RoutineType
+    about?: JsonNullableFilter<"Routine">
+    departments?: StringNullableListFilter<"Routine">
     ownerAccountId?: StringFilter<"Routine"> | string
     createdAt?: DateTimeFilter<"Routine"> | Date | string
     updatedAt?: DateTimeFilter<"Routine"> | Date | string
@@ -21269,6 +22536,8 @@ export namespace Prisma {
     id?: SortOrder
     routineName?: SortOrder
     routineType?: SortOrder
+    about?: SortOrderInput | SortOrder
+    departments?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -21289,6 +22558,8 @@ export namespace Prisma {
     NOT?: RoutineWhereInput | RoutineWhereInput[]
     routineName?: StringFilter<"Routine"> | string
     routineType?: EnumRoutineTypeFilter<"Routine"> | $Enums.RoutineType
+    about?: JsonNullableFilter<"Routine">
+    departments?: StringNullableListFilter<"Routine">
     ownerAccountId?: StringFilter<"Routine"> | string
     createdAt?: DateTimeFilter<"Routine"> | Date | string
     updatedAt?: DateTimeFilter<"Routine"> | Date | string
@@ -21306,6 +22577,8 @@ export namespace Prisma {
     id?: SortOrder
     routineName?: SortOrder
     routineType?: SortOrder
+    about?: SortOrderInput | SortOrder
+    departments?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -21321,6 +22594,8 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Routine"> | string
     routineName?: StringWithAggregatesFilter<"Routine"> | string
     routineType?: EnumRoutineTypeWithAggregatesFilter<"Routine"> | $Enums.RoutineType
+    about?: JsonNullableWithAggregatesFilter<"Routine">
+    departments?: StringNullableListFilter<"Routine">
     ownerAccountId?: StringWithAggregatesFilter<"Routine"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Routine"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Routine"> | Date | string
@@ -21404,6 +22679,8 @@ export namespace Prisma {
     id?: StringFilter<"Exam"> | string
     name?: StringFilter<"Exam"> | string
     subjectCode?: StringNullableFilter<"Exam"> | string | null
+    price?: FloatNullableFilter<"Exam"> | number | null
+    syllabus?: JsonNullableFilter<"Exam">
     date?: DateTimeFilter<"Exam"> | Date | string
     startTime?: DateTimeFilter<"Exam"> | Date | string
     endTime?: DateTimeFilter<"Exam"> | Date | string
@@ -21419,6 +22696,8 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     subjectCode?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
+    syllabus?: SortOrderInput | SortOrder
     date?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -21437,6 +22716,8 @@ export namespace Prisma {
     NOT?: ExamWhereInput | ExamWhereInput[]
     name?: StringFilter<"Exam"> | string
     subjectCode?: StringNullableFilter<"Exam"> | string | null
+    price?: FloatNullableFilter<"Exam"> | number | null
+    syllabus?: JsonNullableFilter<"Exam">
     date?: DateTimeFilter<"Exam"> | Date | string
     startTime?: DateTimeFilter<"Exam"> | Date | string
     endTime?: DateTimeFilter<"Exam"> | Date | string
@@ -21452,6 +22733,8 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     subjectCode?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
+    syllabus?: SortOrderInput | SortOrder
     date?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -21460,8 +22743,10 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ExamCountOrderByAggregateInput
+    _avg?: ExamAvgOrderByAggregateInput
     _max?: ExamMaxOrderByAggregateInput
     _min?: ExamMinOrderByAggregateInput
+    _sum?: ExamSumOrderByAggregateInput
   }
 
   export type ExamScalarWhereWithAggregatesInput = {
@@ -21471,6 +22756,8 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Exam"> | string
     name?: StringWithAggregatesFilter<"Exam"> | string
     subjectCode?: StringNullableWithAggregatesFilter<"Exam"> | string | null
+    price?: FloatNullableWithAggregatesFilter<"Exam"> | number | null
+    syllabus?: JsonNullableWithAggregatesFilter<"Exam">
     date?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
     startTime?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
     endTime?: DateTimeWithAggregatesFilter<"Exam"> | Date | string
@@ -21597,6 +22884,61 @@ export namespace Prisma {
     savedAccountId?: StringNullableWithAggregatesFilter<"Summary"> | string | null
   }
 
+  export type UserExperienceWhereInput = {
+    AND?: UserExperienceWhereInput | UserExperienceWhereInput[]
+    OR?: UserExperienceWhereInput[]
+    NOT?: UserExperienceWhereInput | UserExperienceWhereInput[]
+    id?: StringFilter<"UserExperience"> | string
+    accountId?: StringFilter<"UserExperience"> | string
+    departments?: StringNullableListFilter<"UserExperience">
+    createdAt?: DateTimeFilter<"UserExperience"> | Date | string
+    updatedAt?: DateTimeFilter<"UserExperience"> | Date | string
+    account?: XOR<AccountScalarRelationFilter, AccountWhereInput>
+  }
+
+  export type UserExperienceOrderByWithRelationInput = {
+    id?: SortOrder
+    accountId?: SortOrder
+    departments?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    account?: AccountOrderByWithRelationInput
+  }
+
+  export type UserExperienceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    accountId?: string
+    AND?: UserExperienceWhereInput | UserExperienceWhereInput[]
+    OR?: UserExperienceWhereInput[]
+    NOT?: UserExperienceWhereInput | UserExperienceWhereInput[]
+    departments?: StringNullableListFilter<"UserExperience">
+    createdAt?: DateTimeFilter<"UserExperience"> | Date | string
+    updatedAt?: DateTimeFilter<"UserExperience"> | Date | string
+    account?: XOR<AccountScalarRelationFilter, AccountWhereInput>
+  }, "id" | "accountId">
+
+  export type UserExperienceOrderByWithAggregationInput = {
+    id?: SortOrder
+    accountId?: SortOrder
+    departments?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: UserExperienceCountOrderByAggregateInput
+    _max?: UserExperienceMaxOrderByAggregateInput
+    _min?: UserExperienceMinOrderByAggregateInput
+  }
+
+  export type UserExperienceScalarWhereWithAggregatesInput = {
+    AND?: UserExperienceScalarWhereWithAggregatesInput | UserExperienceScalarWhereWithAggregatesInput[]
+    OR?: UserExperienceScalarWhereWithAggregatesInput[]
+    NOT?: UserExperienceScalarWhereWithAggregatesInput | UserExperienceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserExperience"> | string
+    accountId?: StringWithAggregatesFilter<"UserExperience"> | string
+    departments?: StringNullableListFilter<"UserExperience">
+    createdAt?: DateTimeWithAggregatesFilter<"UserExperience"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UserExperience"> | Date | string
+  }
+
   export type AccountDataCreateInput = {
     id?: string
     googleSignIn?: boolean
@@ -21689,6 +23031,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -21716,6 +23059,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -21743,6 +23087,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -21770,6 +23115,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -22540,6 +23886,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -22556,6 +23904,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -22572,6 +23922,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -22588,6 +23940,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22604,6 +23958,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -22613,6 +23969,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -22621,6 +23979,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22707,6 +24067,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -22721,6 +24083,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -22735,6 +24099,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22749,6 +24115,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22763,6 +24131,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -22776,6 +24146,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22788,6 +24160,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22916,6 +24290,61 @@ export namespace Prisma {
     fileType?: NullableStringFieldUpdateOperationsInput | string | null
     pollOptions?: NullableJsonNullValueInput | InputJsonValue
     savedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type UserExperienceCreateInput = {
+    id?: string
+    departments?: UserExperienceCreatedepartmentsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    account: AccountCreateNestedOneWithoutUserExperienceInput
+  }
+
+  export type UserExperienceUncheckedCreateInput = {
+    id?: string
+    accountId: string
+    departments?: UserExperienceCreatedepartmentsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserExperienceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    departments?: UserExperienceUpdatedepartmentsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutUserExperienceNestedInput
+  }
+
+  export type UserExperienceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountId?: StringFieldUpdateOperationsInput | string
+    departments?: UserExperienceUpdatedepartmentsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserExperienceCreateManyInput = {
+    id?: string
+    accountId: string
+    departments?: UserExperienceCreatedepartmentsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserExperienceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    departments?: UserExperienceUpdatedepartmentsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserExperienceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountId?: StringFieldUpdateOperationsInput | string
+    departments?: UserExperienceUpdatedepartmentsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -23090,6 +24519,11 @@ export namespace Prisma {
   export type AddressNullableScalarRelationFilter = {
     is?: AddressWhereInput | null
     isNot?: AddressWhereInput | null
+  }
+
+  export type UserExperienceNullableScalarRelationFilter = {
+    is?: UserExperienceWhereInput | null
+    isNot?: UserExperienceWhereInput | null
   }
 
   export type RoutineListRelationFilter = {
@@ -23678,6 +25112,29 @@ export namespace Prisma {
     notIn?: $Enums.RoutineType[] | ListEnumRoutineTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumRoutineTypeFilter<$PrismaModel> | $Enums.RoutineType
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type ClassListRelationFilter = {
     every?: ClassWhereInput
@@ -23723,6 +25180,8 @@ export namespace Prisma {
     id?: SortOrder
     routineName?: SortOrder
     routineType?: SortOrder
+    about?: SortOrder
+    departments?: SortOrder
     ownerAccountId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -23754,6 +25213,32 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRoutineTypeFilter<$PrismaModel>
     _max?: NestedEnumRoutineTypeFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type ClassCountOrderByAggregateInput = {
@@ -23790,6 +25275,8 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     subjectCode?: SortOrder
+    price?: SortOrder
+    syllabus?: SortOrder
     date?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -23799,10 +25286,15 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type ExamAvgOrderByAggregateInput = {
+    price?: SortOrder
+  }
+
   export type ExamMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     subjectCode?: SortOrder
+    price?: SortOrder
     date?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -23816,6 +25308,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     subjectCode?: SortOrder
+    price?: SortOrder
     date?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
@@ -23825,34 +25318,15 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type ExamSumOrderByAggregateInput = {
+    price?: SortOrder
+  }
+
   export type EnumSummaryTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.SummaryType | EnumSummaryTypeFieldRefInput<$PrismaModel>
     in?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumSummaryTypeFilter<$PrismaModel> | $Enums.SummaryType
-  }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type ClassNullableScalarRelationFilter = {
@@ -23924,31 +25398,27 @@ export namespace Prisma {
     _min?: NestedEnumSummaryTypeFilter<$PrismaModel>
     _max?: NestedEnumSummaryTypeFilter<$PrismaModel>
   }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
+  export type UserExperienceCountOrderByAggregateInput = {
+    id?: SortOrder
+    accountId?: SortOrder
+    departments?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserExperienceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    accountId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserExperienceMinOrderByAggregateInput = {
+    id?: SortOrder
+    accountId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type AccountDataCreateverificationDocumentsInput = {
@@ -23996,6 +25466,12 @@ export namespace Prisma {
     create?: XOR<AddressCreateWithoutAccountInput, AddressUncheckedCreateWithoutAccountInput>
     connectOrCreate?: AddressCreateOrConnectWithoutAccountInput
     connect?: AddressWhereUniqueInput
+  }
+
+  export type UserExperienceCreateNestedOneWithoutAccountInput = {
+    create?: XOR<UserExperienceCreateWithoutAccountInput, UserExperienceUncheckedCreateWithoutAccountInput>
+    connectOrCreate?: UserExperienceCreateOrConnectWithoutAccountInput
+    connect?: UserExperienceWhereUniqueInput
   }
 
   export type RoutineCreateNestedManyWithoutRoutineOwnerInput = {
@@ -24070,6 +25546,12 @@ export namespace Prisma {
     create?: XOR<AddressCreateWithoutAccountInput, AddressUncheckedCreateWithoutAccountInput>
     connectOrCreate?: AddressCreateOrConnectWithoutAccountInput
     connect?: AddressWhereUniqueInput
+  }
+
+  export type UserExperienceUncheckedCreateNestedOneWithoutAccountInput = {
+    create?: XOR<UserExperienceCreateWithoutAccountInput, UserExperienceUncheckedCreateWithoutAccountInput>
+    connectOrCreate?: UserExperienceCreateOrConnectWithoutAccountInput
+    connect?: UserExperienceWhereUniqueInput
   }
 
   export type RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput = {
@@ -24168,6 +25650,16 @@ export namespace Prisma {
     delete?: AddressWhereInput | boolean
     connect?: AddressWhereUniqueInput
     update?: XOR<XOR<AddressUpdateToOneWithWhereWithoutAccountInput, AddressUpdateWithoutAccountInput>, AddressUncheckedUpdateWithoutAccountInput>
+  }
+
+  export type UserExperienceUpdateOneWithoutAccountNestedInput = {
+    create?: XOR<UserExperienceCreateWithoutAccountInput, UserExperienceUncheckedCreateWithoutAccountInput>
+    connectOrCreate?: UserExperienceCreateOrConnectWithoutAccountInput
+    upsert?: UserExperienceUpsertWithoutAccountInput
+    disconnect?: UserExperienceWhereInput | boolean
+    delete?: UserExperienceWhereInput | boolean
+    connect?: UserExperienceWhereUniqueInput
+    update?: XOR<XOR<UserExperienceUpdateToOneWithWhereWithoutAccountInput, UserExperienceUpdateWithoutAccountInput>, UserExperienceUncheckedUpdateWithoutAccountInput>
   }
 
   export type RoutineUpdateManyWithoutRoutineOwnerNestedInput = {
@@ -24313,6 +25805,16 @@ export namespace Prisma {
     delete?: AddressWhereInput | boolean
     connect?: AddressWhereUniqueInput
     update?: XOR<XOR<AddressUpdateToOneWithWhereWithoutAccountInput, AddressUpdateWithoutAccountInput>, AddressUncheckedUpdateWithoutAccountInput>
+  }
+
+  export type UserExperienceUncheckedUpdateOneWithoutAccountNestedInput = {
+    create?: XOR<UserExperienceCreateWithoutAccountInput, UserExperienceUncheckedCreateWithoutAccountInput>
+    connectOrCreate?: UserExperienceCreateOrConnectWithoutAccountInput
+    upsert?: UserExperienceUpsertWithoutAccountInput
+    disconnect?: UserExperienceWhereInput | boolean
+    delete?: UserExperienceWhereInput | boolean
+    connect?: UserExperienceWhereUniqueInput
+    update?: XOR<XOR<UserExperienceUpdateToOneWithWhereWithoutAccountInput, UserExperienceUpdateWithoutAccountInput>, UserExperienceUncheckedUpdateWithoutAccountInput>
   }
 
   export type RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput = {
@@ -24660,6 +26162,10 @@ export namespace Prisma {
     update?: XOR<XOR<RoutineUpdateToOneWithWhereWithoutRoutineMembersInput, RoutineUpdateWithoutRoutineMembersInput>, RoutineUncheckedUpdateWithoutRoutineMembersInput>
   }
 
+  export type RoutineCreatedepartmentsInput = {
+    set: string[]
+  }
+
   export type AccountCreateNestedOneWithoutCreatedRoutinesInput = {
     create?: XOR<AccountCreateWithoutCreatedRoutinesInput, AccountUncheckedCreateWithoutCreatedRoutinesInput>
     connectOrCreate?: AccountCreateOrConnectWithoutCreatedRoutinesInput
@@ -24764,6 +26270,11 @@ export namespace Prisma {
 
   export type EnumRoutineTypeFieldUpdateOperationsInput = {
     set?: $Enums.RoutineType
+  }
+
+  export type RoutineUpdatedepartmentsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput = {
@@ -25211,6 +26722,29 @@ export namespace Prisma {
     update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutSaveSummaryInput, AccountUpdateWithoutSaveSummaryInput>, AccountUncheckedUpdateWithoutSaveSummaryInput>
   }
 
+  export type UserExperienceCreatedepartmentsInput = {
+    set: string[]
+  }
+
+  export type AccountCreateNestedOneWithoutUserExperienceInput = {
+    create?: XOR<AccountCreateWithoutUserExperienceInput, AccountUncheckedCreateWithoutUserExperienceInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutUserExperienceInput
+    connect?: AccountWhereUniqueInput
+  }
+
+  export type UserExperienceUpdatedepartmentsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type AccountUpdateOneRequiredWithoutUserExperienceNestedInput = {
+    create?: XOR<AccountCreateWithoutUserExperienceInput, AccountUncheckedCreateWithoutUserExperienceInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutUserExperienceInput
+    upsert?: AccountUpsertWithoutUserExperienceInput
+    connect?: AccountWhereUniqueInput
+    update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutUserExperienceInput, AccountUpdateWithoutUserExperienceInput>, AccountUncheckedUpdateWithoutUserExperienceInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -25486,23 +27020,6 @@ export namespace Prisma {
     _min?: NestedEnumRoutineTypeFilter<$PrismaModel>
     _max?: NestedEnumRoutineTypeFilter<$PrismaModel>
   }
-
-  export type NestedEnumSummaryTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.SummaryType | EnumSummaryTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumSummaryTypeFilter<$PrismaModel> | $Enums.SummaryType
-  }
-
-  export type NestedEnumSummaryTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.SummaryType | EnumSummaryTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumSummaryTypeWithAggregatesFilter<$PrismaModel> | $Enums.SummaryType
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumSummaryTypeFilter<$PrismaModel>
-    _max?: NestedEnumSummaryTypeFilter<$PrismaModel>
-  }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -25527,6 +27044,23 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type NestedEnumSummaryTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SummaryType | EnumSummaryTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSummaryTypeFilter<$PrismaModel> | $Enums.SummaryType
+  }
+
+  export type NestedEnumSummaryTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SummaryType | EnumSummaryTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SummaryType[] | ListEnumSummaryTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSummaryTypeWithAggregatesFilter<$PrismaModel> | $Enums.SummaryType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSummaryTypeFilter<$PrismaModel>
+    _max?: NestedEnumSummaryTypeFilter<$PrismaModel>
+  }
+
   export type AccountCreateWithoutAccountDataInput = {
     id?: string
     username: string
@@ -25542,6 +27076,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -25568,6 +27103,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -25610,6 +27146,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -25636,6 +27173,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -25699,10 +27237,31 @@ export namespace Prisma {
     create: XOR<AddressCreateWithoutAccountInput, AddressUncheckedCreateWithoutAccountInput>
   }
 
+  export type UserExperienceCreateWithoutAccountInput = {
+    id?: string
+    departments?: UserExperienceCreatedepartmentsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserExperienceUncheckedCreateWithoutAccountInput = {
+    id?: string
+    departments?: UserExperienceCreatedepartmentsInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserExperienceCreateOrConnectWithoutAccountInput = {
+    where: UserExperienceWhereUniqueInput
+    create: XOR<UserExperienceCreateWithoutAccountInput, UserExperienceUncheckedCreateWithoutAccountInput>
+  }
+
   export type RoutineCreateWithoutRoutineOwnerInput = {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberCreateNestedManyWithoutRoutineInput
@@ -25718,6 +27277,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineMembers?: RoutineMemberUncheckedCreateNestedManyWithoutRoutineInput
@@ -25777,6 +27338,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -25792,6 +27355,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -26064,6 +27629,31 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserExperienceUpsertWithoutAccountInput = {
+    update: XOR<UserExperienceUpdateWithoutAccountInput, UserExperienceUncheckedUpdateWithoutAccountInput>
+    create: XOR<UserExperienceCreateWithoutAccountInput, UserExperienceUncheckedCreateWithoutAccountInput>
+    where?: UserExperienceWhereInput
+  }
+
+  export type UserExperienceUpdateToOneWithWhereWithoutAccountInput = {
+    where?: UserExperienceWhereInput
+    data: XOR<UserExperienceUpdateWithoutAccountInput, UserExperienceUncheckedUpdateWithoutAccountInput>
+  }
+
+  export type UserExperienceUpdateWithoutAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    departments?: UserExperienceUpdatedepartmentsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserExperienceUncheckedUpdateWithoutAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    departments?: UserExperienceUpdatedepartmentsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type RoutineUpsertWithWhereUniqueWithoutRoutineOwnerInput = {
     where: RoutineWhereUniqueInput
     update: XOR<RoutineUpdateWithoutRoutineOwnerInput, RoutineUncheckedUpdateWithoutRoutineOwnerInput>
@@ -26087,6 +27677,8 @@ export namespace Prisma {
     id?: StringFilter<"Routine"> | string
     routineName?: StringFilter<"Routine"> | string
     routineType?: EnumRoutineTypeFilter<"Routine"> | $Enums.RoutineType
+    about?: JsonNullableFilter<"Routine">
+    departments?: StringNullableListFilter<"Routine">
     ownerAccountId?: StringFilter<"Routine"> | string
     createdAt?: DateTimeFilter<"Routine"> | Date | string
     updatedAt?: DateTimeFilter<"Routine"> | Date | string
@@ -26319,6 +27911,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -26345,6 +27938,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -26387,6 +27981,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -26413,6 +28008,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -26440,6 +28036,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -26466,6 +28063,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -26508,6 +28106,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -26534,6 +28133,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -26560,6 +28160,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -26586,6 +28187,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -26654,6 +28256,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -26680,6 +28283,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -26749,6 +28353,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -26775,6 +28380,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -26850,6 +28456,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -26876,6 +28483,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -26902,6 +28510,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -26928,6 +28537,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -26947,6 +28557,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -26962,6 +28574,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -27005,6 +28619,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -27031,6 +28646,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -27056,6 +28672,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -27071,6 +28689,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27086,6 +28706,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -27101,6 +28723,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -27159,6 +28783,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -27174,6 +28800,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27234,6 +28862,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRequestedAccountInput
@@ -27260,6 +28889,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRequestedAccountInput
@@ -27279,6 +28909,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -27294,6 +28926,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -27337,6 +28971,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRequestedAccountNestedInput
@@ -27363,6 +28998,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRequestedAccountNestedInput
@@ -27388,6 +29024,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -27403,6 +29041,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27430,6 +29070,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRequestedAccountInput
@@ -27456,6 +29097,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRequestedAccountInput
@@ -27541,6 +29183,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -27554,6 +29198,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -27621,6 +29267,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRequestedAccountInput
@@ -27647,6 +29294,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRequestedAccountInput
@@ -27757,6 +29405,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRequestedAccountNestedInput
@@ -27783,6 +29432,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRequestedAccountNestedInput
@@ -27861,6 +29511,8 @@ export namespace Prisma {
     id?: StringFilter<"Exam"> | string
     name?: StringFilter<"Exam"> | string
     subjectCode?: StringNullableFilter<"Exam"> | string | null
+    price?: FloatNullableFilter<"Exam"> | number | null
+    syllabus?: JsonNullableFilter<"Exam">
     date?: DateTimeFilter<"Exam"> | Date | string
     startTime?: DateTimeFilter<"Exam"> | Date | string
     endTime?: DateTimeFilter<"Exam"> | Date | string
@@ -27972,6 +29624,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -27987,6 +29641,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -28094,6 +29750,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -28109,6 +29767,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28156,6 +29816,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -28171,6 +29833,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -28246,6 +29910,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -28261,6 +29927,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28304,6 +29972,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -28330,6 +29999,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -28349,6 +30019,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     routineOwner: AccountCreateNestedOneWithoutCreatedRoutinesInput
@@ -28364,6 +30036,8 @@ export namespace Prisma {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     ownerAccountId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -28411,6 +30085,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -28424,6 +30100,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -28454,6 +30132,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
     address?: AddressCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
@@ -28480,6 +30159,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
     address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    userExperience?: UserExperienceUncheckedCreateNestedOneWithoutAccountInput
     createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
     routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
     savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
@@ -28522,6 +30202,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -28548,6 +30229,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -28573,6 +30255,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -28588,6 +30272,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28647,6 +30333,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28660,6 +30348,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28696,6 +30386,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
@@ -28722,6 +30413,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
@@ -28732,10 +30424,136 @@ export namespace Prisma {
     NoticeBoardMember?: NoticeBoardMemberUncheckedUpdateManyWithoutAccountNestedInput
   }
 
+  export type AccountCreateWithoutUserExperienceInput = {
+    id?: string
+    username: string
+    name: string
+    about?: string | null
+    isVerified?: boolean
+    image?: string | null
+    imageStorageProvider?: $Enums.StorageProvider | null
+    coverImage?: string | null
+    coverImageStorageProvider?: $Enums.StorageProvider | null
+    accountType?: $Enums.AccountType
+    lastLoginTime?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accountData?: AccountDataCreateNestedOneWithoutAccountIDInput
+    address?: AddressCreateNestedOneWithoutAccountInput
+    createdRoutines?: RoutineCreateNestedManyWithoutRoutineOwnerInput
+    routineMemberships?: RoutineMemberCreateNestedManyWithoutMemberInput
+    savedRoutines?: RoutineCreateNestedManyWithoutSavedByInput
+    RoutinesJoinRequest?: RoutinesJoinRequestCreateNestedManyWithoutRequestedAccountInput
+    Summary?: SummaryCreateNestedManyWithoutOwnerInput
+    saveSummary?: SummaryCreateNestedManyWithoutAccountInput
+    publishedNotice?: NoticeCreateNestedManyWithoutAccountInput
+    rePublishedNotice?: rePublishCreateNestedManyWithoutAccountInput
+    NoticeBoardMember?: NoticeBoardMemberCreateNestedManyWithoutAccountInput
+  }
+
+  export type AccountUncheckedCreateWithoutUserExperienceInput = {
+    id?: string
+    username: string
+    name: string
+    about?: string | null
+    isVerified?: boolean
+    image?: string | null
+    imageStorageProvider?: $Enums.StorageProvider | null
+    coverImage?: string | null
+    coverImageStorageProvider?: $Enums.StorageProvider | null
+    accountType?: $Enums.AccountType
+    lastLoginTime?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accountData?: AccountDataUncheckedCreateNestedOneWithoutAccountIDInput
+    address?: AddressUncheckedCreateNestedOneWithoutAccountInput
+    createdRoutines?: RoutineUncheckedCreateNestedManyWithoutRoutineOwnerInput
+    routineMemberships?: RoutineMemberUncheckedCreateNestedManyWithoutMemberInput
+    savedRoutines?: RoutineUncheckedCreateNestedManyWithoutSavedByInput
+    RoutinesJoinRequest?: RoutinesJoinRequestUncheckedCreateNestedManyWithoutRequestedAccountInput
+    Summary?: SummaryUncheckedCreateNestedManyWithoutOwnerInput
+    saveSummary?: SummaryUncheckedCreateNestedManyWithoutAccountInput
+    publishedNotice?: NoticeUncheckedCreateNestedManyWithoutAccountInput
+    rePublishedNotice?: rePublishUncheckedCreateNestedManyWithoutAccountInput
+    NoticeBoardMember?: NoticeBoardMemberUncheckedCreateNestedManyWithoutAccountInput
+  }
+
+  export type AccountCreateOrConnectWithoutUserExperienceInput = {
+    where: AccountWhereUniqueInput
+    create: XOR<AccountCreateWithoutUserExperienceInput, AccountUncheckedCreateWithoutUserExperienceInput>
+  }
+
+  export type AccountUpsertWithoutUserExperienceInput = {
+    update: XOR<AccountUpdateWithoutUserExperienceInput, AccountUncheckedUpdateWithoutUserExperienceInput>
+    create: XOR<AccountCreateWithoutUserExperienceInput, AccountUncheckedCreateWithoutUserExperienceInput>
+    where?: AccountWhereInput
+  }
+
+  export type AccountUpdateToOneWithWhereWithoutUserExperienceInput = {
+    where?: AccountWhereInput
+    data: XOR<AccountUpdateWithoutUserExperienceInput, AccountUncheckedUpdateWithoutUserExperienceInput>
+  }
+
+  export type AccountUpdateWithoutUserExperienceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    lastLoginTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
+    address?: AddressUpdateOneWithoutAccountNestedInput
+    createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
+    routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
+    savedRoutines?: RoutineUpdateManyWithoutSavedByNestedInput
+    RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRequestedAccountNestedInput
+    Summary?: SummaryUpdateManyWithoutOwnerNestedInput
+    saveSummary?: SummaryUpdateManyWithoutAccountNestedInput
+    publishedNotice?: NoticeUpdateManyWithoutAccountNestedInput
+    rePublishedNotice?: rePublishUpdateManyWithoutAccountNestedInput
+    NoticeBoardMember?: NoticeBoardMemberUpdateManyWithoutAccountNestedInput
+  }
+
+  export type AccountUncheckedUpdateWithoutUserExperienceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    imageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImageStorageProvider?: NullableEnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider | null
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    lastLoginTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
+    address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
+    routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
+    savedRoutines?: RoutineUncheckedUpdateManyWithoutSavedByNestedInput
+    RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRequestedAccountNestedInput
+    Summary?: SummaryUncheckedUpdateManyWithoutOwnerNestedInput
+    saveSummary?: SummaryUncheckedUpdateManyWithoutAccountNestedInput
+    publishedNotice?: NoticeUncheckedUpdateManyWithoutAccountNestedInput
+    rePublishedNotice?: rePublishUncheckedUpdateManyWithoutAccountNestedInput
+    NoticeBoardMember?: NoticeBoardMemberUncheckedUpdateManyWithoutAccountNestedInput
+  }
+
   export type RoutineCreateManyRoutineOwnerInput = {
     id?: string
     routineName: string
     routineType?: $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineCreatedepartmentsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -28821,6 +30639,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUpdateManyWithoutRoutineNestedInput
@@ -28836,6 +30656,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineMembers?: RoutineMemberUncheckedUpdateManyWithoutRoutineNestedInput
@@ -28851,6 +30673,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28895,6 +30719,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     routineOwner?: AccountUpdateOneRequiredWithoutCreatedRoutinesNestedInput
@@ -28910,6 +30736,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28925,6 +30753,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     routineName?: StringFieldUpdateOperationsInput | string
     routineType?: EnumRoutineTypeFieldUpdateOperationsInput | $Enums.RoutineType
+    about?: NullableJsonNullValueInput | InputJsonValue
+    departments?: RoutineUpdatedepartmentsInput | string[]
     ownerAccountId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29184,6 +31014,8 @@ export namespace Prisma {
     id?: string
     name: string
     subjectCode?: string | null
+    price?: number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date: Date | string
     startTime: Date | string
     endTime: Date | string
@@ -29298,6 +31130,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29311,6 +31145,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29324,6 +31160,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subjectCode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    syllabus?: NullableJsonNullValueInput | InputJsonValue
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29381,6 +31219,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUpdateOneWithoutAccountIDNestedInput
     address?: AddressUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUpdateManyWithoutMemberNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUpdateManyWithoutRequestedAccountNestedInput
@@ -29407,6 +31246,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accountData?: AccountDataUncheckedUpdateOneWithoutAccountIDNestedInput
     address?: AddressUncheckedUpdateOneWithoutAccountNestedInput
+    userExperience?: UserExperienceUncheckedUpdateOneWithoutAccountNestedInput
     createdRoutines?: RoutineUncheckedUpdateManyWithoutRoutineOwnerNestedInput
     routineMemberships?: RoutineMemberUncheckedUpdateManyWithoutMemberNestedInput
     RoutinesJoinRequest?: RoutinesJoinRequestUncheckedUpdateManyWithoutRequestedAccountNestedInput

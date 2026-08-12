@@ -28,6 +28,7 @@ model Account {
   lastLoginTime             DateTime? // Optional timestamp for the last login
   accountData               AccountData?     @relation("AccountDataOwner") // Optional relation to AccountData model
   address                   Address?
+  userExperience            UserExperience?  @relation("UserExperienceRelation") // User lifetime experience & department choices
 
   // routine
   createdRoutines    Routine[]       @relation("AccountCreatedRoutines") // Routines created by this account
@@ -235,6 +236,8 @@ model Routine {
   id             String          @id @default(uuid()) // Unique identifier for the routine
   routineName    String // Name of the routine
   routineType    RoutineType     @default(CLASS) // Polymorphic routine type: CLASS or EXAM
+  about          Json? // Nullable JSON field to store about info & instructions in JSON format
+  departments    String[]        @default([]) // Array of department names created/used in this routine
   routineOwner   Account         @relation("AccountCreatedRoutines", fields: [ownerAccountId], references: [id]) // Relation to the account who created the routine
   ownerAccountId String // ID of the account that created the routine
   routineMembers RoutineMember[] @relation("RoutineMembers") // Members of the routine
@@ -267,6 +270,8 @@ model Exam {
   id          String    @id @default(uuid()) // Primary key
   name        String // Exam / Subject Name (e.g. Bangla, English)
   subjectCode String? // Optional subject code
+  price       Float?    @default(0) // Exam price (0 or null = Free)
+  syllabus    Json? // 2-Part Syllabus JSON: { common: "", departments: { Electrical: "", Mechanical: "" } }
   date        DateTime // Date of exam
   startTime   DateTime // Start time
   endTime     DateTime // End time
@@ -279,9 +284,10 @@ model Exam {
 }
 
 generator client {
-  provider      = "prisma-client-js"
-  output        = "../client"
-  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  output          = "../client"
+  previewFeatures = ["prismaSchemaFolder"]
+  binaryTargets   = ["native", "rhel-openssl-1.0.x", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -312,4 +318,14 @@ model Summary {
   exam           Exam?    @relation("examSummary", fields: [examId], references: [id], onDelete: Cascade)
   Account        Account? @relation("savedSummary", fields: [savedAccountId], references: [id])
   savedAccountId String?
+}
+
+model UserExperience {
+  id          String   @id @default(uuid())
+  accountId   String   @unique
+  account     Account  @relation("UserExperienceRelation", fields: [accountId], references: [id], onDelete: Cascade)
+  departments String[] @default([]) // All lifetime departments added by the user (persisted even if routine is deleted)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

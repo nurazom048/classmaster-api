@@ -44,6 +44,8 @@ model Routine {
     id             String          @id @default(uuid()) // Unique identifier for the routine
     routineName    String // Name of the routine
     routineType    RoutineType     @default(CLASS) // Polymorphic routine type: CLASS or EXAM
+    about          Json?           // Nullable JSON field to store about info & instructions in JSON format
+    departments    String[]        @default([]) // Array of department names created/used in this routine
     routineOwner   Account         @relation("AccountCreatedRoutines", fields: [ownerAccountId], references: [id]) // Relation to the account who created the routine
     ownerAccountId String // ID of the account that created the routine
     routineMembers RoutineMember[] @relation("RoutineMembers") // Members of the routine
@@ -76,6 +78,8 @@ model Exam {
     id          String    @id @default(uuid()) // Primary key
     name        String    // Exam / Subject Name (e.g. Bangla, English)
     subjectCode String?   // Optional subject code
+    price       Float?    @default(0) // Exam price (0 or null = Free)
+    syllabus    Json?     // 2-Part Syllabus JSON: { common: "", departments: { Electrical: "", Mechanical: "" } }
     date        DateTime  // Date of exam
     startTime   DateTime  // Start time
     endTime     DateTime  // End time

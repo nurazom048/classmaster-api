@@ -61,6 +61,7 @@ export const listRoutines = async (req: any, res: Response) => {
       id: routine.id,
       routineName: routine.routineName,
       routineType: routine.routineType ?? 'CLASS',
+      about: routine.about ?? null,
       ownerAccountId: routine.ownerAccountId, // Explicitly pass the ID
       routineOwner: routine.routineOwner,     // Match the Dart model key
       isOwner: userId === routine.ownerAccountId, // Populated owner status indicator
@@ -88,8 +89,7 @@ export const listRoutines = async (req: any, res: Response) => {
 };
 
 export const createRoutine = async (req: any, res: Response) => {
-  const { name, routineType = 'CLASS' } = req.body;
-  const ownerId = req.user?.id;
+  const { name, routineType = 'CLASS', about } = req.body;
 
   if (!name || !ownerId) return res.status(400).json({ message: "Routine name and ownerId are required" });
 
@@ -129,6 +129,7 @@ export const createRoutine = async (req: any, res: Response) => {
         data: {
           routineName: name,
           routineType: formattedType as any,
+          about: about ?? null,
           routineOwner: { connect: { id: ownerId } }
         },
       });
@@ -367,7 +368,8 @@ export const allClass = async (req: any, res: Response) => {
       exams,
       routineType: routine.routineType ?? 'CLASS',
       owner: routine.routineOwner,
-      routineName: routine.routineName
+      routineName: routine.routineName,
+      about: routine.about ?? null
     });
   } catch (error) {
     console.error('Error fetching classes:', error);
@@ -709,26 +711,89 @@ export const deleteWeekdayById = async (req: Request, res: Response) => {
 // 📝 EXAM ROUTINE ACTIONS
 // ==========================================
 
+const syncRoutineDepartments = async (routineId: string, syllabusJson: any, accountId?: string) => {
+  if (!syllabusJson || typeof syllabusJson !== 'object' || !syllabusJson.departments) return;
+  const deptKeys = Object.keys(syllabusJson.departments || {});
+  if (deptKeys.length === 0) return;
+
+  try {
+    const routine = await prisma.routine.findUnique({
+      where: { id: routineId },
+      select: { departments: true, ownerAccountId: true }
+    });
+    if (!routine) return;
+
+    const existingDepts = routine.departments || [];
+    const newDepts = deptKeys.filter(d => !existingDepts.includes(d));
+
+    if (newDepts.length > 0) {
+      await prisma.routine.update({
+        where: { id: routineId },
+        data: {
+          departments: [...existingDepts, ...newDepts]
+        }
+      });
+    }
+
+    // Sync lifetime departments to UserExperience schema (persisted even if routine is deleted)
+    const ownerId = accountId || routine.ownerAccountId;
+    if (ownerId) {
+      const userExp = await prisma.userExperience.findUnique({
+        where: { accountId: ownerId }
+      });
+      const currentExpDepts = userExp?.departments || [];
+      const newExpDepts = deptKeys.filter(d => !currentExpDepts.includes(d));
+
+      if (userExp) {
+        if (newExpDepts.length > 0) {
+          await prisma.userExperience.update({
+            where: { accountId: ownerId },
+            data: { departments: [...currentExpDepts, ...newExpDepts] }
+          });
+        }
+      } else {
+        await prisma.userExperience.create({
+          data: {
+            accountId: ownerId,
+            departments: deptKeys
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error syncing routine departments:", err);
+  }
+};
+
 export const create_exam = async (req: any, res: Response) => {
   const routineId = req.params.routineId || req.params.routineID;
-  const { name, subjectCode, date, startTime, endTime, room } = req.body;
+  const { name, subjectCode, price, syllabus, date, startTime, endTime, room } = req.body;
 
-  if (!routineId || !name || !date || !startTime || !endTime || !room) {
-    return res.status(400).json({ message: "routineId, name, date, startTime, endTime, and room are required" });
+  if (!routineId || !name || !date || !startTime || !endTime) {
+    return res.status(400).json({ message: "routineId, name, date, startTime, and endTime are required" });
   }
+
+  const roomVal = room && String(room).trim() !== "" ? String(room).trim() : "TBA";
 
   try {
     const createdExam = await prisma.exam.create({
       data: {
         name,
         subjectCode: subjectCode || null,
+        price: price !== undefined && price !== null ? Number(price) : 0,
+        syllabus: syllabus ?? null,
         date: new Date(date),
         startTime: new Date(startTime),
         endTime: new Date(endTime),
-        room: String(room),
+        room: roomVal,
         routineId
       }
     });
+
+    // Automatically sync department choice names to the Routine model
+    if (syllabus) {
+      await syncRoutineDepartments(routineId, syllabus);
+    }
 
     res.status(201).json({ message: "Exam created successfully", exam: createdExam });
   } catch (error: any) {
@@ -757,7 +822,7 @@ export const allExams = async (req: any, res: Response) => {
 
 export const edit_exam = async (req: any, res: Response) => {
   const { examId } = req.params;
-  const { name, subjectCode, date, startTime, endTime, room } = req.body;
+  const { name, subjectCode, price, syllabus, date, startTime, endTime, room } = req.body;
 
   try {
     const updatedExam = await prisma.exam.update({
@@ -765,6 +830,8 @@ export const edit_exam = async (req: any, res: Response) => {
       data: {
         ...(name && { name }),
         ...(subjectCode !== undefined && { subjectCode }),
+        ...(price !== undefined && { price: Number(price) }),
+        ...(syllabus !== undefined && { syllabus }),
         ...(date && { date: new Date(date) }),
         ...(startTime && { startTime: new Date(startTime) }),
         ...(endTime && { endTime: new Date(endTime) }),

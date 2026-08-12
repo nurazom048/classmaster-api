@@ -76,6 +76,7 @@ const allowedOrigins = [
   "https://api.classmaster.top",
   "https://c.api.classmaster.top",
   "https://dev.classmaster.top",
+  "https://dev.api.classmaster.top",
 ];
 
 const corsOptions: cors.CorsOptions = {

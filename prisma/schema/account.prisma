@@ -28,6 +28,7 @@ model Account {
     lastLoginTime             DateTime? // Optional timestamp for the last login
     accountData               AccountData?          @relation("AccountDataOwner") // Optional relation to AccountData model
     address                   Address?              
+    userExperience            UserExperience?       @relation("UserExperienceRelation") // User lifetime experience & department choices
 
     // routine
     createdRoutines    Routine[]       @relation("AccountCreatedRoutines") // Routines created by this account

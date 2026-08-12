@@ -253,6 +253,8 @@ exports.Prisma.RoutineScalarFieldEnum = {
   id: 'id',
   routineName: 'routineName',
   routineType: 'routineType',
+  about: 'about',
+  departments: 'departments',
   ownerAccountId: 'ownerAccountId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -272,6 +274,8 @@ exports.Prisma.ExamScalarFieldEnum = {
   id: 'id',
   name: 'name',
   subjectCode: 'subjectCode',
+  price: 'price',
+  syllabus: 'syllabus',
   date: 'date',
   startTime: 'startTime',
   endTime: 'endTime',
@@ -297,6 +301,14 @@ exports.Prisma.SummaryScalarFieldEnum = {
   fileType: 'fileType',
   pollOptions: 'pollOptions',
   savedAccountId: 'savedAccountId'
+};
+
+exports.Prisma.UserExperienceScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  departments: 'departments',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -391,7 +403,8 @@ exports.Prisma.ModelName = {
   Routine: 'Routine',
   Class: 'Class',
   Exam: 'Exam',
-  Summary: 'Summary'
+  Summary: 'Summary',
+  UserExperience: 'UserExperience'
 };
 
 /**

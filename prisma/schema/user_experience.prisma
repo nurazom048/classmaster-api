@@ -1,0 +1,9 @@
+model UserExperience {
+    id          String   @id @default(uuid())
+    accountId   String   @unique
+    account     Account  @relation("UserExperienceRelation", fields: [accountId], references: [id], onDelete: Cascade)
+    departments String[] @default([]) // All lifetime departments added by the user (persisted even if routine is deleted)
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
