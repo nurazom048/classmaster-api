@@ -109,6 +109,9 @@ services:
         condition: service_healthy
     volumes:
       - ./classmaster_data_prod/backups:/app/backups
+      - ./.notes:/app/.notes
+      - /DATA/AppData/classmaster-api/classmaster_data:/DATA/AppData/classmaster-api/classmaster_data
+      - ./config/firebase:/app/config/firebase
     networks:
       - classmaster-net
 

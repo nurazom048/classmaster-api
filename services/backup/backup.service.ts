@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { Telegraf } from 'telegraf';
 import dotenv from 'dotenv';
+import prisma from '../../prisma/schema/prisma.clint';
 import { generateBackupFileName } from '../../.notes/database_restore_helper/backup.helper';
 
 dotenv.config();
@@ -90,13 +91,22 @@ const executePgDump = async (dbUrl: string, filePath: string): Promise<void> => 
 
 export const performBackup = async () => {
     const isProduction = process.env.NODE_ENV === 'production';
-    const activeDbUrl = (isProduction
-        ? process.env.PROD_DATABASE_URL
-        : process.env.DEV_DATABASE_URL || process.env.DATABASE_URL) || "";
+    const activeDbUrl = process.env.PROD_DATABASE_URL || process.env.DATABASE_URL || process.env.DEV_DATABASE_URL || "";
 
     if (!activeDbUrl) {
         console.error(`[LOG] ❌ Backup failed: No database URL configured.`);
         return;
+    }
+
+    // Check if database actually has data before running backup
+    try {
+        const accountCount = await prisma.account.count();
+        if (accountCount === 0) {
+            console.log(`[LOG] ℹ️ Database has 0 records in Account table. Skipping backup generation.`);
+            return;
+        }
+    } catch (checkErr: any) {
+        console.warn(`[LOG] ⚠️ Could not verify table row count: ${checkErr.message}. Proceeding with backup attempt...`);
     }
 
     // Step 1: Cleanup old backups in development mode
