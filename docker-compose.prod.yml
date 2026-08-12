@@ -1,0 +1,121 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: postgres-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: classmaster_prod
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-prod:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - classmaster-net
+
+  pgadmin-prod:
+    image: dpage/pgadmin4
+    container_name: pgadmin-prod
+    user: root
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - ./classmaster_data_prod/pgadmin_data:/var/lib/pgadmin
+      - ./classmaster_data_prod:/var/lib/pgadmin/storage/admin_admin.com/backups
+    networks:
+      classmaster-net:
+        aliases:
+          - pgadmin
+
+  dufs-prod:
+    image: sigoden/dufs:latest
+    container_name: dufs-prod
+    restart: always
+    ports:
+      - "8081:5000"
+    volumes:
+      - ./classmaster_data_prod:/data
+    command: /data -A --auth admin:password123@/:rw
+    networks:
+      classmaster-net:
+        aliases:
+          - dufs
+
+  tunnel-prod:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_tunnel_prod
+    restart: always
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./.cloudflared:/etc/cloudflared
+    command: tunnel --config /etc/cloudflared/config.yml run
+    networks:
+      - classmaster-net
+  # ৩. MinIO (S3 Object Storage)
+#  minio:
+#    image: quay.io/minio/minio:latest
+#    container_name: local-minio
+#    ports:
+#      - "9000:9000"
+#      - "9001:9001"
+#    volumes:
+#      - ./classmaster_data/s3_storage:/data
+#    environment:
+#      MINIO_ROOT_USER: admin
+#      MINIO_ROOT_PASSWORD: password123
+#    command: server /data --console-address ":9001"
+  api:
+    build: .
+    container_name: api-prod
+    env_file:
+      - .env.prod
+    ports:
+      - "4000:4000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - TZ=Asia/Dhaka
+      - NODE_OPTIONS=--dns-result-order=ipv4first
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster_prod?sslmode=disable
+    command: sh -c "npx prisma generate --schema=prisma/schema && npx prisma db push --schema=prisma/schema && npm run build && npm start"
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./classmaster_data_prod/backups:/app/backups
+    networks:
+      - classmaster-net
+
+volumes:
+  pgdata-prod:
+
+networks:
+  classmaster-net:
+    name: classmaster-net
+    driver: bridge

@@ -1,5 +1,23 @@
+# Dependencies & Git
 node_modules
 .git
+.gitignore
+
+# Environments & Secrets
+.env*
+.cloudflared
+
+# Data & Backups
+classmaster_data*
 classmaster_data
+classmaster_data_dev
+classmaster_data_prod
+backups
+
+# Build Outputs & Logs
 dist
+build
 *.log
+*.dump
+*.zip
+*.md

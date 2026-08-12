@@ -6,6 +6,8 @@ yarn-error.log*
 
 # Environment & Secrets
 .env
+.env.dev
+.env.prod
 .env.local
 .env.development
 .env.production
@@ -24,7 +26,10 @@ tmp_package/
 
 # Storage & Data Directories
 classmaster_data/
-pgdata/
+classmaster_data_dev/
+classmaster_data_prod/
+classmaster_data*/
+pgdata*/
 backups/
 filebrowser.db/
 

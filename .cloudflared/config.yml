@@ -2,7 +2,7 @@ tunnel: 1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf
 credentials-file: /etc/cloudflared/1d5fea2a-d9b2-4ad9-baa7-b952aa47efdf.json
 
 ingress:
-  # 🚀 Live Production API (Runs inside Server Docker Container)
+  # 🚀 Live Production API (Runs inside Docker Container)
   - hostname: api.classmaster.top
     service: http://api:4000
     originRequest:
@@ -10,22 +10,34 @@ ingress:
       noTLSVerify: true
 
   - hostname: pg.classmaster.top
-    service: http://pgadmin:80
+    service: http://pgadmin-prod:80
 
   - hostname: files.classmaster.top
-    service: http://dufs:5000
+    service: http://dufs-prod:5000
 
-  # 💻 Development API (Points to your Laptop's Local Machine Dev Server)
-  - hostname: dev.api.classmaster.top
-    service: http://host.docker.internal:4000
+  # 💻 Development Services (Direct Container-to-Container Routing)
+  - hostname: dev-api.classmaster.top
+    service: http://api-dev:4000
     originRequest:
       httpHostHeader: localhost:4000
       noTLSVerify: true
 
+  - hostname: dev.api.classmaster.top
+    service: http://api-dev:4000
+    originRequest:
+      httpHostHeader: localhost:4000
+      noTLSVerify: true
+
+  - hostname: dev-pg.classmaster.top
+    service: http://pgadmin-dev:80
+
   - hostname: dev.pg.classmaster.top
-    service: http://pgadmin:80
+    service: http://pgadmin-dev:80
+
+  - hostname: dev-files.classmaster.top
+    service: http://dufs-dev:5000
 
   - hostname: dev.files.classmaster.top
-    service: http://dufs:5000
+    service: http://dufs-dev:5000
 
   - service: http_status:404

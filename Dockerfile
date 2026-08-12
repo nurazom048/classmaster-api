@@ -26,11 +26,9 @@ RUN npx prisma generate --schema=prisma/schema
 
 # App Copy
 COPY . .
+RUN npm run build
 
 EXPOSE 4000
 
-# Container start হলে automatically:
-# 1. prisma generate
-# 2. migrate deploy
-# 3. app start
+# Default CMD (Will be overridden by docker-compose)
 CMD sh -c "npx prisma generate --schema=prisma/schema && npx prisma db push --schema=prisma/schema && npm run dev"
