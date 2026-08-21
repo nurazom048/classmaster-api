@@ -344,7 +344,15 @@ export const updateRoutine = async (req: any, res: Response) => {
     }
 
     if (about !== undefined) {
-      updateData.about = about;
+      if (typeof about === 'string') {
+        try {
+          updateData.about = JSON.parse(about);
+        } catch (_) {
+          updateData.about = about;
+        }
+      } else {
+        updateData.about = about;
+      }
     }
 
     const updatedRoutine = await prisma.routine.update({
