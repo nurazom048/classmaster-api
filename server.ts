@@ -26,6 +26,8 @@ import notice from "./Features/Notice_Features/routes/notice_route";
 import notification from "./Features/Notification_Features/routes/notification.route";
 import { classNotification } from "./Features/Routines/controllers/routine.controllers";
 import { verifyToken } from "./services/Authentication/helper/Authentication";
+import { botInterceptor } from "./Features/SEO/middleware/botInterceptor";
+import seo_route from "./Features/SEO/routes/seo_route";
 
 // DB Connections
 import { connectPostgres } from "./prisma/schema/prisma.clint";
@@ -119,9 +121,13 @@ app.use((req: any, res, next) => {
 
 import storage_route from "./services/storage/storage.route";
 
+// SEO Bot Interceptor (Intercepts crawlers for dynamic routes like /profile/:username, /institution/:name, /notice/:id)
+app.use(botInterceptor);
+
 // ===============================
 // 📌 ROUTES
 // ===============================
+app.use("/", seo_route); // Handles /sitemap.xml
 app.use("/auth", auth_route);
 app.use("/account", account);
 app.use("/routine", routine_route);

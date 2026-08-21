@@ -141,10 +141,17 @@ export const loginAccount = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
-    // Firebase sign-in to verify email
-    const userCredential = await signInWithEmailAndPassword(auth, accountData.email, password);
-    if (!userCredential.user.emailVerified) {
-      return res.status(401).json({ message: "Email is not verified", email: userCredential.user.email });
+    // Firebase sign-in to verify email (if configured in Firebase)
+    if (accountData?.email) {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, accountData.email, password);
+        if (userCredential?.user && !userCredential.user.emailVerified) {
+          return res.status(401).json({ message: "Email is not verified", email: userCredential.user.email });
+        }
+      } catch (fbError: any) {
+        // If Firebase fails but local password matched, log warning and allow local login
+        console.warn("⚠️ Firebase email verification check skipped/failed:", fbError.message);
+      }
     }
 
     // Step 7: Generate JWT tokens

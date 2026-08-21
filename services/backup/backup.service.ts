@@ -64,15 +64,14 @@ const cleanupOldBackups = async () => {
 //***************************************************************************/
 
 const executePgDump = async (dbUrl: string, filePath: string): Promise<void> => {
-    const cleanUrl = dbUrl.split("?")[0];
+    let cleanUrl = dbUrl.split("?")[0];
     
-    const hasHostPgDump = await new Promise<boolean>((resolve) => {
-        exec('which pg_dump', (err) => resolve(!err));
-    });
+    // If Prisma Accelerate URL or invalid socket URL is given, fallback to docker exec against postgres-db container
+    const isAccelerate = dbUrl.startsWith("prisma+postgres://");
 
-    const cmd = hasHostPgDump
-        ? `pg_dump "${cleanUrl}" -F c -f "${filePath}"`
-        : `docker exec -i postgres-db pg_dump "${cleanUrl}" -F c > "${filePath}"`;
+    const cmd = isAccelerate
+        ? `docker exec -i postgres-db pg_dump -U postgres -d classmaster -F c > "${filePath}"`
+        : `pg_dump "${cleanUrl}" -F c -f "${filePath}" 2>/dev/null || docker exec -i postgres-db pg_dump -U postgres -d classmaster -F c > "${filePath}"`;
 
     return new Promise((resolve, reject) => {
         exec(cmd, (error) => {

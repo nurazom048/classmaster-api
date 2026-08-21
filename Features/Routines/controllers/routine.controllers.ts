@@ -90,6 +90,7 @@ export const listRoutines = async (req: any, res: Response) => {
 
 export const createRoutine = async (req: any, res: Response) => {
   const { name, routineType = 'CLASS', about } = req.body;
+  const ownerId = req.user?.id;
 
   if (!name || !ownerId) return res.status(400).json({ message: "Routine name and ownerId are required" });
 
