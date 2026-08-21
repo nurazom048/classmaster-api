@@ -129,3 +129,20 @@ export function generateDynamicDescription(title: string, accountIdentifier: str
 
     return commonTemplates[Math.floor(Math.random() * commonTemplates.length)];
 }
+
+/**
+ * Helper: Converts plain text string to Quill Delta JSON structure format
+ */
+export function textToQuillDelta(text: string): any[] {
+    if (!text) return [{ insert: "\n" }];
+    const formattedText = text.endsWith("\n") ? text : `${text}\n`;
+    return [{ insert: formattedText }];
+}
+
+/**
+ * Helper: Generates dynamic description directly formatted as Quill Delta JSON
+ */
+export function generateDynamicDescriptionJson(title: string, accountIdentifier: string): any[] {
+    const text = generateDynamicDescription(title, accountIdentifier);
+    return textToQuillDelta(text);
+}

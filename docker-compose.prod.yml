@@ -107,7 +107,7 @@ services:
       - TZ=Asia/Dhaka
       - NODE_OPTIONS=--dns-result-order=ipv4first
       - DATABASE_URL=postgresql://postgres:1234@db:5432/classmaster_prod?sslmode=disable
-    command: sh -c "npx prisma generate --schema=prisma/schema && npx prisma db push --schema=prisma/schema && npm run build && npm start"
+    command: sh -c "npx prisma generate --schema=prisma/schema && npx prisma db push --schema=prisma/schema --accept-data-loss && npm run build && npm start"
     restart: always
     depends_on:
       db:

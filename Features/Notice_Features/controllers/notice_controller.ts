@@ -42,11 +42,20 @@ export const addNotice = async (req: any, res: Response) => {
         const fileName = getNoticeFilePath(findAccount.id, uuid, req.file.originalname);
         await uploadFile(BUCKET_NAME, fileName, req.file);
 
+        let parsedDescription = description;
+        if (typeof description === 'string' && description.trim() !== '') {
+            try {
+                parsedDescription = JSON.parse(description);
+            } catch {
+                parsedDescription = description;
+            }
+        }
+
         // Step 6: Create Notice in the Prisma database (Saving raw file path)
         const createdNotice = await prisma.notice.create({
             data: {
                 title,
-                description,
+                description: parsedDescription ?? null,
                 publisherId: id,
                 pdf: fileName,
                 category: (category || 'notice') as any,

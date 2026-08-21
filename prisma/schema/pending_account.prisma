@@ -5,7 +5,7 @@ model PendingAccount {
     username     String      @unique
     address      String?
     name         String?
-    about        String?
+    about        Json?
     contractInfo String?
     phone        String?
     image        String?

@@ -74,13 +74,24 @@ export const edit_account = async (req: any, res: Response) => {
       profileImageProvider = null;
     }
 
+    let parsedAbout = about;
+    if (about !== undefined && about !== null) {
+      if (typeof about === 'string' && about.trim() !== '') {
+        try {
+          parsedAbout = JSON.parse(about);
+        } catch {
+          parsedAbout = about;
+        }
+      }
+    }
+
     // Step 4: Update account details in the database (only storing paths as keys)
     const updatedAccount = await prisma.account.update({
       where: { id: userId },
       data: {
         name,
         username,
-        about,
+        about: parsedAbout,
         accountType,
         coverImage: coverImagePath,
         coverImageStorageProvider: coverImageProvider as any,

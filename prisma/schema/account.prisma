@@ -18,7 +18,7 @@ model Account {
     id                        String                @id @default(uuid())
     username                  String                @unique
     name                      String
-    about                     String? // Optional about section
+    about                     Json? // Optional about section
     isVerified                Boolean               @default(false) // Corrected spelling from "isVarified"
     image                     String? // Optional image URL for the account
     imageStorageProvider      StorageProvider? // Enum or string for image storage provider

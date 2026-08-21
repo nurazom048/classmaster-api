@@ -7,7 +7,8 @@ import {
     extractImages,
     optimizeImageUrl,
     createPdfFromImages,
-    generateDynamicDescription
+    generateDynamicDescription,
+    generateDynamicDescriptionJson
 } from './autotask.helper';
 import { StorageProvider } from '../../utils/enums';
 
@@ -96,10 +97,11 @@ async function autoNoticeUpload() {
             console.log(`Processing new notice: "${notice.title}"`);
 
             const accountIdentifier = (publisherAccount as any).username || publisherAccount.name || "ClassMaster";
-            const finalDescription = generateDynamicDescription(notice.title, accountIdentifier);
+            const finalDescriptionText = generateDynamicDescription(notice.title, accountIdentifier);
+            const finalDescriptionJson = generateDynamicDescriptionJson(notice.title, accountIdentifier);
 
             // এই ফাংশনটি এখন অল ইমেজ ইউআরএল (যেমন: ৪টি ইমেজ) রিসিভ করে একটি ৪ পেইজের পিডিএফ তৈরি করবে।
-            const pdfBuffer = await createPdfFromImages(notice.imageUrls, finalDescription);
+            const pdfBuffer = await createPdfFromImages(notice.imageUrls, finalDescriptionText);
             const uuid = uuidv4();
             const fileName = getAutoNoticeFilePath(publisherAccount.id, uuid);
             await uploadFile(BUCKET_NAME, fileName, {
@@ -111,7 +113,7 @@ async function autoNoticeUpload() {
             await prisma.notice.create({
                 data: {
                     title: notice.title,
-                    description: finalDescription,
+                    description: finalDescriptionJson as any,
                     publisherId: publisherAccount.id,
                     pdf: fileName,
                 },
@@ -134,7 +136,7 @@ export const autoSeedInitialize = () => {
     // Run immediately on boot
     autoNoticeUpload();
 
-    // Loop every 30 minutes
-    const THIRTY_MINUTES_MS = 30 * 60 * 1000;
-    setInterval(autoNoticeUpload, THIRTY_MINUTES_MS);
+    // Loop every 20 minutes
+    const TWENTY_MINUTES_MS = 20 * 60 * 1000;
+    setInterval(autoNoticeUpload, TWENTY_MINUTES_MS);
 };

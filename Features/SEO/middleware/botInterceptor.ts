@@ -5,6 +5,7 @@ import {
   generatePersonSchema,
   generateEducationalOrganizationSchema,
   generateArticleSchema,
+  extractTextFromDescription,
 } from '../services/jsonLdGenerator';
 
 const DOMAIN = process.env.SITE_DOMAIN || 'https://classmaster.top';
@@ -100,7 +101,8 @@ export const botInterceptor = async (req: Request, res: Response, next: NextFunc
 
       if (user) {
         const title = `${user.name} (@${user.username}) | Classmaster`;
-        const description = user.about || `View ${user.name}'s profile and educational updates on Classmaster.`;
+        const userAboutText = extractTextFromDescription(user.about);
+        const description = userAboutText || `View ${user.name}'s profile and educational updates on Classmaster.`;
         const profileUrl = `${DOMAIN}/profile/${encodeURIComponent(user.username)}`;
         const jsonLd = generatePersonSchema(user);
 
@@ -135,7 +137,8 @@ export const botInterceptor = async (req: Request, res: Response, next: NextFunc
 
       if (institution) {
         const title = `${institution.name} | Classmaster`;
-        const description = institution.about || `${institution.name} official academy page on Classmaster. Explore class routines, notices, and updates.`;
+        const instAboutText = extractTextFromDescription(institution.about);
+        const description = instAboutText || `${institution.name} official academy page on Classmaster. Explore class routines, notices, and updates.`;
         const instUrl = `${DOMAIN}/institution/${encodeURIComponent(institution.username || institution.name)}`;
         const jsonLd = generateEducationalOrganizationSchema(institution);
 
@@ -164,7 +167,8 @@ export const botInterceptor = async (req: Request, res: Response, next: NextFunc
 
       if (notice) {
         const title = `${notice.title} | Classmaster Notice`;
-        const description = notice.description || notice.title;
+        const plainDesc = extractTextFromDescription(notice.description);
+        const description = plainDesc || notice.title;
         const noticeUrl = `${DOMAIN}/notice/${notice.id}`;
         const jsonLd = generateArticleSchema(notice);
 
@@ -175,7 +179,7 @@ export const botInterceptor = async (req: Request, res: Response, next: NextFunc
           image: notice.Account?.image || undefined,
           type: 'article',
           jsonLd,
-          bodyContent: `<article><h2>${escapeHtml(notice.title)}</h2><p>${escapeHtml(notice.description || '')}</p></article>`
+          bodyContent: `<article><h2>${escapeHtml(notice.title)}</h2><p>${escapeHtml(plainDesc)}</p></article>`
         });
 
         return res.status(200).set('Content-Type', 'text/html').send(html);

@@ -38,7 +38,7 @@ export function generatePersonSchema(user: any) {
     "alternateName": `@${user.username}`,
     "identifier": user.username,
     "url": profileUrl,
-    "description": user.about || `Profile of ${user.name} (@${user.username}) on Classmaster.`
+    "description": extractTextFromDescription(user.about) || `Profile of ${user.name} (@${user.username}) on Classmaster.`
   };
 
   if (user.image) {
@@ -69,7 +69,7 @@ export function generateEducationalOrganizationSchema(institution: any) {
     "@type": "EducationalOrganization",
     "name": institution.name,
     "url": instUrl,
-    "description": institution.about || `${institution.name} - Educational organization on Classmaster.`
+    "description": extractTextFromDescription(institution.about) || `${institution.name} - Educational organization on Classmaster.`
   };
 
   if (institution.image) {
@@ -102,6 +102,25 @@ export function generateEducationalOrganizationSchema(institution: any) {
   return schema;
 }
 
+export function extractTextFromDescription(desc: any): string {
+  if (!desc) return '';
+  if (typeof desc === 'string') {
+    try {
+      const parsed = JSON.parse(desc);
+      return extractTextFromDescription(parsed);
+    } catch {
+      return desc;
+    }
+  }
+  if (Array.isArray(desc)) {
+    return desc.map((op: any) => (typeof op?.insert === 'string' ? op.insert : '')).join('').trim();
+  }
+  if (typeof desc === 'object') {
+    return JSON.stringify(desc);
+  }
+  return String(desc);
+}
+
 /**
  * 4. Article / Announcement Schema Generator (Notices)
  */
@@ -112,11 +131,13 @@ export function generateArticleSchema(notice: any) {
     ? (notice.Account.image.startsWith("http") ? notice.Account.image : `${DOMAIN}/${notice.Account.image}`)
     : LOGO_URL;
 
+  const plainDesc = extractTextFromDescription(notice.description);
+
   return {
     "@context": "https://schema.org",
     "@type": notice.category === "notice" ? "Announcement" : "Article",
     "headline": notice.title,
-    "description": notice.description || notice.title,
+    "description": plainDesc || notice.title,
     "url": noticeUrl,
     "datePublished": notice.createdAt ? new Date(notice.createdAt).toISOString() : undefined,
     "dateModified": notice.updatedAt ? new Date(notice.updatedAt).toISOString() : undefined,

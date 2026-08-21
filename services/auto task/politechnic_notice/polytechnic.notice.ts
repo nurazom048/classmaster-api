@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import https from 'https';
 import prisma from '../../../prisma/schema/prisma.clint';
-import { generateDynamicDescription } from '../autotask.helper';
+import { generateDynamicDescription, generateDynamicDescriptionJson } from '../autotask.helper';
 
 // Hardcoded Target Account ID for publishing the notices
 const TARGET_USER_ID = "6a45307892c37c968aebb618";
@@ -199,14 +199,14 @@ async function autoNoticeUpload() {
             console.log(`Processing new notice: "${notice.title}"`);
 
             const accountIdentifier = publisherAccount.username || publisherAccount.name || "ClassMaster";
-            const finalDescription = generateDynamicDescription(notice.title, accountIdentifier);
+            const finalDescriptionJson = generateDynamicDescriptionJson(notice.title, accountIdentifier);
 
             // Save the notice record directly to the database.
             // Using the direct, absolute download PDF URL directly (no local PDF creation or S3 upload needed)
             await prisma.notice.create({
                 data: {
                     title: notice.title,
-                    description: finalDescription,
+                    description: finalDescriptionJson as any,
                     publisherId: publisherAccount.id,
                     pdf: notice.pdf_download_url || null,
                     category: getNoticeCategory(notice.title),
