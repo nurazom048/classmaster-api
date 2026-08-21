@@ -123,3 +123,25 @@ All domain routes are managed via `.cloudflared/config.yml`:
 | **pgAdmin** | `http://pgadmin:80` | `https://pg.classmaster.top/` | Live Database UI |
 | **DUFS** | `http://dufs:5000` | `https://files.classmaster.top/` | Live File Storage |
 | **Dev API** | `http://host.docker.internal:4000` | `https://dev.api.classmaster.top/` | Local Laptop Dev Testing |
+
+
+
+
+### Live Logs Commands
+
+```bash
+# Live API Logs
+docker compose -f docker-compose.prod.yml logs -f api
+
+# Live Database Logs
+docker compose -f docker-compose.prod.yml logs -f db
+
+# Live pgAdmin Logs
+docker compose -f docker-compose.prod.yml logs -f pgadmin-prod
+
+# All Services Logs
+docker compose -f docker-compose.prod.yml logs -f
+
+# Tail last 100 lines
+docker compose -f docker-compose.prod.yml logs --tail 100 api
+```

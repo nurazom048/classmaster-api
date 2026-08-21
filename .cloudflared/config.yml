@@ -11,6 +11,8 @@ ingress:
 
   - hostname: pg.classmaster.top
     service: http://pgadmin-prod:80
+    originRequest:
+      httpHostHeader: pg.classmaster.top
 
   - hostname: files.classmaster.top
     service: http://dufs-prod:5000

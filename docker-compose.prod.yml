@@ -20,25 +20,30 @@ services:
     networks:
       - classmaster-net
 
-#  pgadmin-prod:
-#    image: dpage/pgadmin4
-#    container_name: pgadmin-prod
-#    user: root
-#    restart: always
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-#      PGADMIN_DEFAULT_PASSWORD: admin
-#    ports:
-#      - "5050:80"
-#    depends_on:
-#      - db
-#    volumes:
-#      - ./classmaster_data_prod/pgadmin_data:/var/lib/pgadmin
-#      - ./classmaster_data_prod:/var/lib/pgadmin/storage/admin_admin.com/backups
-#    networks:
-#      classmaster-net:
-#        aliases:
-#          - pgadmin
+  pgadmin-prod:
+    image: dpage/pgadmin4
+    container_name: pgadmin-prod
+    user: root
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'False'
+      PGADMIN_CONFIG_PROXY_X_FORWARDED_FOR: 'True'
+      PGADMIN_CONFIG_COOKIE_DEFAULT_SECURE: 'True'
+      PGADMIN_CONFIG_SESSION_COOKIE_SECURE: 'True'
+      PGADMIN_CONFIG_SESSION_COOKIE_SAMESITE: "'Lax'"
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - ./classmaster_data_prod/pgadmin_data:/var/lib/pgadmin
+      - ./classmaster_data_prod:/var/lib/pgadmin/storage/admin_admin.com/backups
+    networks:
+      classmaster-net:
+        aliases:
+          - pgadmin
 
   dufs-prod:
     image: sigoden/dufs:latest
