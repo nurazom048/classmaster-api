@@ -316,6 +316,52 @@ export const deleteRoutineById = async (req: any, res: Response) => {
   }
 };
 
+export const updateRoutine = async (req: any, res: Response) => {
+  const routineID = req.params.routineID || req.params.routineId;
+  const { name, about } = req.body;
+  const userId = req.user?.id;
+
+  if (!routineID || !userId) {
+    return res.status(400).json({ message: "Routine ID and user authentication are required" });
+  }
+
+  try {
+    const routineMember = await prisma.routineMember.findFirst({
+      where: { routineId: routineID, accountId: userId },
+    });
+
+    if (!routineMember || (!routineMember.owner && !routineMember.captain)) {
+      return res.status(403).json({ message: "You do not have permission to edit this routine" });
+    }
+
+    const updateData: any = {};
+
+    if (name && typeof name === 'string' && name.trim()) {
+      if (name.trim().length > 150) {
+        return res.status(400).json({ message: "Routine name cannot exceed 150 characters" });
+      }
+      updateData.routineName = name.trim();
+    }
+
+    if (about !== undefined) {
+      updateData.about = about;
+    }
+
+    const updatedRoutine = await prisma.routine.update({
+      where: { id: routineID },
+      data: updateData,
+    });
+
+    return res.status(200).json({
+      message: "Routine updated successfully",
+      routine: updatedRoutine,
+    });
+  } catch (error: any) {
+    console.error("Error updating routine:", error);
+    return res.status(500).json({ message: `Routine update failed: ${error.message || "Unknown error"}` });
+  }
+};
+
 // ==========================================
 // 🏫 CLASSES & WEEKDAYS
 // ==========================================

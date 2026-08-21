@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // Import your middlewares and controllers here...
 import { classValidation, cakedPermission, classEditValidation, weekdayValidation } from '../validation/routine.validation';
-import { listRoutines, createRoutine, current_user_status, deleteRoutineById, allClass, create_class, findClass, editClass, remove_class, classNotification, allWeekdayInClass, addWeekday, deleteWeekdayById, superUpdateClass, create_exam, allExams, edit_exam, remove_exam } from '../controllers/routine.controllers';
+import { listRoutines, createRoutine, current_user_status, deleteRoutineById, updateRoutine, allClass, create_class, findClass, editClass, remove_class, classNotification, allWeekdayInClass, addWeekday, deleteWeekdayById, superUpdateClass, create_exam, allExams, edit_exam, remove_exam } from '../controllers/routine.controllers';
 import { verifyToken } from '../../../services/Authentication/helper/Authentication';
 import { checkClassAndPermission, checkDuplicateClass } from '../middleware/class.middleware';
 import { routineModificationPermission } from '../middleware/permission.routine.mid';
@@ -62,6 +62,8 @@ router.route('/exams/:examId')
 router.route('/:routineID')
     .get(verifyToken, current_user_status)
     .post(verifyToken, current_user_status)
+    .put(verifyToken, updateRoutine)
+    .patch(verifyToken, updateRoutine)
     .delete(verifyToken, routineModificationPermission, deleteRoutineById);
 
 export default router;
