@@ -239,7 +239,7 @@ router.get('/', (_req: Request, res: Response) => {
     h2 { margin-top: 0; color: #1e293b; display: flex; align-items: center; gap: 8px; }
     p { color: #64748b; font-size: 14px; margin-bottom: 16px; }
     textarea { width: 100%; height: 320px; font-family: monospace; font-size: 13px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; resize: vertical; outline: none; }
-    textarea:focus { border-color: #3b82f6; ring: 2px solid #bfdbfe; }
+    textarea:focus { border-color: #3b82f6; }
     button { background: #2563eb; color: #fff; border: none; padding: 12px 20px; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 12px; transition: background 0.2s; }
     button:hover { background: #1d4ed8; }
     button:disabled { background: #94a3b8; cursor: not-allowed; }
@@ -250,72 +250,94 @@ router.get('/', (_req: Request, res: Response) => {
 <body>
   <div class="card">
     <h2>💼 Job Circular পোস্ট করুন <span class="badge">পাবলিক মোড</span></h2>
-    <p>JSON পেস্ট করে বাটনে চাপুন। পিডিএফ ফাইল সরাসরি ডাউনলোড হয়ে মিনিওতে আপলোড হবে, অথবা ইমেজ থাকলে স্বয়ংক্রিয়ভাবে পিডিএফে রূপান্তর হয়ে নোটিশ তৈরি হবে।</p>
+    <p>JSON পেস্ট করে বাটনে চাপুন। পিডিএফ ফাইল সরাসরি ডাউনলোড হয়ে আপলোড হবে, অথবা ইমেজ থাকলে স্বয়ংক্রিয়ভাবে পিডিএফে রূপান্তর হয়ে নোটিশ তৈরি হবে।</p>
     <textarea id="json" placeholder='{"jobs":[{"title":"...","description":"...","pdf":"https://...pdf"}]}'></textarea>
-    <button id="btn" onclick="send()">পোস্ট করুন</button>
+    <button id="btn" type="button">পোস্ট করুন</button>
     <h3 style="margin-top: 20px; font-size: 15px;">প্রসেসিং স্ট্যাটাস:</h3>
     <pre id="out">অপেক্ষমান...</pre>
   </div>
 
   <script>
-    let pollInterval = null;
+    (function() {
+      var pollInterval = null;
 
-    async function send() {
-      const btn = document.getElementById('btn');
-      const out = document.getElementById('out');
-      const jsonText = document.getElementById('json').value.trim();
-
-      if (!jsonText) {
-        alert('অনুগ্রহ করে JSON পেস্ট করুন');
-        return;
+      function getBasePath() {
+        var p = window.location.pathname;
+        if (p.endsWith("/")) {
+          p = p.slice(0, -1);
+        }
+        return p;
       }
 
-      let body;
-      try {
-        body = JSON.parse(jsonText);
-      } catch (e) {
-        out.textContent = '❌ JSON ফরম্যাট ভুল: ' + e.message;
-        return;
+      async function checkStatus() {
+        try {
+          var r = await fetch(getBasePath() + "/status");
+          var data = await r.json();
+          var out = document.getElementById("out");
+          var btn = document.getElementById("btn");
+
+          out.textContent = "📊 লাইভ প্রসেসিং স্ট্যাটাস:\n" + JSON.stringify(data, null, 2);
+
+          if (!data.isRunning) {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = null;
+            btn.disabled = false;
+          }
+        } catch (e) {
+          console.error("Status check error:", e);
+        }
       }
 
-      btn.disabled = true;
-      out.textContent = '⏳ সার্ভারে পাঠানো হচ্ছে এবং ব্যাকগ্রাউন্ড প্রসেসিং শুরু হচ্ছে...';
+      async function send() {
+        var btn = document.getElementById("btn");
+        var out = document.getElementById("out");
+        var textarea = document.getElementById("json");
+        var jsonText = (textarea.value || "").trim();
 
-      try {
-        const r = await fetch(location.pathname, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        const res = await r.json();
-        out.textContent = JSON.stringify(res, null, 2);
+        if (!jsonText) {
+          alert("অনুগ্রহ করে JSON পেস্ট করুন");
+          return;
+        }
 
-        // স্ট্যাটাস পোলিং শুরু
-        if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(checkStatus, 2000);
-      } catch (e) {
-        out.textContent = '❌ ত্রুটি: ' + e.message;
-        btn.disabled = false;
-      }
-    }
+        var body;
+        try {
+          body = JSON.parse(jsonText);
+        } catch (e) {
+          out.textContent = "❌ JSON ফরম্যাট ভুল: " + e.message;
+          alert("JSON ফরম্যাট সঠিক নয়: " + e.message);
+          return;
+        }
 
-    async function checkStatus() {
-      try {
-        const r = await fetch(location.pathname + '/status');
-        const data = await r.json();
-        const out = document.getElementById('out');
-        const btn = document.getElementById('btn');
+        btn.disabled = true;
+        out.textContent = "⏳ সার্ভারে পাঠানো হচ্ছে এবং ব্যাকগ্রাউন্ড প্রসেসিং শুরু হচ্ছে...";
 
-        out.textContent = '📊 লাইভ প্রসেসিং স্ট্যাটাস:\n' + JSON.stringify(data, null, 2);
+        try {
+          var r = await fetch(getBasePath(), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          var res = await r.json();
+          out.textContent = JSON.stringify(res, null, 2);
 
-        if (!data.isRunning) {
-          clearInterval(pollInterval);
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = setInterval(checkStatus, 2000);
+          checkStatus();
+        } catch (e) {
+          out.textContent = "❌ ত্রুটি: " + e.message;
           btn.disabled = false;
         }
-      } catch (e) {
-        console.error('Status fetch error:', e);
       }
-    }
+
+      window.send = send;
+      document.addEventListener("DOMContentLoaded", function() {
+        var btn = document.getElementById("btn");
+        if (btn) btn.onclick = send;
+      });
+      // Also attach immediately in case DOM is already parsed
+      var btn = document.getElementById("btn");
+      if (btn) btn.onclick = send;
+    })();
   </script>
 </body>
 </html>`);
