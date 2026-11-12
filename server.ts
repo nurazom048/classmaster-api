@@ -62,8 +62,8 @@ const PORT = process.env.PORT || 4000;
 // ===============================
 
 // Body Parser
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
 // CORS Config
 const allowedOrigins = [
@@ -120,6 +120,7 @@ app.use((req: any, res, next) => {
 });
 
 import storage_route from "./services/storage/storage.route";
+import jobCircular from "./Features/JobCircular/routes/job_circular_route";
 
 // SEO Bot Interceptor (Intercepts crawlers for dynamic routes like /profile/:username, /institution/:name, /notice/:id)
 app.use(botInterceptor);
@@ -137,6 +138,7 @@ app.use("/notice", notice);
 app.use("/notification", notification);
 app.post("/class/notification", verifyToken, classNotification);
 app.use("/storage", storage_route);
+app.use("/bot/jobcircular", jobCircular);
 // Base Checkers
 app.get("/", (req, res) => res.status(200).json({ status: "online", message: "✅ ClassMaster API is Now online ready" }));
 app.use((req, res) => res.status(404).json({ message: "❌ 404: Route Not Found" }));
